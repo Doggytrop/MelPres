@@ -1,58 +1,162 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 💰 MelPres
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web profesional para la gestión de préstamos personales, desarrollado con Laravel.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📌 Descripción
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**MelPres** es una aplicación web diseñada para ayudar a prestamistas a administrar clientes, préstamos y pagos de forma flexible y realista, adaptándose a diferentes esquemas de negocio.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+El sistema permite manejar desde préstamos simples hasta escenarios más complejos como pagos parciales, intereses variables y control de mora.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Características principales
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* 👤 Gestión de clientes
+* 💰 Administración de préstamos
+* 💳 Registro de pagos (flexibles)
+* 📊 Dashboard con métricas
+* 🔐 Sistema de autenticación
+* ⚙️ Intereses personalizables
+* ⏱️ Soporte para pagos:
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+  * Semanales
+  * Quincenales
+  * Mensuales
+* 🚨 Control de mora (sanciones)
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## 🧠 Tipos de préstamos soportados
 
-```bash
-composer require laravel/boost --dev
+### 🔴 Préstamo tipo interés (renovable)
 
-php artisan boost:install
+* El cliente paga solo intereses por periodo
+* El capital permanece intacto
+* Ideal para esquemas tipo “pago de interés mensual”
+
+### 🟢 Préstamo a plazo
+
+* Interés acumulado por duración
+* Pagos divididos en periodos
+* Liquidación total al finalizar
+
+---
+
+## 💳 Sistema de pagos
+
+El sistema permite:
+
+* Pagos completos
+* Pagos parciales
+* Pagos mayores al esperado
+* Pagos solo de interés
+* Pagos mixtos
+
+Todo basado en el concepto de:
+
+```plaintext
+saldo_restante
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## 🛠️ Tecnologías utilizadas
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+* PHP 8+
+* Laravel
+* Blade
+* MySQL
+* Bootstrap
+* Laragon (entorno local)
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## ⚙️ Instalación
 
-## Security Vulnerabilities
+1. Clonar el repositorio:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+git clone https://github.com/tuusuario/melpres.git
+cd melpres
+```
 
-## License
+2. Instalar dependencias:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer install
+npm install
+```
+
+3. Configurar entorno:
+
+```bash
+cp .env.example .env
+```
+
+Editar el archivo `.env` con tus datos de base de datos.
+
+4. Generar clave:
+
+```bash
+php artisan key:generate
+```
+
+5. Ejecutar migraciones:
+
+```bash
+php artisan migrate
+```
+
+6. Iniciar servidor:
+
+```bash
+php artisan serve
+```
+
+---
+
+## 📁 Estructura del proyecto
+
+* `app/Http/Controllers` → lógica de controladores
+* `resources/views` → vistas Blade
+* `routes/web.php` → rutas web
+* `database/migrations` → estructura de base de datos
+
+---
+
+## 📊 Estado del proyecto
+
+🚧 En desarrollo
+
+Módulos actuales:
+
+* Autenticación ✔️
+* Dashboard ✔️
+* Clientes (en progreso)
+* Préstamos (en diseño)
+* Pagos (pendiente)
+
+---
+
+## 🔮 Futuras mejoras
+
+* Notificaciones (WhatsApp)
+* Reportes avanzados
+* Control de usuarios/roles
+* Exportación de datos
+* Dashboard avanzado
+
+---
+
+## 👨‍💻 Autor
+
+Desarrollado por **Luis Angel Andrade**
+
+---
+
+## 📄 Licencia
+
+Este proyecto es de uso privado / comercial.
