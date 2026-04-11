@@ -1,0 +1,65 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard')
+
+@section('content')
+
+<div class="mb-4">
+    <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Resumen general</h5>
+    <span class="text-muted" style="font-size:13px;">Bienvenido, {{ auth()->user()->name }}</span>
+</div>
+
+{{-- Tarjetas de métricas --}}
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Clientes</span>
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:34px; height:34px; background:#e8f5e9;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $clientes }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Préstamos activos</span>
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:34px; height:34px; background:#e8f5e9;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                        <path d="M2 10h20"/>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $prestamos }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Pagos hoy</span>
+                <div class="rounded-2 d-flex align-items-center justify-content-center"
+                     style="width:34px; height:34px; background:#e8f5e9;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"/>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $pagos }}</h3>
+        </div>
+    </div>
+
+</div>
+
+@endsection
