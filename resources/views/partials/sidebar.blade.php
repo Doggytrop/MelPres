@@ -46,9 +46,10 @@
         </li>
 
         <li class="nav-item">
-            <a href="#"
-               class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2 text-secondary"
-               style="font-size:14px;">
+            <a href="{{ route('prestamos.index') }}"
+                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
+                        {{ request()->routeIs('prestamos.*') ? 'text-white' : 'text-secondary' }}"
+                style="{{ request()->routeIs('prestamos.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="2" y="5" width="20" height="14" rx="2"/>
                     <path d="M2 10h20"/>
