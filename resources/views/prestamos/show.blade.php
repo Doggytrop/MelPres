@@ -14,7 +14,6 @@
     </a>
 </div>
 
-{{-- Alertas --}}
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
          style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
@@ -35,7 +34,6 @@
     </div>
 @endif
 
-{{-- Banner de mora si está vencido --}}
 @if($prestamo->estado === 'vencido')
     <div class="rounded-3 p-3 mb-4 d-flex align-items-center gap-3"
          style="background:#fdecea; border:0.5px solid #f5c6c6;">
@@ -46,13 +44,12 @@
         <div>
             <p class="fw-medium mb-0" style="color:#c0392b; font-size:13px;">Préstamo vencido</p>
             <p class="mb-0" style="color:#c0392b; font-size:12px;">
-                Este préstamo tiene pagos atrasados. Mora acumulada: ${{ number_format($prestamo->mora_acumulada, 2) }}
+                Mora acumulada: ${{ number_format($prestamo->mora_acumulada, 2) }}
             </p>
         </div>
     </div>
 @endif
 
-{{-- Métricas rápidas --}}
 @php
     $totalPagado  = $prestamo->pagos->sum('monto_pagado');
     $totalCapital = $prestamo->pagos->sum('abono_capital');
@@ -63,29 +60,30 @@
         : 0;
 @endphp
 
+{{-- Métricas --}}
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Total pagado</span>
-            <span class="d-block fw-medium" style="font-size:20px; color:#1a2e1a;">${{ number_format($totalPagado, 2) }}</span>
+            <span class="d-block fw-medium" style="font-size:18px; color:#1a2e1a;">${{ number_format($totalPagado, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Saldo pendiente</span>
-            <span class="d-block fw-medium" style="font-size:20px; color:#1f6b21;">${{ number_format($prestamo->saldo_restante, 2) }}</span>
+            <span class="d-block fw-medium" style="font-size:18px; color:#1f6b21;">${{ number_format($prestamo->saldo_restante, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés cobrado</span>
-            <span class="d-block fw-medium" style="font-size:20px; color:#1a2e1a;">${{ number_format($totalInteres, 2) }}</span>
+            <span class="d-block fw-medium" style="font-size:18px; color:#1a2e1a;">${{ number_format($totalInteres, 2) }}</span>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Mora cobrada</span>
-            <span class="d-block fw-medium" style="font-size:20px; color:{{ $totalMora > 0 ? '#c0392b' : '#1a2e1a' }};">
+            <span class="d-block fw-medium" style="font-size:18px; color:{{ $totalMora > 0 ? '#c0392b' : '#1a2e1a' }};">
                 ${{ number_format($totalMora, 2) }}
             </span>
         </div>
@@ -93,7 +91,7 @@
 </div>
 
 {{-- Barra de progreso --}}
-<div class="bg-white border rounded-3 p-4 mb-4" style="border-color:#e8e8e8 !important;">
+<div class="bg-white border rounded-3 p-3 p-md-4 mb-4" style="border-color:#e8e8e8 !important;">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <span style="font-size:13px; color:#1a2e1a; font-weight:500;">Progreso del préstamo</span>
         <span style="font-size:13px; color:#1f6b21; font-weight:500;">{{ $porcentajePagado }}% pagado</span>
@@ -109,15 +107,14 @@
 
 <div class="row g-4">
 
-    {{-- Panel izquierdo — info --}}
-    <div class="col-md-4">
+    {{-- Panel izquierdo --}}
+    <div class="col-12 col-md-4">
 
-        {{-- Card cliente --}}
         <div class="bg-white border rounded-3 p-4 mb-3" style="border-color:#e8e8e8 !important;">
             <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cliente</p>
             <div class="d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium"
-                     style="width:40px; height:40px; background:#e8f5e9; color:#1f6b21; font-size:16px; flex-shrink:0;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium flex-shrink-0"
+                     style="width:40px; height:40px; background:#e8f5e9; color:#1f6b21; font-size:16px;">
                     {{ strtoupper(substr($prestamo->cliente->nombre, 0, 1)) }}
                 </div>
                 <div>
@@ -130,22 +127,21 @@
             </div>
         </div>
 
-        {{-- Card resumen financiero --}}
         <div class="bg-white border rounded-3 p-4" style="border-color:#e8e8e8 !important;">
             <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Detalle del préstamo</p>
 
             @php
                 $rows = [
-                    'Monto original'   => '$' . number_format($prestamo->monto_original, 2),
-                    'Saldo restante'   => '$' . number_format($prestamo->saldo_restante, 2),
-                    'Interés mensual'  => $prestamo->interes_rate . '%',
-                    'Mora acumulada'   => '$' . number_format($prestamo->mora_acumulada, 2),
-                    'Tipo'             => ucfirst($prestamo->tipo),
-                    'Frecuencia'       => ucfirst($prestamo->frecuencia_pago),
-                    'Periodos'         => $prestamo->numero_periodos ?? '—',
-                    'Fecha inicio'     => $prestamo->fecha_inicio->format('d/m/Y'),
-                    'Próximo pago'     => $prestamo->fecha_proximo_pago?->format('d/m/Y') ?? '—',
-                    'Vencimiento'      => $prestamo->fecha_vencimiento?->format('d/m/Y') ?? '—',
+                    'Monto original'  => '$' . number_format($prestamo->monto_original, 2),
+                    'Saldo restante'  => '$' . number_format($prestamo->saldo_restante, 2),
+                    'Interés mensual' => $prestamo->interes_rate . '%',
+                    'Mora acumulada'  => '$' . number_format($prestamo->mora_acumulada, 2),
+                    'Tipo'            => ucfirst($prestamo->tipo),
+                    'Frecuencia'      => ucfirst($prestamo->frecuencia_pago),
+                    'Periodos'        => $prestamo->numero_periodos ?? '—',
+                    'Fecha inicio'    => $prestamo->fecha_inicio->format('d/m/Y'),
+                    'Próximo pago'    => $prestamo->fecha_proximo_pago?->format('d/m/Y') ?? '—',
+                    'Vencimiento'     => $prestamo->fecha_vencimiento?->format('d/m/Y') ?? '—',
                 ];
             @endphp
 
@@ -153,14 +149,13 @@
                 <div class="d-flex justify-content-between align-items-center py-2"
                      style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
                     <span class="text-muted">{{ $key }}</span>
-                    <span style="color:{{ in_array($key, ['Saldo restante']) ? '#1f6b21' : ($key === 'Mora acumulada' && $prestamo->mora_acumulada > 0 ? '#c0392b' : '#333') }};
+                    <span style="color:{{ $key === 'Saldo restante' ? '#1f6b21' : ($key === 'Mora acumulada' && $prestamo->mora_acumulada > 0 ? '#c0392b' : '#333') }};
                                  font-weight:{{ in_array($key, ['Saldo restante', 'Mora acumulada']) ? '500' : '400' }};">
                         {{ $val }}
                     </span>
                 </div>
             @endforeach
 
-            {{-- Estado --}}
             @php
                 $estadoBadge = match($prestamo->estado) {
                     'activo'       => ['bg' => '#e8f5e9', 'color' => '#1f6b21',  'label' => 'Activo'],
@@ -184,7 +179,6 @@
                 </div>
             @endif
 
-            {{-- Info mora si tiene configurada --}}
             @if($prestamo->mora_tipo)
                 <div class="mt-3 pt-2" style="border-top:0.5px solid #f5f5f5;">
                     <p class="text-muted mb-2" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Configuración de mora</p>
@@ -205,8 +199,8 @@
         </div>
     </div>
 
-    {{-- Panel derecho — pagos --}}
-    <div class="col-md-8">
+    {{-- Panel derecho --}}
+    <div class="col-12 col-md-8">
         @include('prestamos._pagos', ['prestamo' => $prestamo])
     </div>
 

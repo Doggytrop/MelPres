@@ -27,86 +27,89 @@
 @endif
 
 <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
-    <table class="table mb-0" style="font-size:14px;">
-        <thead style="background:#f8f9f8; border-bottom: 1px solid #e8e8e8;">
-            <tr>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">#</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cliente</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Tipo</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Monto</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Saldo</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Estado</th>
-                <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($prestamos as $prestamo)
-                <tr style="border-top: 0.5px solid #f0f0f0;">
-                    <td class="px-4 py-3 text-muted">{{ $prestamo->id }}</td>
-                    <td class="px-4 py-3">
-                        <a href="{{ route('prestamos.show', $prestamo) }}"
-                           style="color:#1a2e1a; text-decoration:none; font-weight:500;">
-                            {{ $prestamo->cliente->nombre_completo }}
-                        </a>
-                    </td>
-                    <td class="px-4 py-3">
-                        @php
-                            $tipoBadge = match($prestamo->tipo) {
-                                'interes' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
-                                'plazo'   => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
-                            };
-                        @endphp
-                        <span class="px-2 py-1 rounded-2"
-                              style="background:{{ $tipoBadge['bg'] }}; color:{{ $tipoBadge['color'] }}; font-size:11px; font-weight:500;">
-                            {{ $tipoBadge['label'] }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3" style="color:#1a2e1a;">
-                        ${{ number_format($prestamo->monto_original, 2) }}
-                    </td>
-                    <td class="px-4 py-3" style="color:#1f6b21; font-weight:500;">
-                        ${{ number_format($prestamo->saldo_restante, 2) }}
-                    </td>
-                    <td class="px-4 py-3 text-muted">
-                        {{ $prestamo->interes_rate }}%
-                    </td>
-                    <td class="px-4 py-3">
-                        @php
-                            $estadoBadge = match($prestamo->estado) {
-                                'activo'       => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
-                                'pagado'       => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Pagado'],
-                                'vencido'      => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Vencido'],
-                                'refinanciado' => ['bg' => '#f3e5f5', 'color' => '#6a1b9a', 'label' => 'Refinanciado'],
-                            };
-                        @endphp
-                        <span class="px-2 py-1 rounded-2"
-                              style="background:{{ $estadoBadge['bg'] }}; color:{{ $estadoBadge['color'] }}; font-size:11px; font-weight:500;">
-                            {{ $estadoBadge['label'] }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('prestamos.show', $prestamo) }}"
-                               style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
-                                Ver
-                            </a>
-                            <a href="{{ route('prestamos.edit', $prestamo) }}"
-                               style="font-size:12px; color:#555; text-decoration:none; border:0.5px solid #ddd; border-radius:6px; padding:4px 10px;">
-                                Editar
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            @empty
+    <div class="table-responsive">
+        <table class="table mb-0" style="font-size:14px; min-width:640px;">
+            <thead style="background:#f8f9f8; border-bottom: 1px solid #e8e8e8;">
                 <tr>
-                    <td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
-                        No hay préstamos registrados aún.
-                    </td>
+                    <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">#</th>
+                    <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cliente</th>
+                    <th class="px-4 py-3 fw-medium text-muted d-none d-sm-table-cell" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Tipo</th>
+                    <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Monto</th>
+                    <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Saldo</th>
+                    <th class="px-4 py-3 fw-medium text-muted d-none d-md-table-cell" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés</th>
+                    <th class="px-4 py-3 fw-medium text-muted d-none d-sm-table-cell" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Estado</th>
+                    <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Acciones</th>
                 </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @forelse($prestamos as $prestamo)
+                    <tr style="border-top: 0.5px solid #f0f0f0;">
+                        <td class="px-4 py-3 text-muted">{{ $prestamo->id }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('prestamos.show', $prestamo) }}"
+                               style="color:#1a2e1a; text-decoration:none; font-weight:500;">
+                                {{ $prestamo->cliente->nombre_completo }}
+                            </a>
+                        </td>
+                        <td class="px-4 py-3 d-none d-sm-table-cell">
+                            @php
+                                $tipoBadge = match($prestamo->tipo) {
+                                    'interes' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
+                                    'plazo'   => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                                };
+                            @endphp
+                            <span class="px-2 py-1 rounded-2"
+                                  style="background:{{ $tipoBadge['bg'] }}; color:{{ $tipoBadge['color'] }}; font-size:11px; font-weight:500;">
+                                {{ $tipoBadge['label'] }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3" style="color:#1a2e1a;">
+                            ${{ number_format($prestamo->monto_original, 2) }}
+                        </td>
+                        <td class="px-4 py-3" style="color:#1f6b21; font-weight:500;">
+                            ${{ number_format($prestamo->saldo_restante, 2) }}
+                        </td>
+                        <td class="px-4 py-3 text-muted d-none d-md-table-cell">
+                            {{ $prestamo->interes_rate }}%
+                        </td>
+                        <td class="px-4 py-3 d-none d-sm-table-cell">
+                            @php
+                                $estadoBadge = match($prestamo->estado) {
+                                    'activo'       => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                                    'pagado'       => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Pagado'],
+                                    'vencido'      => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Vencido'],
+                                    'refinanciado' => ['bg' => '#f3e5f5', 'color' => '#6a1b9a', 'label' => 'Refinanciado'],
+                                };
+                            @endphp
+                            <span class="px-2 py-1 rounded-2"
+                                  style="background:{{ $estadoBadge['bg'] }}; color:{{ $estadoBadge['color'] }}; font-size:11px; font-weight:500;">
+                                {{ $estadoBadge['label'] }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('prestamos.show', $prestamo) }}"
+                                   style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                                    Ver
+                                </a>
+                                <a href="{{ route('prestamos.edit', $prestamo) }}"
+                                   class="d-none d-sm-inline"
+                                   style="font-size:12px; color:#555; text-decoration:none; border:0.5px solid #ddd; border-radius:6px; padding:4px 10px;">
+                                    Editar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
+                            No hay préstamos registrados aún.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @if($prestamos->hasPages())

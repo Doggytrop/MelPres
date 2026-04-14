@@ -92,6 +92,14 @@
                                    text-sm font-medium tracking-wide transition-colors duration-200">
                         {{ __('Iniciar sesión') }}
                     </button>
+                    {{-- ¿No tienes cuenta? --}}
+                        <p class="text-center text-sm text-gray-400 mt-5">
+                            ¿No tienes cuenta?
+                            <a href="{{ route('register') }}"
+                            class="text-[#3a9a3b] hover:text-[#1f6b21] transition-colors duration-200">
+                                Regístrate
+                            </a>
+                        </p>
 
                 </form>
             </div>

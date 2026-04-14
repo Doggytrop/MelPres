@@ -5,32 +5,31 @@
         <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Historial de pagos</span>
     </div>
 
-    {{-- Formulario de nuevo pago --}}
     @if($prestamo->estado !== 'pagado')
-        <div class="px-4 py-3 border-bottom" style="border-color:#f0f0f0 !important; background:#fafafa;">
+        <div class="px-3 px-md-4 py-3 border-bottom" style="border-color:#f0f0f0 !important; background:#fafafa;">
             <p class="text-muted mb-2" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Registrar pago</p>
             <form method="POST" action="{{ route('prestamos.pagos.store', $prestamo) }}">
                 @csrf
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-3">
+                <div class="row g-2">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="d-block mb-1 text-muted" style="font-size:11px;">Monto pagado *</label>
                         <input type="number" step="0.01" name="monto_pagado"
                                class="form-control form-control-sm @error('monto_pagado') is-invalid @enderror"
                                placeholder="Ej: 500.00">
                         @error('monto_pagado') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3">
                         <label class="d-block mb-1 text-muted" style="font-size:11px;">Fecha de pago *</label>
                         <input type="date" name="fecha_pago" value="{{ date('Y-m-d') }}"
                                class="form-control form-control-sm @error('fecha_pago') is-invalid @enderror">
                         @error('fecha_pago') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px;">Observaciones</label>
                         <input type="text" name="observaciones"
                                class="form-control form-control-sm" placeholder="Opcional">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-12 col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-sm w-100"
                                 style="background:#1f6b21; color:white; border-radius:8px; font-size:13px;">
                             Aplicar
@@ -41,7 +40,6 @@
         </div>
     @endif
 
-    {{-- Listado de pagos --}}
     @forelse($prestamo->pagos as $pago)
         <div class="px-4 py-3 border-bottom" style="border-color:#f8f8f8 !important;">
             <div class="d-flex justify-content-between align-items-start">
@@ -58,7 +56,7 @@
                     {{ $pago->fecha_pago->format('d/m/Y') }}
                 </span>
             </div>
-            <div class="mt-1 d-flex gap-3" style="font-size:12px; color:#888;">
+            <div class="mt-1 d-flex flex-wrap gap-3" style="font-size:12px; color:#888;">
                 @if($pago->abono_mora > 0)
                     <span>Mora: ${{ number_format($pago->abono_mora, 2) }}</span>
                 @endif
