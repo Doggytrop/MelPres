@@ -3,28 +3,28 @@
 
 <div class="row g-3">
 
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Nombre *</label>
         <input type="text" name="nombre" value="{{ old('nombre', $cliente->nombre ?? '') }}"
                class="{{ $inputClass }} @error('nombre') is-invalid @enderror" placeholder="Ej: Juan">
         @error('nombre') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Apellido *</label>
         <input type="text" name="apellido" value="{{ old('apellido', $cliente->apellido ?? '') }}"
                class="{{ $inputClass }} @error('apellido') is-invalid @enderror" placeholder="Ej: García">
         @error('apellido') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">DUI</label>
         <input type="text" name="dui" value="{{ old('dui', $cliente->dui ?? '') }}"
                class="{{ $inputClass }} @error('dui') is-invalid @enderror" placeholder="Ej: 01234567-8">
         @error('dui') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Teléfono</label>
         <input type="text" name="telefono" value="{{ old('telefono', $cliente->telefono ?? '') }}"
                class="{{ $inputClass }}" placeholder="Ej: 7777-1234">
@@ -42,7 +42,7 @@
                   class="{{ $inputClass }}" placeholder="Nombre y contacto de referencias">{{ old('referencias', $cliente->referencias ?? '') }}</textarea>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Estado *</label>
         <select name="estado" class="{{ $inputClass }} @error('estado') is-invalid @enderror">
             @foreach(['activo' => 'Activo', 'inactivo' => 'Inactivo', 'bloqueado' => 'Bloqueado'] as $value => $text)

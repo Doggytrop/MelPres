@@ -13,12 +13,12 @@
 <div class="row g-4">
 
     {{-- Info del cliente --}}
-    <div class="col-md-4">
+    <div class="col-12 col-md-4">
         <div class="bg-white border rounded-3 p-4" style="border-color:#e8e8e8 !important;">
 
             <div class="d-flex align-items-center gap-3 mb-4">
-                <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium"
-                     style="width:48px; height:48px; background:#e8f5e9; color:#1f6b21; font-size:18px; flex-shrink:0;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium flex-shrink-0"
+                     style="width:48px; height:48px; background:#e8f5e9; color:#1f6b21; font-size:18px;">
                     {{ strtoupper(substr($cliente->nombre, 0, 1)) }}
                 </div>
                 <div>
@@ -29,11 +29,11 @@
 
             @php
                 $rows = [
-                    'DUI'        => $cliente->dui ?? '—',
-                    'Teléfono'   => $cliente->telefono ?? '—',
-                    'Dirección'  => $cliente->direccion ?? '—',
-                    'Referencias'=> $cliente->referencias ?? '—',
-                    'Notas'      => $cliente->notas ?? '—',
+                    'DUI'         => $cliente->dui ?? '—',
+                    'Teléfono'    => $cliente->telefono ?? '—',
+                    'Dirección'   => $cliente->direccion ?? '—',
+                    'Referencias' => $cliente->referencias ?? '—',
+                    'Notas'       => $cliente->notas ?? '—',
                 ];
             @endphp
 
@@ -44,7 +44,7 @@
                 </div>
             @endforeach
 
-            <div class="d-flex gap-2 mt-4">
+            <div class="mt-4">
                 <a href="{{ route('clientes.edit', $cliente) }}"
                    class="btn btn-sm w-100"
                    style="background:#1f6b21; color:white; border-radius:8px; font-size:13px;">
@@ -55,12 +55,11 @@
     </div>
 
     {{-- Préstamos activos --}}
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
             <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center"
                  style="border-color:#f0f0f0 !important;">
                 <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Préstamos activos</span>
-                {{-- Aquí irá el botón de nuevo préstamo cuando implementemos ese módulo --}}
             </div>
 
             @forelse($cliente->prestamosActivos as $prestamo)

@@ -10,7 +10,7 @@
     </a>
 </div>
 
-<div class="bg-white border rounded-3 p-4" style="max-width:640px; border-color:#e8e8e8 !important;">
+<div class="bg-white border rounded-3 p-3 p-md-4" style="max-width:640px; border-color:#e8e8e8 !important;">
 
     <h6 class="fw-medium mb-4" style="color:#1a2e1a;">Editar cliente — {{ $cliente->nombre_completo }}</h6>
 
@@ -18,14 +18,14 @@
         @csrf @method('PUT')
         @include('clientes._form')
 
-        <div class="d-flex gap-2 mt-4">
+        <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
             <button type="submit"
                     class="btn btn-sm"
                     style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
                 Actualizar cliente
             </button>
             <a href="{{ route('clientes.index') }}"
-               class="btn btn-sm"
+               class="btn btn-sm text-center"
                style="background:#f5f5f5; color:#555; border-radius:8px; font-size:13px; padding:8px 20px; text-decoration:none;">
                 Cancelar
             </a>

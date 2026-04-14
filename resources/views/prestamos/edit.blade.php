@@ -10,7 +10,7 @@
     </a>
 </div>
 
-<div class="bg-white border rounded-3 p-4" style="max-width:720px; border-color:#e8e8e8 !important;">
+<div class="bg-white border rounded-3 p-3 p-md-4" style="max-width:720px; border-color:#e8e8e8 !important;">
 
     <h6 class="fw-medium mb-4" style="color:#1a2e1a;">
         Editar préstamo #{{ $prestamo->id }} — {{ $prestamo->cliente->nombre_completo }}
@@ -20,12 +20,12 @@
         @csrf @method('PUT')
         @include('prestamos._form', ['prestamo' => $prestamo, 'clientes' => $clientes])
 
-        <div class="d-flex gap-2 mt-4">
+        <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
             <button type="submit" class="btn btn-sm"
                     style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
                 Actualizar préstamo
             </button>
-            <a href="{{ route('prestamos.show', $prestamo) }}" class="btn btn-sm"
+            <a href="{{ route('prestamos.show', $prestamo) }}" class="btn btn-sm text-center"
                style="background:#f5f5f5; color:#555; border-radius:8px; font-size:13px; padding:8px 20px; text-decoration:none;">
                 Cancelar
             </a>
