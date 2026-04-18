@@ -17,11 +17,31 @@
         @error('apellido') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
-    <div class="col-12 col-md-6">
-        <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">DUI</label>
-        <input type="text" name="dui" value="{{ old('dui', $cliente->dui ?? '') }}"
-               class="{{ $inputClass }} @error('dui') is-invalid @enderror" placeholder="Ej: 01234567-8">
-        @error('dui') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    <div class="col-md-6">
+    <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Tipo de documento</label>
+    <select name="documento_tipo" class="{{ $inputClass }}">
+        <option value="">Sin documento</option>
+        @foreach([
+            'ine'       => 'INE',
+            'pasaporte' => 'Pasaporte',
+            'cedula'    => 'Cédula',
+            'licencia'  => 'Licencia de conducir',
+            'otro'      => 'Otro',
+        ] as $value => $text)
+            <option value="{{ $value }}"
+                {{ old('documento_tipo', $cliente->documento_tipo ?? '') == $value ? 'selected' : '' }}>
+                {{ $text }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
+    <div class="col-md-6">
+        <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Número de documento</label>
+        <input type="text" name="documento_numero"
+            value="{{ old('documento_numero', $cliente->documento_numero ?? '') }}"
+            class="{{ $inputClass }}" placeholder="Ej: GOMJ850101HDFXXX">
+        <small class="text-muted" style="font-size:11px;">Opcional</small>
     </div>
 
     <div class="col-12 col-md-6">

@@ -20,34 +20,16 @@ class PagoService
 
             // 1 — Cubrir mora acumulada primero
             if ($prestamo->mora_acumulada > 0) {
-                $abonoMora             = min($restante, floatval($prestamo->mora_acumulada));
-                $restante             -= $abonoMora;
+                $abonoMora                = min($restante, floatval($prestamo->mora_acumulada));
+                $restante                -= $abonoMora;
                 $prestamo->mora_acumulada -= $abonoMora;
             }
 
-            // 2 — Cubrir interés según tipo
-            if ($restante > 0) {
-                if ($prestamo->tipo === 'interes') {
-
-                    // Interés pendiente del periodo anterior + interés del periodo actual
-                    $interesMensual   = floatval($prestamo->interes_mensual);
-                    $interesPendiente = floatval($prestamo->interes_pendiente) + $interesMensual;
-
-                    $abonoInteres = min($restante, $interesPendiente);
-                    $restante    -= $abonoInteres;
-
-                    // Guardar lo que quedó sin pagar del interés
-                    $prestamo->interes_pendiente = max(0, $interesPendiente - $abonoInteres);
-
-                } else {
-                    // Tipo plazo: interés ya está en saldo_restante
-                    // Si hay interés pendiente de periodo anterior, cobrarlo primero
-                    if ($prestamo->interes_pendiente > 0) {
-                        $abonoInteres              = min($restante, floatval($prestamo->interes_pendiente));
-                        $restante                 -= $abonoInteres;
-                        $prestamo->interes_pendiente -= $abonoInteres;
-                    }
-                }
+            // 2 — Cubrir interés pendiente (solo si hay saldo pendiente de interés)
+            if ($restante > 0 && $prestamo->interes_pendiente > 0) {
+                $abonoInteres                 = min($restante, floatval($prestamo->interes_pendiente));
+                $restante                    -= $abonoInteres;
+                $prestamo->interes_pendiente -= $abonoInteres;
             }
 
             // 3 — El resto va a capital
@@ -63,11 +45,8 @@ class PagoService
             if ($prestamo->saldo_restante <= 0 && $prestamo->interes_pendiente <= 0) {
                 $prestamo->estado         = 'pagado';
                 $prestamo->saldo_restante = 0;
-            } elseif ($prestamo->estado === 'vencido') {
-                // Si tenía mora y pagó, volver a activo
-                if ($prestamo->mora_acumulada <= 0) {
-                    $prestamo->estado = 'activo';
-                }
+            } elseif ($prestamo->estado === 'vencido' && $prestamo->mora_acumulada <= 0) {
+                $prestamo->estado = 'activo';
             }
 
             // 6 — Calcular próximo pago
@@ -77,6 +56,8 @@ class PagoService
             );
 
             $prestamo->save();
+            // Actualizar score del cliente
+        app(\App\Services\ScoreService::class)->actualizar($prestamo->cliente);
 
             // 7 — Registrar movimiento
             return Pago::create([

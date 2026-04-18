@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Http\Requests\StoreClienteRequest;
 use App\Http\Requests\UpdateClienteRequest;
+use App\Services\ScoreService;
 
 class ClienteController extends Controller
 {
@@ -30,11 +31,13 @@ class ClienteController extends Controller
     }
 
     public function show(Cliente $cliente)
-    {
-        $cliente->load('prestamosActivos');
+{
+    $cliente->load('prestamosActivos');
+    $scoreService = app(ScoreService::class);
+    $scoreData    = $scoreService->etiqueta($cliente->score ?? 100);
 
-        return view('clientes.show', compact('cliente'));
-    }
+    return view('clientes.show', compact('cliente', 'scoreData'));
+}
 
     public function edit(Cliente $cliente)
     {
@@ -46,15 +49,19 @@ class ClienteController extends Controller
         $cliente->update($request->validated());
 
         return redirect()->route('clientes.index')
-                         ->with('success', 'Cliente actualizado correctamente.');
+                        ->with('success', 'Cliente actualizado correctamente.');
     }
 
     public function destroy(Cliente $cliente)
     {
-        // SoftDelete — no se borra físicamente
+        if ($cliente->prestamos()->exists()) {
+            return redirect()->route('clientes.index')
+                            ->with('error', 'No se puede eliminar un cliente con préstamos registrados.');
+        }
+
         $cliente->delete();
 
         return redirect()->route('clientes.index')
-                         ->with('success', 'Cliente eliminado correctamente.');
+                        ->with('success', 'Cliente eliminado correctamente.');
     }
 }

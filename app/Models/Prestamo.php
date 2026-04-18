@@ -28,6 +28,7 @@ class Prestamo extends Model
         'estado',
         'observaciones',
         'interes_pendiente',
+        'reestructurado',
     ];
 
     protected $casts = [
@@ -78,5 +79,9 @@ class Prestamo extends Model
     {
         if (!$this->fecha_proximo_pago) return false;
         return now()->gt($this->fecha_proximo_pago->addDays($this->dias_gracia ?? 0));
+    }
+    public function reestructuraciones()
+    {
+        return $this->hasMany(Reestructuracion::class, 'prestamo_original_id');
     }
 }

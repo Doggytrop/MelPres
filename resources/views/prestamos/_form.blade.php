@@ -343,26 +343,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // — Calcular resumen —
     function calcular() {
-        const m = parseFloat(monto.value)    || 0;
-        const i = parseFloat(interes.value)  || 0;
-        const p = parseInt(periodos.value)   || 0;
-        const esPlazo = tipoPlazo.checked;
+    const m = parseFloat(monto.value)    || 0;
+    const i = parseFloat(interes.value)  || 0;
+    const p = parseInt(periodos.value)   || 0;
+    const esPlazo = document.querySelector('input[name="tipo"]:checked')?.value === 'plazo';
 
-        calcularFechaFin();
+    calcularFechaFin();
 
-        if (m <= 0 || i <= 0) { resumenBox.style.display = 'none'; return; }
+    if (m <= 0 || i <= 0) { resumenBox.style.display = 'none'; return; }
 
-        resumenBox.style.display = 'block';
+    resumenBox.style.display = 'block';
 
-        if (esPlazo && p > 0) {
-            const interesTotal = m * (i * p / 100);
-            const total        = m + interesTotal;
-            const cuota        = total / p;
+    if (esPlazo && p > 0) {
+        // Convertir periodos a meses según frecuencia
+        const freq = frecuencia.value;
+        const mesesMap = { semanal: 4, quincenal: 2, mensual: 1 };
+        const periodosMeses = p / mesesMap[freq];
 
-            document.getElementById('res_capital').textContent  = '$ ' + m.toFixed(2);
-            document.getElementById('res_interes').textContent  = '$ ' + interesTotal.toFixed(2);
-            document.getElementById('res_total').textContent    = '$ ' + total.toFixed(2);
-            document.getElementById('res_cuota').textContent    = '$ ' + cuota.toFixed(2) + ' / periodo';
+        const interesTotal = m * (i / 100) * periodosMeses;
+        const total        = m + interesTotal;
+        const cuota        = total / p;
+
+        document.getElementById('res_capital').textContent  = '$ ' + m.toFixed(2);
+        document.getElementById('res_interes').textContent  = '$ ' + interesTotal.toFixed(2);
+        document.getElementById('res_total').textContent    = '$ ' + total.toFixed(2);
+        document.getElementById('res_cuota').textContent    = '$ ' + cuota.toFixed(2) + ' / periodo';
         } else {
             const interesMensual = m * (i / 100);
             document.getElementById('res_capital').textContent  = '$ ' + m.toFixed(2);

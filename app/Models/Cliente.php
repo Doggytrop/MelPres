@@ -15,11 +15,13 @@ class Cliente extends Model
         'nombre',
         'apellido',
         'telefono',
-        'dui',
+        'documento_tipo',
+        'documento_numero',
         'direccion',
         'referencias',
         'estado',
         'notas',
+        'asesor_id',
     ];
 
     // — Relaciones —
@@ -38,4 +40,30 @@ class Cliente extends Model
     {
         return "{$this->nombre} {$this->apellido}";
     }
-}
+    // — Relaciones —
+    public function documentos()
+    {
+        return $this->hasMany(ClienteDocumento::class);
+    }
+
+    public function fotoPerfil()
+    {
+        return $this->hasOne(ClienteDocumento::class)
+                    ->where('tipo', 'foto_perfil')
+                    ->latest();
+    }
+
+    // — Accessor foto —
+    public function getFotoUrlAttribute(): ?string
+    {
+        $foto = $this->fotoPerfil;
+        return $foto ? asset('storage/' . $foto->ruta) : null;
+    }
+        public function asesor()
+    {
+        return $this->belongsTo(User::class, 'asesor_id');
+    }
+    protected $casts = [
+    'score_actualizado_at' => 'datetime',
+    ];
+    }

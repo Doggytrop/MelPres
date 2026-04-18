@@ -5,14 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Models\Prestamo;
 use App\Http\Requests\StorePrestamoRequest;
+use Illuminate\Http\Request;
 
 class PrestamoController extends Controller
 {
-    public function index()
+        public function index()
     {
         $prestamos = Prestamo::with('cliente')
-                             ->latest()
-                             ->paginate(15);
+                            ->whereIn('estado', ['activo', 'vencido', 'refinanciado'])
+                            ->latest()
+                            ->paginate(15);
 
         return view('prestamos.index', compact('prestamos'));
     }
@@ -34,9 +36,17 @@ class PrestamoController extends Controller
         $datos['mora_acumulada']    = 0;
 
         if ($datos['tipo'] === 'plazo' && isset($datos['numero_periodos'])) {
-            $interes_total              = $datos['interes_rate'] * $datos['numero_periodos'];
-            $datos['interes_acumulado'] = round($datos['monto_original'] * $interes_total / 100, 2);
-            $datos['saldo_restante']    = $datos['monto_original'] + $datos['interes_acumulado'];
+    // Convertir periodos a meses según frecuencia
+            $periodosMeses = match($datos['frecuencia_pago']) {
+                'semanal'   => round($datos['numero_periodos'] / 4, 2),
+                'quincenal' => round($datos['numero_periodos'] / 2, 2),
+                'mensual'   => $datos['numero_periodos'],
+            };
+
+            $datos['interes_acumulado'] = round(
+                $datos['monto_original'] * ($datos['interes_rate'] / 100) * $periodosMeses, 2
+            );
+            $datos['saldo_restante'] = $datos['monto_original'] + $datos['interes_acumulado'];
         }
 
         // Calcular fecha próximo pago
@@ -92,4 +102,36 @@ class PrestamoController extends Controller
             default     => $date->addMonth()->toDateString(),
         };
     }
+    public function buscarCliente(Request $request)
+{
+    $busqueda = $request->get('q');
+
+    $clientes = Cliente::where('estado', 'activo')
+        ->where(function($query) use ($busqueda) {
+            $query->where('nombre', 'like', "%{$busqueda}%")
+                  ->orWhere('apellido', 'like', "%{$busqueda}%")
+                  ->orWhere('telefono', 'like', "%{$busqueda}%");
+        })
+        ->with(['prestamosActivos'])
+        ->limit(5)
+        ->get()
+        ->map(function($cliente) {
+            return [
+                'id'             => $cliente->id,
+                'nombre'         => $cliente->nombre_completo,
+                'telefono'       => $cliente->telefono ?? '—',
+                'prestamos'      => $cliente->prestamosActivos->map(function($p) {
+                    return [
+                        'id'             => $p->id,
+                        'tipo'           => ucfirst($p->tipo),
+                        'saldo'          => number_format($p->saldo_restante, 2),
+                        'mora'           => number_format($p->mora_acumulada, 2),
+                        'url'            => route('prestamos.pagos.store', $p->id),
+                    ];
+                }),
+            ];
+        });
+
+    return response()->json($clientes);
+}
 }
