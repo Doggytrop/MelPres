@@ -148,7 +148,7 @@
         {{-- Solo admin --}}
         @if(auth()->user()->esAdmin())
 
-            @if($config_sistema['modulo_asesores'] ?? false)
+            @if(!array_key_exists('modulo_asesores', $config_sistema ?? []) || ($config_sistema['modulo_asesores'] ?? false))
                 <li class="nav-item">
                     <a href="{{ route('asesores.index') }}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2

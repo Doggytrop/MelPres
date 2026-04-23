@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
             ->name('configuracion.index');
         Route::post('configuracion', [ConfiguracionController::class, 'update'])
             ->name('configuracion.update');
-        Route::resource('asesores', AsesorController::class);
+        Route::resource('asesores', AsesorController::class)
+            ->parameters(['asesores' => 'asesor']);
     });
 require __DIR__.'/auth.php';
