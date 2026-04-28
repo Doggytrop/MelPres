@@ -15,4 +15,4 @@ class SoloAdmin
 
         return $next($request);
     }
-}
+}// Authentication with role-based access control
