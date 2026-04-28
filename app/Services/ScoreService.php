@@ -2,51 +2,51 @@
 
 namespace App\Services;
 
-use App\Models\Cliente;
-use App\Models\Prestamo;
-use App\Models\Pago;
+use App\Models\customer;
+use App\Models\loan;
+use App\Models\payment;
 
 class ScoreService
 {
-    public function calcular(Cliente $cliente): int
+    public function calcular(customer $customer): int
     {
         $score = 100;
 
-        $prestamos = Prestamo::where('cliente_id', $cliente->id)
-                             ->with('pagos')
+        $loans = loan::where('customer_id', $customer->id)
+                             ->with('payments')
                              ->get();
 
-        foreach ($prestamos as $prestamo) {
+        foreach ($loans as $loan) {
 
-            // — Préstamo pagado completo —
-            if ($prestamo->estado === 'pagado') {
+            // — Préstamo paid complete —
+            if ($loan->status === 'paid') {
                 $score += 20;
             }
 
-            // — Préstamo vencido actualmente —
-            if ($prestamo->estado === 'vencido') {
+            // — Préstamo overdue actualmente —
+            if ($loan->status === 'overdue') {
                 $score -= 20;
             }
 
             // — Reestructuración activa —
-            if ($prestamo->reestructurado && in_array($prestamo->estado, ['activo', 'vencido'])) {
+            if ($loan->restructured && in_array($loan->status, ['active', 'overdue'])) {
                 $score -= 15;
             }
 
             // — Reestructuración completada —
-            if ($prestamo->reestructurado && $prestamo->estado === 'pagado') {
+            if ($loan->restructured && $loan->status === 'paid') {
                 $score += 10;
             }
 
-            foreach ($prestamo->pagos as $pago) {
+            foreach ($loan->payments as $payment) {
 
-                // — Pago puntual (sin mora en ese pago) —
-                if ($pago->abono_mora == 0) {
+                // — payment puntual (sin mora en ese payment) —
+                if ($payment->penalty_payment == 0) {
                     $score += 5;
                 }
 
-                // — Pago con mora (se atrasó) —
-                if ($pago->abono_mora > 0) {
+                // — payment con mora (se atrasó) —
+                if ($payment->penalty_payment > 0) {
                     $score -= 10;
                 }
             }
@@ -56,13 +56,13 @@ class ScoreService
         return max(0, min(1000, $score));
     }
 
-    public function actualizar(Cliente $cliente): void
+    public function actualizar(customer $customer): void
     {
-        $score = $this->calcular($cliente);
+        $score = $this->calcular($customer);
 
-        $cliente->score                  = $score;
-        $cliente->score_actualizado_at   = now();
-        $cliente->save();
+        $customer->score                  = $score;
+        $customer->score_updated_at   = now();
+        $customer->save();
     }
 
     public function etiqueta(int $score): array

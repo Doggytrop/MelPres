@@ -24,24 +24,24 @@ class User extends Authenticatable
     }
 
     // — Relaciones —
-    public function clientes()
+    public function customers()
     {
-        return $this->hasMany(Cliente::class, 'asesor_id');
+        return $this->hasMany(customer::class, 'advisor_id');
     }
 
-    public function pagos()
+    public function payments()
     {
-        return $this->hasMany(Pago::class, 'registrado_por');
+        return $this->hasMany(payment::class, 'recorded_by');
     }
 
     // — Helpers —
-    public function esAdmin(): bool
+    public function isAdmin(): bool
     {
-        return $this->rol === 'administrador';
+        return $this->rol === 'admin';
     }
 
-    public function esAsesor(): bool
+    public function esadvisor(): bool
     {
-        return $this->rol === 'asesor';
+        return $this->rol === 'advisor';
     }
 }

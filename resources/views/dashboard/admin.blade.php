@@ -5,7 +5,7 @@
 @section('content')
 
 <div class="mb-4">
-    <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Dashboard</h5>
+    <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Panel de control</h5>
     <span class="text-muted" style="font-size:13px;">{{ now()->format('l, d \d\e F \d\e Y') }}</span>
 </div>
 
@@ -39,7 +39,7 @@
                 </div>
             </div>
             <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:24px;">${{ number_format($totalCobradoHoy, 2) }}</h3>
-            <span class="text-muted" style="font-size:12px;">{{ $pagosHoy->count() }} pagos registrados</span>
+            <span class="text-muted" style="font-size:12px;">{{ $paymentsHoy->count() }} pagos registrados</span>
         </div>
     </div>
 
@@ -55,24 +55,24 @@
                     </svg>
                 </div>
             </div>
-            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:24px;">{{ $totalClientes }}</h3>
-            <span class="text-muted" style="font-size:12px;">{{ $prestamosActivos }} préstamos activos</span>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:24px;">{{ $totalcustomers }}</h3>
+            <span class="text-muted" style="font-size:12px;">{{ $activeLoansCount }} préstamos activos</span>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="p-4 rounded-3 bg-white border" style="border-color:{{ $prestamosVencidos > 0 ? '#f5c6c6' : '#e8e8e8' }} !important;">
+        <div class="p-4 rounded-3 bg-white border" style="border-color:{{ $loansoverdues > 0 ? '#f5c6c6' : '#e8e8e8' }} !important;">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Vencidos</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
-                     style="width:34px; height:34px; background:{{ $prestamosVencidos > 0 ? '#fdecea' : '#e8f5e9' }};">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ $prestamosVencidos > 0 ? '#c0392b' : '#1f6b21' }}" stroke-width="1.5">
+                     style="width:34px; height:34px; background:{{ $loansoverdues > 0 ? '#fdecea' : '#e8f5e9' }};">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ $loansoverdues > 0 ? '#c0392b' : '#1f6b21' }}" stroke-width="1.5">
                         <circle cx="12" cy="12" r="9"/>
                         <path d="M12 8v4M12 16h.01"/>
                     </svg>
                 </div>
             </div>
-            <h3 class="fw-medium mb-0" style="color:{{ $prestamosVencidos > 0 ? '#c0392b' : '#1a2e1a' }}; font-size:24px;">{{ $prestamosVencidos }}</h3>
+            <h3 class="fw-medium mb-0" style="color:{{ $loansoverdues > 0 ? '#c0392b' : '#1a2e1a' }}; font-size:24px;">{{ $loansoverdues }}</h3>
             <span class="text-muted" style="font-size:12px;">préstamos atrasados</span>
         </div>
     </div>
@@ -86,7 +86,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés cobrado este mes</span>
-                    <h4 class="fw-medium mb-0" style="color:#1f6b21; font-size:22px;">${{ number_format($interesDelMes, 2) }}</h4>
+                    <h4 class="fw-medium mb-0" style="color:#1f6b21; font-size:22px;">${{ number_format($interestDelMes, 2) }}</h4>
                 </div>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
                      style="width:40px; height:40px; background:#e8f5e9;">
@@ -119,7 +119,7 @@
 
 <div class="row g-4">
 
-    {{-- Pagos del día --}}
+    {{-- payments del día --}}
     <div class="col-md-6">
         <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
             <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center"
@@ -128,19 +128,19 @@
                 <span class="text-muted" style="font-size:12px;">{{ now()->format('d/m/Y') }}</span>
             </div>
 
-            @forelse($pagosHoy as $pago)
+            @forelse($paymentsHoy as $payment)
                 <div class="px-4 py-3 border-bottom" style="border-color:#f8f8f8 !important;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="mb-0 fw-medium" style="font-size:13px; color:#1a2e1a;">
-                                {{ $pago->prestamo->cliente?->nombre_completo ?? 'Cliente eliminado' }}
+                                {{ $payment->loan->customer?->first_name_complete ?? 'cliente eliminado' }}
                             </p>
                             <p class="mb-0 text-muted" style="font-size:11px;">
-                                Asesor: {{ $pago->registradoPor?->name ?? '—' }}
+                                Asesor: {{ $payment->recordedBy?->name ?? '—' }}
                             </p>
                         </div>
                         <span style="font-size:14px; color:#1f6b21; font-weight:500;">
-                            ${{ number_format($pago->monto_pagado, 2) }}
+                            ${{ number_format($payment->amount_paid, 2) }}
                         </span>
                     </div>
                 </div>
@@ -152,27 +152,27 @@
         </div>
     </div>
 
-    {{-- Préstamos vencidos --}}
+    {{-- Préstamos overdues --}}
     <div class="col-md-6">
         <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
             <div class="px-4 py-3 border-bottom" style="border-color:#f0f0f0 !important;">
                 <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Préstamos vencidos</span>
             </div>
 
-            @forelse($vencidos as $prestamo)
+            @forelse($overdues as $loan)
                 <div class="px-4 py-3 border-bottom" style="border-color:#f8f8f8 !important;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <a href="{{ route('prestamos.show', $prestamo) }}"
+                            <a href="{{ route('loans.show', $loan) }}"
                                style="font-size:13px; color:#1a2e1a; font-weight:500; text-decoration:none;">
-                                {{ $prestamo->cliente?->nombre_completo ?? 'Cliente eliminado' }}
+                                {{ $loan->customer?->first_name_complete ?? 'cliente eliminado' }}
                             </a>
                             <p class="mb-0 text-muted" style="font-size:11px;">
-                                Mora: ${{ number_format($prestamo->mora_acumulada, 2) }}
+                                Mora: ${{ number_format($loan->accumulated_penalty, 2) }}
                             </p>
                         </div>
                         <span style="font-size:13px; color:#c0392b; font-weight:500;">
-                            ${{ number_format($prestamo->saldo_restante, 2) }}
+                            ${{ number_format($loan->remaining_balance, 2) }}
                         </span>
                     </div>
                 </div>
@@ -191,21 +191,21 @@
                 <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Vencimientos esta semana</span>
             </div>
 
-            @forelse($proximosVencimientos as $prestamo)
+            @forelse($proximosVencimientos as $loan)
                 <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center"
                      style="border-color:#f8f8f8 !important;">
                     <div>
-                        <a href="{{ route('prestamos.show', $prestamo) }}"
+                        <a href="{{ route('loans.show', $loan) }}"
                            style="font-size:13px; color:#1a2e1a; font-weight:500; text-decoration:none;">
-                            {{ $prestamo->cliente?->nombre_completo ?? 'Cliente eliminado' }}
+                            {{ $loan->customer?->first_name_complete ?? 'cliente eliminado' }}
                         </a>
                         <p class="mb-0 text-muted" style="font-size:11px;">
-                            Vence: {{ $prestamo->fecha_proximo_pago->format('d/m/Y') }}
-                            — {{ $prestamo->fecha_proximo_pago->diffForHumans() }}
+                            Vence: {{ $loan->next_payment_date->format('d/m/Y') }}
+                            — {{ $loan->next_payment_date->diffForHumans() }}
                         </p>
                     </div>
                     <span style="font-size:13px; color:#1f6b21; font-weight:500;">
-                        ${{ number_format($prestamo->saldo_restante, 2) }}
+                        ${{ number_format($loan->remaining_balance, 2) }}
                     </span>
                 </div>
             @empty

@@ -51,7 +51,7 @@
                         </label>
                         <input id="name" type="text" name="name" value="{{ old('name') }}"
                                required autofocus autocomplete="name"
-                               placeholder="Tu nombre completo"
+                               placeholder="Tu nombre complete"
                                class="w-full bg-[#fafafa] border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-[#1a2e1a]
                                       placeholder-gray-300 focus:outline-none focus:border-[#3a9a3b] focus:bg-white transition-colors duration-200" />
                         <x-input-error :messages="$errors->get('name')" class="mt-2 text-red-500 text-xs" />

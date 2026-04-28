@@ -29,15 +29,15 @@
                     <rect x="3" y="14" width="7" height="7" rx="1"/>
                     <rect x="14" y="14" width="7" height="7" rx="1"/>
                 </svg>
-                Dashboard
+                Inicio
             </a>
         </li>
 
         <li class="nav-item">
-            <a href="{{ route('clientes.index') }}"
+            <a href="{{ route('customers.index') }}"
                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                      {{ request()->routeIs('clientes.*') ? 'text-white' : 'text-secondary' }}"
-               style="{{ request()->routeIs('clientes.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                      {{ request()->routeIs('customers.*') ? 'text-white' : 'text-secondary' }}"
+               style="{{ request()->routeIs('customers.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
@@ -47,10 +47,10 @@
         </li>
 
         <li class="nav-item">
-            <a href="{{ route('prestamos.index') }}"
+            <a href="{{ route('loans.index') }}"
                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                      {{ request()->routeIs('prestamos.*') ? 'text-white' : 'text-secondary' }}"
-               style="{{ request()->routeIs('prestamos.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                      {{ request()->routeIs('loans.*') ? 'text-white' : 'text-secondary' }}"
+               style="{{ request()->routeIs('loans.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="2" y="5" width="20" height="14" rx="2"/>
                     <path d="M2 10h20"/>
@@ -60,10 +60,10 @@
         </li>
 
         <li class="nav-item">
-            <a href="{{ route('historial.index') }}"
+            <a href="{{ route('history.index') }}"
                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                      {{ request()->routeIs('historial.index') || request()->routeIs('historial.show') ? 'text-white' : 'text-secondary' }}"
-               style="{{ request()->routeIs('historial.index') || request()->routeIs('historial.show') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                      {{ request()->routeIs('history.index') || request()->routeIs('history.show') ? 'text-white' : 'text-secondary' }}"
+               style="{{ request()->routeIs('history.index') || request()->routeIs('history.show') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <circle cx="12" cy="12" r="9"/>
                     <path d="M12 7v5l3 3"/>
@@ -73,10 +73,10 @@
         </li>
 
         <li class="nav-item">
-            <a href="{{ route('simulador.index') }}"
+            <a href="{{ route('simulator.index') }}"
                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                      {{ request()->routeIs('simulador.*') ? 'text-white' : 'text-secondary' }}"
-               style="{{ request()->routeIs('simulador.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                      {{ request()->routeIs('simulator.*') ? 'text-white' : 'text-secondary' }}"
+               style="{{ request()->routeIs('simulator.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <rect x="2" y="3" width="20" height="14" rx="2"/>
                     <path d="M8 21h8M12 17v4"/>
@@ -85,7 +85,7 @@
             </a>
         </li>
 
-        {{-- Reestructuración con submenú --}}
+        {{-- Restructuring submenu --}}
         <li class="nav-item">
             <div class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2 text-secondary"
                  style="cursor:pointer; font-size:14px;"
@@ -102,41 +102,41 @@
             </div>
 
             <ul class="nav flex-column ps-4 gap-1" id="submenu_reest"
-                style="{{ request()->routeIs('reestructuracion.*') ? '' : 'display:none;' }}">
+                style="{{ request()->routeIs('restructuring.*') ? '' : 'display:none;' }}">
                 <li class="nav-item">
-                    <a href="{{ route('reestructuracion.vencidos') }}"
+                    <a href="{{ route('restructuring.overdue') }}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                              {{ request()->routeIs('reestructuracion.vencidos') || request()->routeIs('reestructuracion.create') ? 'text-white' : 'text-secondary' }}"
-                       style="{{ request()->routeIs('reestructuracion.vencidos') || request()->routeIs('reestructuracion.create') ? 'background:#1f6b21;' : '' }} font-size:13px;">
+                              {{ request()->routeIs('restructuring.overdue') || request()->routeIs('restructuring.create') ? 'text-white' : 'text-secondary' }}"
+                       style="{{ request()->routeIs('restructuring.overdue') || request()->routeIs('restructuring.create') ? 'background:#1f6b21;' : '' }} font-size:13px;">
                         Vencidos
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('reestructuracion.activos') }}"
+                    <a href="{{ route('restructuring.active') }}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                              {{ request()->routeIs('reestructuracion.activos') ? 'text-white' : 'text-secondary' }}"
-                       style="{{ request()->routeIs('reestructuracion.activos') ? 'background:#1f6b21;' : '' }} font-size:13px;">
-                        Reestructurados
+                              {{ request()->routeIs('restructuring.active') ? 'text-white' : 'text-secondary' }}"
+                       style="{{ request()->routeIs('restructuring.active') ? 'background:#1f6b21;' : '' }} font-size:13px;">
+                        Activos
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('reestructuracion.historial') }}"
+                    <a href="{{ route('restructuring.history') }}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                              {{ request()->routeIs('reestructuracion.historial') ? 'text-white' : 'text-secondary' }}"
-                       style="{{ request()->routeIs('reestructuracion.historial') ? 'background:#1f6b21;' : '' }} font-size:13px;">
+                              {{ request()->routeIs('restructuring.history') ? 'text-white' : 'text-secondary' }}"
+                       style="{{ request()->routeIs('restructuring.history') ? 'background:#1f6b21;' : '' }} font-size:13px;">
                         Historial
                     </a>
                 </li>
             </ul>
         </li>
 
-        {{-- Corte de caja --}}
-        @if(\App\Models\Configuracion::get('modulo_corte_caja'))
+        {{-- Cash Register --}}
+        @if(\App\Models\Setting::get('modulo_corte_caja'))
             <li class="nav-item">
-                <a href="{{ route('corte-caja.index') }}"
+                <a href="{{ route('cash-register.index') }}"
                    class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                          {{ request()->routeIs('corte-caja.*') ? 'text-white' : 'text-secondary' }}"
-                   style="{{ request()->routeIs('corte-caja.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                          {{ request()->routeIs('cash-register.*') ? 'text-white' : 'text-secondary' }}"
+                   style="{{ request()->routeIs('cash-register.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
@@ -145,15 +145,15 @@
             </li>
         @endif
 
-        {{-- Solo admin --}}
-        @if(auth()->user()->esAdmin())
+        {{-- Admin only --}}
+        @if(auth()->user()->isAdmin())
 
             @if($config_sistema['modulo_asesores'] ?? false)
                 <li class="nav-item">
-                    <a href="{{ route('asesores.index') }}"
+                    <a href="{{ route('advisors.index') }}"
                        class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                              {{ request()->routeIs('asesores.*') ? 'text-white' : 'text-secondary' }}"
-                       style="{{ request()->routeIs('asesores.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                              {{ request()->routeIs('advisors.*') ? 'text-white' : 'text-secondary' }}"
+                       style="{{ request()->routeIs('advisors.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <circle cx="9" cy="7" r="4"/>
                             <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
@@ -166,10 +166,10 @@
             @endif
 
             <li class="nav-item">
-                <a href="{{ route('configuracion.index') }}"
+                <a href="{{ route('settings.index') }}"
                    class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2
-                          {{ request()->routeIs('configuracion.*') ? 'text-white' : 'text-secondary' }}"
-                   style="{{ request()->routeIs('configuracion.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
+                          {{ request()->routeIs('settings.*') ? 'text-white' : 'text-secondary' }}"
+                   style="{{ request()->routeIs('settings.*') ? 'background:#1f6b21;' : '' }} font-size:14px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="12" cy="12" r="3"/>
                         <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -193,7 +193,7 @@
                 <div>
                     <p class="mb-0 fw-medium" style="font-size:12px; color:#1a2e1a;">{{ auth()->user()->name }}</p>
                     <p class="mb-0 text-muted" style="font-size:10px;">
-                        {{ auth()->user()->esAdmin() ? 'Administrador' : 'Asesor' }}
+                        {{ auth()->user()->isAdmin() ? 'Administrador' : 'Asesor' }}
                     </p>
                 </div>
             </div>
@@ -211,8 +211,7 @@ function toggleSubmenu(id) {
     arrow.style.transform = visible ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 
-// Abrir submenú si estamos en esa sección
-@if(request()->routeIs('reestructuracion.*'))
+@if(request()->routeIs('restructuring.*'))
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('arrow_reest').style.transform = 'rotate(180deg)';
     });

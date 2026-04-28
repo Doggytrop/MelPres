@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-Schedule::command('prestamos:procesar-mora')->dailyAt('08:00');
+Schedule::command('loans:procesar-mora')->dailyAt('08:00');

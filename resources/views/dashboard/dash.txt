@@ -1,4 +1,4 @@
-@extends('layouts.app')
+<!-- @extends('layouts.app')
 
 @section('title', 'Dashboard')
 
@@ -15,7 +15,7 @@
     <div class="col-md-4">
         <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Clientes</span>
+                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">customers</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
                      style="width:34px; height:34px; background:#e8f5e9;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
@@ -24,14 +24,14 @@
                     </svg>
                 </div>
             </div>
-            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $clientes }}</h3>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $customers }}</h3>
         </div>
     </div>
 
     <div class="col-md-4">
         <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Préstamos activos</span>
+                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Préstamos actives</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
                      style="width:34px; height:34px; background:#e8f5e9;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
@@ -40,14 +40,14 @@
                     </svg>
                 </div>
             </div>
-            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $prestamos }}</h3>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $loans }}</h3>
         </div>
     </div>
 
     <div class="col-md-4">
         <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">Pagos hoy</span>
+                <span class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:.05em;">payments hoy</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
                      style="width:34px; height:34px; background:#e8f5e9;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
@@ -56,10 +56,10 @@
                     </svg>
                 </div>
             </div>
-            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $pagos }}</h3>
+            <h3 class="fw-medium mb-0" style="color:#1a2e1a; font-size:28px;">{{ $payments }}</h3>
         </div>
     </div>
 
 </div>
 
-@endsection
+@endsection -->

@@ -6,25 +6,25 @@ Sistema web profesional para la gestión de préstamos personales, desarrollado 
 
 ## 📌 Descripción
 
-**MelPres** es una aplicación web diseñada para ayudar a prestamistas a administrar clientes, préstamos y pagos de forma flexible y realista, adaptándose a diferentes esquemas de negocio.
+**MelPres** es una aplicación web diseñada para ayudar a prestamistas a administrar customers, préstamos y payments de forma flexible y realista, adaptándose a diferentes esquemas de negocio.
 
-El sistema permite manejar desde préstamos simples hasta escenarios más complejos como pagos parciales, intereses variables y control de mora.
+El sistema permite manejar desde préstamos simples hasta escenarios más complejos como payments partiales, interestes variables y control de mora.
 
 ---
 
 ## 🚀 Características principales
 
-* 👤 Gestión de clientes
+* 👤 Gestión de customers
 * 💰 Administración de préstamos
-* 💳 Registro de pagos (flexibles)
+* 💳 Registro de payments (flexibles)
 * 📊 Dashboard con métricas
 * 🔐 Sistema de autenticación
-* ⚙️ Intereses personalizables
-* ⏱️ Soporte para pagos:
+* ⚙️ interestes personalizables
+* ⏱️ Soporte para payments:
 
-  * Semanales
-  * Quincenales
-  * Mensuales
+  * weeklyes
+  * biweeklyes
+  * monthlyes
 * 🚨 Control de mora (sanciones)
 
 ---
@@ -33,32 +33,32 @@ El sistema permite manejar desde préstamos simples hasta escenarios más comple
 
 ### 🔴 Préstamo tipo interés (renovable)
 
-* El cliente paga solo intereses por periodo
+* El customer paga solo interestes por periodo
 * El capital permanece intacto
-* Ideal para esquemas tipo “pago de interés mensual”
+* Ideal para esquemas tipo “payment de interés monthly”
 
-### 🟢 Préstamo a plazo
+### 🟢 Préstamo a term
 
 * Interés acumulado por duración
-* Pagos divididos en periodos
+* payments divididos en periodos
 * Liquidación total al finalizar
 
 ---
 
-## 💳 Sistema de pagos
+## 💳 Sistema de payments
 
 El sistema permite:
 
-* Pagos completos
-* Pagos parciales
-* Pagos mayores al esperado
-* Pagos solo de interés
-* Pagos mixtos
+* payments completes
+* payments partiales
+* payments mayores al esperado
+* payments solo de interés
+* payments mixeds
 
 Todo basado en el concepto de:
 
 ```plaintext
-saldo_restante
+remaining_balance
 ```
 
 ---
@@ -127,7 +127,7 @@ php artisan serve
 
 ---
 
-## 📊 Estado del proyecto
+## 📊 status del proyecto
 
 🚧 En desarrollo
 
@@ -135,9 +135,9 @@ Módulos actuales:
 
 * Autenticación ✔️
 * Dashboard ✔️
-* Clientes (en progreso)
+* customers (en progreso)
 * Préstamos (en diseño)
-* Pagos (pendiente)
+* payments (pendiente)
 
 ---
 

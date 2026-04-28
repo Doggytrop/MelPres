@@ -3,91 +3,86 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ClienteController;
-use App\Http\Controllers\PrestamoController;
-use App\Http\Controllers\PagoController;
-use App\Http\Controllers\ClienteDocumentoController;
-use App\Http\Controllers\HistorialController;
-use App\Http\Controllers\ConfiguracionController;
-use App\Http\Controllers\AsesorController;
-use App\Http\Controllers\CorteCajaController;
-use App\Http\Controllers\SimuladorController;
-use App\Http\Controllers\ReestructuracionController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\LoanController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\CustomerDocumentController;
+use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\AdvisorController;
+use App\Http\Controllers\CashRegisterController;
+use App\Http\Controllers\SimulatorController;
+use App\Http\Controllers\RestructuringController;
+
 Route::get('/', function () {
     return redirect('/dashboard');
 });
 
 Route::middleware('auth')->group(function () {
 
+    // — Dashboard —
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
+    // — Profile —
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('clientes', ClienteController::class);
-    Route::get('prestamos/buscar-cliente', [PrestamoController::class, 'buscarCliente'])
-     ->name('prestamos.buscar-cliente');
-    Route::resource('prestamos', PrestamoController::class);
-    Route::post('prestamos/{prestamo}/pagos', [PagoController::class, 'store'])
-        ->name('prestamos.pagos.store');
-    
-       
+    // — Customers —
+    Route::resource('customers', CustomerController::class)->except(['destroy']);
+    Route::post('customers/{customer}/documents', [CustomerDocumentController::class, 'store'])
+        ->name('customers.documents.store');
+    Route::delete('customers/{customer}/documents/{document}', [CustomerDocumentController::class, 'destroy'])
+        ->name('customers.documents.destroy');
 
-    Route::post('clientes/{cliente}/documentos', [ClienteDocumentoController::class, 'store'])
-        ->name('clientes.documentos.store');
+    // — Loans —
+    Route::get('loans/search-customer', [LoanController::class, 'searchCustomer'])
+        ->name('loans.search-customer');
+    Route::resource('loans', LoanController::class)->except(['destroy']);
+    Route::post('loans/{loan}/payments', [PaymentController::class, 'store'])
+        ->name('loans.payments.store');
 
-    Route::delete('clientes/{cliente}/documentos/{documento}', [ClienteDocumentoController::class, 'destroy'])
-        ->name('clientes.documentos.destroy');
-    
+    // — History —
+    Route::get('history', [HistoryController::class, 'index'])->name('history.index');
+    Route::get('history/{loan}', [HistoryController::class, 'show'])->name('history.show');
+    Route::get('history/{loan}/pdf', [HistoryController::class, 'pdf'])->name('history.pdf');
 
-    Route::get('historial', [HistorialController::class, 'index'])->name('historial.index');
-    Route::get('historial/{prestamo}', [HistorialController::class, 'show'])->name('historial.show');
+    // — Cash Register —
+    Route::get('cash-register', [CashRegisterController::class, 'index'])->name('cash-register.index');
+    Route::get('cash-register/pdf', [CashRegisterController::class, 'pdf'])->name('cash-register.pdf');
+
+    // — Simulator —
+    Route::get('simulator', [SimulatorController::class, 'index'])->name('simulator.index');
+    Route::post('simulator/calculate', [SimulatorController::class, 'calculate'])->name('simulator.calculate');
+
+    // — Restructuring —
+    Route::get('restructuring/overdue', [RestructuringController::class, 'overdue'])
+        ->name('restructuring.overdue');
+    Route::get('restructuring/active', [RestructuringController::class, 'active'])
+        ->name('restructuring.active');
+    Route::get('restructuring/history', [RestructuringController::class, 'history'])
+        ->name('restructuring.history');
+    Route::get('restructuring/{loan}/create', [RestructuringController::class, 'create'])
+        ->name('restructuring.create');
+    Route::post('restructuring/{loan}/create', [RestructuringController::class, 'store'])
+        ->name('restructuring.store');
+    Route::get('restructuring/pdf/{restructuring}', [RestructuringController::class, 'pdf'])
+        ->name('restructuring.pdf');
+
+    // — Admin only —
+    Route::middleware(['solo.admin'])->group(function () {
+        Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])
+            ->name('customers.destroy');
+        Route::delete('loans/{loan}', [LoanController::class, 'destroy'])
+            ->name('loans.destroy');
+        Route::get('settings', [SettingController::class, 'index'])
+            ->name('settings.index');
+        Route::post('settings', [SettingController::class, 'update'])
+            ->name('settings.update');
+        Route::resource('advisors', AdvisorController::class)->except(['show']);
     });
-    Route::get('historial/{prestamo}/pdf', [HistorialController::class, 'pdf'])
-     ->name('historial.pdf');
 
+});
 
-    Route::get('configuracion', [ConfiguracionController::class, 'index'])
-        ->name('configuracion.index');
-    Route::post('configuracion', [ConfiguracionController::class, 'update'])
-        ->name('configuracion.update');
-        
-
-    Route::get('corte-caja', [CorteCajaController::class, 'index'])->name('corte-caja.index');
-    Route::get('corte-caja/pdf', [CorteCajaController::class, 'pdf'])->name('corte-caja.pdf');
-    
-    # Rutas para el simulador de préstamos
-    Route::get('simulador', [SimuladorController::class, 'index'])->name('simulador.index');
-    Route::post('simulador/calcular', [SimuladorController::class, 'calcular'])->name('simulador.calcular');
-    
-
-
-    // Reestructuración
-    Route::get('reestructuracion/vencidos', [ReestructuracionController::class, 'vencidos'])
-        ->name('reestructuracion.vencidos');
-    Route::get('reestructuracion/activos', [ReestructuracionController::class, 'activos'])
-        ->name('reestructuracion.activos');
-    Route::get('reestructuracion/historial', [ReestructuracionController::class, 'historial'])
-        ->name('reestructuracion.historial');
-    Route::get('reestructuracion/{prestamo}/crear', [ReestructuracionController::class, 'create'])
-        ->name('reestructuracion.create');
-    Route::post('reestructuracion/{prestamo}/crear', [ReestructuracionController::class, 'store'])
-        ->name('reestructuracion.store');
-    Route::get('reestructuracion/pdf/{reestructuracion}', [ReestructuracionController::class, 'pdf'])
-        ->name('reestructuracion.pdf');
-
-    // Solo administrador
-    Route::middleware(['auth', 'solo.admin'])->group(function () {
-        Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])
-            ->name('clientes.destroy');
-        Route::delete('prestamos/{prestamo}', [PrestamoController::class, 'destroy'])
-            ->name('prestamos.destroy');
-        Route::get('configuracion', [ConfiguracionController::class, 'index'])
-            ->name('configuracion.index');
-        Route::post('configuracion', [ConfiguracionController::class, 'update'])
-            ->name('configuracion.update');
-        Route::resource('asesores', AsesorController::class);
-    });
 require __DIR__.'/auth.php';
