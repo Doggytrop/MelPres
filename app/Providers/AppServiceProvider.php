@@ -25,4 +25,4 @@ class AppServiceProvider extends ServiceProvider
             }
         });
     }
-}
+}// Backend fully refactored from Spanish to English
