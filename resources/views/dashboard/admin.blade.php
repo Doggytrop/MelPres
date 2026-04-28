@@ -117,9 +117,22 @@
     </div>
 </div>
 
+{{-- Gráfica de pagos por mes --}}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="bg-white border rounded-3 p-4" style="border-color:#e8e8e8 !important;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Pagos recibidos por mes</span>
+                <span class="text-muted" style="font-size:12px;">Últimos 6 meses</span>
+            </div>
+            <canvas id="chartPagos" height="100"></canvas>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
 
-    {{-- payments del día --}}
+    {{-- Pagos del día --}}
     <div class="col-md-6">
         <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
             <div class="px-4 py-3 border-bottom d-flex justify-content-between align-items-center"
@@ -133,7 +146,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <p class="mb-0 fw-medium" style="font-size:13px; color:#1a2e1a;">
-                                {{ $payment->loan->customer?->first_name_complete ?? 'cliente eliminado' }}
+                                {{ $payment->loan->customer?->full_name ?? 'Cliente eliminado' }}
                             </p>
                             <p class="mb-0 text-muted" style="font-size:11px;">
                                 Asesor: {{ $payment->recordedBy?->name ?? '—' }}
@@ -152,7 +165,7 @@
         </div>
     </div>
 
-    {{-- Préstamos overdues --}}
+    {{-- Préstamos vencidos --}}
     <div class="col-md-6">
         <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
             <div class="px-4 py-3 border-bottom" style="border-color:#f0f0f0 !important;">
@@ -165,7 +178,7 @@
                         <div>
                             <a href="{{ route('loans.show', $loan) }}"
                                style="font-size:13px; color:#1a2e1a; font-weight:500; text-decoration:none;">
-                                {{ $loan->customer?->first_name_complete ?? 'cliente eliminado' }}
+                                {{ $loan->customer?->full_name ?? 'Cliente eliminado' }}
                             </a>
                             <p class="mb-0 text-muted" style="font-size:11px;">
                                 Mora: ${{ number_format($loan->accumulated_penalty, 2) }}
@@ -197,7 +210,7 @@
                     <div>
                         <a href="{{ route('loans.show', $loan) }}"
                            style="font-size:13px; color:#1a2e1a; font-weight:500; text-decoration:none;">
-                            {{ $loan->customer?->first_name_complete ?? 'cliente eliminado' }}
+                            {{ $loan->customer?->full_name ?? 'Cliente eliminado' }}
                         </a>
                         <p class="mb-0 text-muted" style="font-size:11px;">
                             Vence: {{ $loan->next_payment_date->format('d/m/Y') }}
@@ -217,5 +230,49 @@
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('chartPagos'), {
+    type: 'bar',
+    data: {
+        labels: @json($chartLabels),
+        datasets: [{
+            label: 'Pagos recibidos ($)',
+            data: @json($chartData),
+            backgroundColor: '#1f6b21',
+            borderRadius: 6,
+            maxBarThickness: 60
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(ctx) {
+                        return '$ ' + ctx.raw.toLocaleString('en-US', {minimumFractionDigits: 2});
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$ ' + value.toLocaleString('en-US');
+                    }
+                },
+                grid: { color: '#f0f0f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+});
+</script>
 
 @endsection

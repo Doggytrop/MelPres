@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\customer;
-use App\Models\loan;
-use App\Models\payment;
+use App\Models\Customer;
+use App\Models\Loan;
+use App\Models\Payment;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -15,52 +15,64 @@ class DashboardController extends Controller
             return $this->dashboardAdmin();
         }
 
-        return $this->dashboardadvisor();
+        return $this->dashboardAdvisor();
     }
 
     private function dashboardAdmin()
     {
         $hoy = Carbon::today();
 
-        $totalCapital = loan::whereIn('status', ['active', 'overdue'])
-                                ->sum('remaining_balance');
+        $totalCapital = Loan::whereIn('status', ['active', 'overdue'])
+                            ->sum('remaining_balance');
 
-        $totalcustomers = customer::where('status', 'active')->count();
+        $totalcustomers = Customer::where('status', 'active')->count();
 
-        $activeLoansCount = loan::where('status', 'active')->count();
+        $activeLoansCount = Loan::where('status', 'active')->count();
 
-        $loansoverdues = loan::where('status', 'overdue')->count();
+        $loansoverdues = Loan::where('status', 'overdue')->count();
 
-        $paymentsHoy = payment::whereDate('payment_date', $hoy)
-                        ->with(['loan.customer', 'registradoPor'])
+        $paymentsHoy = Payment::whereDate('payment_date', $hoy)
+                        ->with(['loan.customer', 'recordedBy'])
                         ->latest()
                         ->get();
 
         $totalCobradoHoy = $paymentsHoy->sum('amount_paid');
 
-        $interestDelMes = payment::whereMonth('payment_date', $hoy->month)
+        $interestDelMes = Payment::whereMonth('payment_date', $hoy->month)
                              ->whereYear('payment_date', $hoy->year)
                              ->sum('interest_payment');
 
-        $moraDelMes = payment::whereMonth('payment_date', $hoy->month)
+        $moraDelMes = Payment::whereMonth('payment_date', $hoy->month)
                           ->whereYear('payment_date', $hoy->year)
                           ->sum('penalty_payment');
 
-        $overdues = loan::where('status', 'overdue')
-                            ->with('customer')
-                            ->latest()
-                            ->take(10)
-                            ->get();
+        $overdues = Loan::where('status', 'overdue')
+                        ->with('customer')
+                        ->latest()
+                        ->take(10)
+                        ->get();
 
-        $proximosVencimientos = loan::where('status', 'active')
-                                        ->whereBetween('next_payment_date', [
-                                            $hoy->copy()->toDateString(),
-                                            $hoy->copy()->addDays(7)->toDateString(),
-                                        ])
-                                        ->with('customer')
-                                        ->orderBy('next_payment_date')
-                                        ->take(10)
-                                        ->get();
+        $proximosVencimientos = Loan::where('status', 'active')
+                                    ->whereBetween('next_payment_date', [
+                                        $hoy->copy()->toDateString(),
+                                        $hoy->copy()->addDays(7)->toDateString(),
+                                    ])
+                                    ->with('customer')
+                                    ->orderBy('next_payment_date')
+                                    ->take(10)
+                                    ->get();
+
+        // — Datos para la gráfica de pagos por mes (últimos 6 meses) —
+        $chartLabels = [];
+        $chartData   = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $month = $hoy->copy()->subMonths($i);
+            $chartLabels[] = $month->translatedFormat('M Y');
+            $chartData[]   = Payment::whereMonth('payment_date', $month->month)
+                                    ->whereYear('payment_date', $month->year)
+                                    ->sum('amount_paid');
+        }
 
         return view('dashboard.admin', compact(
             'totalCapital',
@@ -73,14 +85,16 @@ class DashboardController extends Controller
             'moraDelMes',
             'overdues',
             'proximosVencimientos',
+            'chartLabels',
+            'chartData',
         ));
     }
 
-    private function dashboardadvisor()
+    private function dashboardAdvisor()
     {
         $hoy = Carbon::today();
 
-        $paymentsHoy = payment::whereDate('payment_date', $hoy)
+        $paymentsHoy = Payment::whereDate('payment_date', $hoy)
                         ->where('recorded_by', auth()->id())
                         ->with(['loan.customer'])
                         ->latest()
@@ -88,16 +102,16 @@ class DashboardController extends Controller
 
         $totalCobradoHoy = $paymentsHoy->sum('amount_paid');
 
-        $vencenHoy = loan::where('status', 'active')
-                             ->whereDate('next_payment_date', $hoy->toDateString())
-                             ->with('customer')
-                             ->get();
+        $vencenHoy = Loan::where('status', 'active')
+                         ->whereDate('next_payment_date', $hoy->toDateString())
+                         ->with('customer')
+                         ->get();
 
-        $overdues = loan::where('status', 'overdue')
-                            ->with('customer')
-                            ->latest()
-                            ->take(5)
-                            ->get();
+        $overdues = Loan::where('status', 'overdue')
+                        ->with('customer')
+                        ->latest()
+                        ->take(5)
+                        ->get();
 
         return view('dashboard.advisor', compact(
             'paymentsHoy',
