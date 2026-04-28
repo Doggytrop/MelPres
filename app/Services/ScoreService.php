@@ -74,4 +74,4 @@ class ScoreService
             default       => ['label' => 'Alto riesgo','color' => '#c0392b', 'bg' => '#fdecea'],
         };
     }
-}
+}// Credit score system implemented
