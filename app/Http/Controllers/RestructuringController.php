@@ -210,4 +210,4 @@ class RestructuringController extends Controller
             default     => $date->addMonth()->toDateString(),
         };
     }
-}
+}// Restructuring module with PDF legal letter
