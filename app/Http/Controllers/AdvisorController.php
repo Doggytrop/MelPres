@@ -11,12 +11,12 @@ class AdvisorController extends Controller
     public function index()
     {
         $advisores = User::where('rol', 'advisor')->latest()->paginate(15);
-        return view('advisores.index', compact('advisores'));
+        return view('advisors.index', compact('advisores'));
     }
 
     public function create()
     {
-        return view('advisores.create');
+        return view('advisors.create');
     }
 
     public function store(Request $request)
@@ -41,7 +41,7 @@ class AdvisorController extends Controller
             'rol'      => 'advisor',
         ]);
 
-        return redirect()->route('advisores.index')
+        return redirect()->route('advisors.index')
                          ->with('success', 'advisor registrado correctamente.');
     }
 
@@ -50,7 +50,7 @@ class AdvisorController extends Controller
         // Verificar que sea advisor
         if ($advisor->isAdmin()) abort(403);
 
-        return view('advisores.edit', compact('advisor'));
+        return view('advisors.edit', compact('advisor'));
     }
 
     public function update(Request $request, User $advisor)
@@ -78,7 +78,7 @@ class AdvisorController extends Controller
 
         $advisor->save();
 
-        return redirect()->route('advisores.index')
+        return redirect()->route('advisors.index')
                          ->with('success', 'advisor actualizado correctamente.');
     }
 
@@ -88,7 +88,7 @@ class AdvisorController extends Controller
 
         $advisor->delete();
 
-        return redirect()->route('advisores.index')
+        return redirect()->route('advisors.index')
                          ->with('success', 'advisor eliminado correctamente.');
     }
 }

@@ -25,6 +25,7 @@
                     <select id="tipo" class="form-control form-control-sm">
                         <option value="term">Plazo fijo</option>
                         <option value="interest">Interés renovable</option>
+                        <option value="daily">Diario</option>
                     </select>
                 </div>
                 <div class="col-md-6">
@@ -35,13 +36,13 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés mensual</label>
+                    <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;" id="label_interest">Interés mensual</label>
                     <div class="input-group input-group-sm">
                         <input type="number" id="interest" class="form-control form-control-sm" placeholder="0" step="0.01">
                         <span class="input-group-text">%</span>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" id="campo_frecuencia">
                     <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Frecuencia de pago</label>
                     <select id="frecuencia" class="form-control form-control-sm">
                         <option value="weekly">Semanal</option>
@@ -50,7 +51,7 @@
                     </select>
                 </div>
                 <div class="col-md-6" id="campo_periodos">
-                    <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Número de periodos</label>
+                    <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;" id="label_periodos">Número de periodos</label>
                     <input type="number" id="periodos" class="form-control form-control-sm" placeholder="Ej: 4" min="1">
                 </div>
             </div>
@@ -126,14 +127,14 @@
             <div class="row g-3 mb-3">
                 <div class="col-md-4">
                     <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
-                        <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Pago sugerido</span>
+                        <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;" id="res_payment_label">Pago sugerido</span>
                         <span class="fw-medium" style="font-size:20px; color:#1f6b21;" id="res_payment_sugerido">—</span>
                         <span class="text-muted d-block" style="font-size:11px;" id="res_frecuencia">—</span>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
-                        <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés mensual</span>
+                        <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;" id="res_interest_label">Interés mensual</span>
                         <span class="fw-medium" style="font-size:20px; color:#1a2e1a;" id="res_interest_monthly">—</span>
                     </div>
                 </div>
@@ -173,7 +174,7 @@ function calcular() {
     const monto      = document.getElementById('monto').value;
     const interest   = document.getElementById('interest').value;
     const tipo       = document.getElementById('tipo').value;
-    const freq       = document.getElementById('frecuencia').value;
+    const freq       = tipo === 'daily' ? 'daily' : document.getElementById('frecuencia').value;
     const periodos   = document.getElementById('periodos').value;
     const ingreso    = document.getElementById('ingreso').value;
     const freqIng    = document.getElementById('freq_ingreso').value;
@@ -181,6 +182,11 @@ function calcular() {
 
     if (!monto || !interest) {
         alert('Por favor ingresa el monto y la tasa de interés.');
+        return;
+    }
+
+    if ((tipo === 'term' || tipo === 'daily') && !periodos) {
+        alert('Por favor ingresa el número de ' + (tipo === 'daily' ? 'días' : 'periodos') + '.');
         return;
     }
 
@@ -209,7 +215,19 @@ function mostrarResultados(data) {
     document.getElementById('placeholder').style.display = 'none';
     document.getElementById('resultados').style.display  = 'block';
 
-    const freqLabel = { weekly: 'por semana', biweekly: 'por quincena', monthly: 'por mes' };
+    const freqLabel = { daily: 'por día', weekly: 'por semana', biweekly: 'por quincena', monthly: 'por mes' };
+
+    // Labels dinámicos
+    if (data.type === 'daily') {
+        document.getElementById('res_payment_label').textContent  = 'Pago diario';
+        document.getElementById('res_interest_label').textContent = 'Interés total';
+    } else if (data.type === 'interest') {
+        document.getElementById('res_payment_label').textContent  = 'Pago por periodo';
+        document.getElementById('res_interest_label').textContent = 'Interés mensual';
+    } else {
+        document.getElementById('res_payment_label').textContent  = 'Pago sugerido';
+        document.getElementById('res_interest_label').textContent = 'Interés mensual';
+    }
 
     document.getElementById('res_payment_sugerido').textContent = '$ ' + formatNum(data.suggested_payment);
     document.getElementById('res_frecuencia').textContent       = freqLabel[data.frequency] || '';
@@ -219,7 +237,13 @@ function mostrarResultados(data) {
         : 'Renovable';
 
     let desglose = '';
-    if (data.type === 'term') {
+    if (data.type === 'daily') {
+        desglose += fila('Capital prestado',   '$ ' + formatNum(data.amount));
+        desglose += fila('Interés total (' + data.interest_rate + '%)', '$ ' + formatNum(data.total_interest));
+        desglose += fila('Total a pagar',      '$ ' + formatNum(data.total_amount), true);
+        desglose += fila('Días del plazo',     data.periods + ' días');
+        desglose += fila('Pago diario',        '$ ' + formatNum(data.suggested_payment), true);
+    } else if (data.type === 'term') {
         desglose += fila('Capital prestado',   '$ ' + formatNum(data.amount));
         desglose += fila('Interés total',      '$ ' + formatNum(data.total_interest));
         desglose += fila('Total a pagar',      '$ ' + formatNum(data.total_amount), true);
@@ -266,7 +290,7 @@ function mostrarResultados(data) {
 }
 
 function fila(label, valor, negrita = false) {
-    return `<div class="d-flex justify-content-between py-2" style="border-border:0.5px solid #f5f5f5; font-size:13px;">
+    return `<div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
         <span class="text-muted">${label}</span>
         <span style="color:#1a2e1a; font-weight:${negrita ? '500' : '400'};">${valor}</span>
     </div>`;
@@ -276,8 +300,27 @@ function formatNum(n) {
     return parseFloat(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Cambiar campos según tipo seleccionado
 document.getElementById('tipo').addEventListener('change', function() {
-    document.getElementById('campo_periodos').style.display = this.value === 'term' ? 'block' : 'none';
+    const tipo = this.value;
+
+    if (tipo === 'daily') {
+        document.getElementById('campo_frecuencia').style.display = 'none';
+        document.getElementById('campo_periodos').style.display   = 'block';
+        document.getElementById('label_periodos').textContent     = 'Número de días';
+        document.getElementById('label_interest').textContent     = 'Interés total';
+        document.getElementById('periodos').placeholder           = 'Ej: 30';
+    } else if (tipo === 'interest') {
+        document.getElementById('campo_frecuencia').style.display = 'block';
+        document.getElementById('campo_periodos').style.display   = 'none';
+        document.getElementById('label_interest').textContent     = 'Interés mensual';
+    } else {
+        document.getElementById('campo_frecuencia').style.display = 'block';
+        document.getElementById('campo_periodos').style.display   = 'block';
+        document.getElementById('label_periodos').textContent     = 'Número de periodos';
+        document.getElementById('label_interest').textContent     = 'Interés mensual';
+        document.getElementById('periodos').placeholder           = 'Ej: 4';
+    }
 });
 </script>
 

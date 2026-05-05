@@ -15,6 +15,32 @@
 </div>
 
 @if(session('success'))
+@if(session('credentials'))
+    <div class="alert border rounded-3 mb-4 p-4" style="background:#e3f2fd; border-color:#90caf9 !important;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.5">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span class="fw-medium" style="color:#1565c0; font-size:14px;">Credenciales del cliente</span>
+        </div>
+        <p class="mb-1" style="font-size:13px; color:#333;">
+            Se creó un acceso para que el cliente consulte sus préstamos:
+        </p>
+        <div class="p-3 rounded-2 mt-2" style="background:#fff; border:0.5px solid #90caf9;">
+            <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
+                <span class="text-muted">Usuario (teléfono):</span>
+                <span class="fw-medium" style="color:#1a2e1a;">{{ session('credentials')['phone'] }}</span>
+            </div>
+            <div class="d-flex justify-content-between" style="font-size:13px;">
+                <span class="text-muted">Contraseña:</span>
+                <span class="fw-medium" style="color:#1565c0; font-family:monospace; font-size:15px;">{{ session('credentials')['password'] }}</span>
+            </div>
+        </div>
+        <p class="mt-2 mb-0" style="font-size:11px; color:#c0392b;">
+            ⚠ Esta contraseña solo se muestra una vez. Anótala y entrégala al cliente.
+        </p>
+    </div>
+@endif
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
          style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

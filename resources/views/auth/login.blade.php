@@ -45,23 +45,23 @@
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
-                    {{-- Email --}}
+                    {{-- Login (email o teléfono) --}}
                     <div class="mb-4">
-                        <label for="email" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
-                            {{ __('Correo electrónico') }}
+                        <label for="login" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
+                            Correo electrónico o teléfono
                         </label>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}"
+                        <input id="login" type="text" name="login" value="{{ old('login') }}"
                                required autofocus autocomplete="username"
-                               placeholder="usuario@ejemplo.com"
+                               placeholder="correo@ejemplo.com o 6621234567"
                                class="w-full bg-[#fafafa] border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-[#1a2e1a]
                                       placeholder-gray-300 focus:outline-none focus:border-[#3a9a3b] focus:bg-white transition-colors duration-200" />
-                        <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-500 text-xs" />
+                        <x-input-error :messages="$errors->get('login')" class="mt-2 text-red-500 text-xs" />
                     </div>
 
                     {{-- Password --}}
                     <div class="mb-5">
                         <label for="password" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
-                            {{ __('Contraseña') }}
+                            Contraseña
                         </label>
                         <input id="password" type="password" name="password"
                                required autocomplete="current-password"
@@ -76,12 +76,12 @@
                         <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
                             <input id="remember_me" type="checkbox" name="remember"
                                    class="w-3.5 h-3.5 rounded border-gray-300 accent-[#3a9a3b]">
-                            {{ __('Recordarme') }}
+                            Recordarme
                         </label>
                         @if (Route::has('password.request'))
                             <a href="{{ route('password.request') }}"
                                class="text-sm text-[#3a9a3b] hover:text-[#1f6b21] transition-colors duration-200">
-                                {{ __('¿Olvidaste tu contraseña?') }}
+                                ¿Olvidaste tu contraseña?
                             </a>
                         @endif
                     </div>
@@ -90,16 +90,8 @@
                     <button type="submit"
                             class="w-full bg-[#1f6b21] hover:bg-[#256e27] text-white rounded-lg py-3
                                    text-sm font-medium tracking-wide transition-colors duration-200">
-                        {{ __('Iniciar sesión') }}
+                        Iniciar sesión
                     </button>
-                    {{-- ¿No tienes cuenta? --}}
-                        <p class="text-center text-sm text-gray-400 mt-5">
-                            ¿No tienes cuenta?
-                            <a href="{{ route('register') }}"
-                            class="text-[#3a9a3b] hover:text-[#1f6b21] transition-colors duration-200">
-                                Regístrate
-                            </a>
-                        </p>
 
                 </form>
             </div>

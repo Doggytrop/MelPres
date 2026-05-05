@@ -12,7 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'solo.admin' => \App\Http\Middleware\SoloAdmin::class,
+            'solo.admin'        => \App\Http\Middleware\SoloAdmin::class,
+            'redirect.customer' => \App\Http\Middleware\RedirectCustomer::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -29,7 +29,7 @@ class CashRegisterController extends Controller
         $totalMora    = $payments->sum('penalty_payment');
         $advisores     = User::where('rol', 'advisor')->get();
 
-        return view('corte-caja.index', compact(
+        return view('cash-register.index', compact(
             'payments',
             'poradvisor',
             'totalCobrado',
@@ -60,7 +60,7 @@ class CashRegisterController extends Controller
         $totalinterest = $payments->sum('interestt_payment');
         $totalMora    = $payments->sum('penalty_payment');
 
-        $pdf = Pdf::loadView('corte-caja.pdf', compact(
+        $pdf = Pdf::loadView('cash-register.pdf', compact(
             'payments',
             'poradvisor',
             'totalCobrado',

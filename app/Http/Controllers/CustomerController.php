@@ -21,14 +21,41 @@ class CustomerController extends Controller
         $customer = new customer();
         return view('customers.create', compact('customer'));
     }
+public function store(StoreCustomerRequest $request)
+{
+    $customer = Customer::create($request->validated());
 
-    public function store(StorecustomerRequest $request)
-    {
-        customer::create($request->validated());
+    
+    $generatedPassword = null;
 
-        return redirect()->route('customers.index')
-                         ->with('success', 'customer registrado correctamente.');
+    if ($customer->phone) {
+        $plainPassword = strtoupper(substr(str_replace(' ', '', $customer->first_name), 0, 3))
+                       . rand(1000, 9999);
+
+        $user = \App\Models\User::create([
+            'name'        => $customer->full_name,
+            'email'       => $customer->phone . '@melpres.app',
+            'phone'       => $customer->phone,
+            'password'    => $plainPassword,
+            'role'        => 'customer',
+            'customer_id' => $customer->id,
+        ]);
+
+        $generatedPassword = $plainPassword;
     }
+
+    if ($generatedPassword) {
+        return redirect()->route('customers.show', $customer)
+                         ->with('success', 'Cliente registrado correctamente.')
+                         ->with('credentials', [
+                             'phone'    => $customer->phone,
+                             'password' => $generatedPassword,
+                         ]);
+    }
+
+    return redirect()->route('customers.show', $customer)
+                     ->with('success', 'Cliente registrado correctamente.');
+}
 
     public function show(customer $customer)
 {

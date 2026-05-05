@@ -292,7 +292,7 @@ input:checked + .toggle-slider:before {
                     </div>
                     <div class="col-md-6">
                         <div class="setting-item">
-                            <label class="setting-label">Slogan</label>
+                            <label class="setting-label">Eslogan</label>
                             <input type="text" name="company_slogan" value="{{ $groups->get('company')->firstWhere('key', 'company_slogan')->value ?? '' }}"
                                    class="form-control" placeholder="Ej: Tu socio financiero de confianza">
                             <p class="setting-description">Frase corta que describe tu empresa</p>
@@ -323,12 +323,38 @@ input:checked + .toggle-slider:before {
                         </div>
                     </div>
                 </div>
+                <div class="col-12">
+                    <div class="setting-item">
+                        <label class="setting-label">Logo de la Empresa</label>
+                        @php
+                            $currentLogo = $groups->get('company')?->firstWhere('key', 'company_logo')?->value;
+                        @endphp
+                        @if($currentLogo)
+                            <div class="mb-3 p-3 rounded-3 d-inline-block" style="background:#f8f9f8; border:0.5px solid #e8e8e8;">
+                                <img src="{{ asset('storage/' . $currentLogo) }}" alt="Logo actual"
+                                    style="max-width:180px; max-height:60px; object-fit:contain;">
+                                <span class="d-block text-muted mt-1" style="font-size:11px;">Logo actual</span>
+                            </div>
+                        @endif
+                        <input type="file" name="company_logo_file" accept="image/*" class="form-control">
+                        <p class="setting-description">Formato: PNG, JPG o SVG. Tamaño máximo: 2MB. Se usará en PDFs y en el sistema.</p>
+                    </div>
+                </div>
 
                 {{-- Vista Previa --}}
                 <div class="preview-box mt-4">
-                    <h6 class="fw-medium mb-2" id="previewCompanyName" style="font-size:24px;">MelPres</h6>
-                    <p class="text-muted mb-0" id="previewCompanySlogan" style="font-size:14px;">Tu socio financiero de confianza</p>
-                    <button type="button" id="previewButton" class="btn btn-sm mt-3" style="background:#1f6b21; color:white; padding:8px 20px; border-radius:6px;">
+                    @if($currentLogo)
+                        <img src="{{ asset('storage/' . $currentLogo) }}" alt="Logo"
+                            style="max-width:200px; max-height:80px; object-fit:contain; margin-bottom:16px;">
+                    @endif
+                    <h6 class="fw-medium mb-2" id="previewCompanyName" style="font-size:24px;">
+                        {{ $groups->get('company')?->firstWhere('key', 'company_name')?->value ?? 'MelPres' }}
+                    </h6>
+                    <p class="text-muted mb-0" id="previewCompanySlogan" style="font-size:14px;">
+                        {{ $groups->get('company')?->firstWhere('key', 'company_slogan')?->value ?? 'Tu socio financiero de confianza' }}
+                    </p>
+                    <button type="button" id="previewButton" class="btn btn-sm mt-3"
+                            style="background:{{ $groups->get('company')?->firstWhere('key', 'company_primary_color')?->value ?? '#1f6b21' }}; color:white; padding:8px 20px; border-radius:6px;">
                         Vista Previa
                     </button>
                 </div>

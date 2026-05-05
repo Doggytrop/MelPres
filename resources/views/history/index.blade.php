@@ -50,7 +50,8 @@
                                 @php
                                     $tipoBadge = match($loan->type) {
                                         'interest' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
-                                        'term'   => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                                        'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                                        'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Diario'],
                                     };
                                 @endphp
                                 <span class="px-2 py-1 rounded-2"

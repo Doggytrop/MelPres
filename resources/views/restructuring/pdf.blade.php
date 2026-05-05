@@ -92,16 +92,20 @@
 <body>
 
     {{-- Header --}}
-    <div class="header">
-        <div class="header-left">
-            <h1>Acuerdo de reestructuración de crédito</h1>
-            <div class="sub">Documento administrativo — requiere firma de ambas partes</div>
-        </div>
-        <div class="header-right">
-            <div class="folio">Folio #{{ str_pad($restructuring->id, 6, '0', STR_PAD_LEFT) }}</div>
-            <div class="fecha">Fecha de emisión: {{ $restructuring->created_at->format('d/m/Y') }}</div>
-        </div>
+<div class="header">
+    <div class="header-left">
+        @if($config_sistema['negocio_logo'] ?? null)
+            <img src="{{ public_path('storage/' . $config_sistema['negocio_logo']) }}"
+                 style="max-height:40px; max-width:150px; margin-bottom:8px;">
+        @endif
+        <h1>Acuerdo de reestructuración de crédito</h1>
+        <div class="sub">{{ $config_sistema['negocio_nombre'] ?? 'MelPres' }}</div>
     </div>
+    <div class="header-right">
+        <div class="folio">Folio #{{ str_pad($restructuring->id, 6, '0', STR_PAD_LEFT) }}</div>
+        <div class="fecha">Fecha de emisión: {{ $restructuring->created_at->format('d/m/Y') }}</div>
+    </div>
+</div>
 
     <div class="body">
 
@@ -290,16 +294,25 @@
     </div>
 
     {{-- Footer --}}
-    <div class="footer">
-        <div class="footer-left">
-            <p>Generado el {{ now()->format('d/m/Y \a \l\a\s H:i') }} por {{ $restructuring->recordedBy->name }}</p>
-            <p>Este documento constituye un acuerdo formal administrativo y podrá ser utilizado como medio probatorio.</p>
-        </div>
-        <div class="footer-right">
-            <p>Sistema desarrollado por</p>
-            <span class="dev">melSolutions</span>
-        </div>
+<div class="footer">
+    <div class="footer-left">
+        <p>Generado el {{ now()->format('d/m/Y \a \l\a\s H:i') }} por {{ $restructuring->recordedBy->name }}</p>
+        @if($config_sistema['negocio_telefono'] ?? null)
+            <p>Tel: {{ $config_sistema['negocio_telefono'] }}
+            @if($config_sistema['negocio_email'] ?? null)
+                | Email: {{ $config_sistema['negocio_email'] }}
+            @endif
+            </p>
+        @endif
+        @if($config_sistema['negocio_direccion'] ?? null)
+            <p>{{ $config_sistema['negocio_direccion'] }}</p>
+        @endif
     </div>
+    <div class="footer-right">
+        <p>Sistema desarrollado por</p>
+        <span class="dev">melSolutions</span>
+    </div>
+</div>
 
 </body>
 </html>

@@ -20,6 +20,7 @@ class Loan extends Model
         'interest_rate',
         'accrued_interest',
         'pending_interest',
+        'daily_payment',
         'penalty_type',
         'penalty_value',
         'grace_days',
@@ -33,15 +34,16 @@ class Loan extends Model
     ];
 
     protected $casts = [
-        'start_date'         => 'date',
-        'due_date'           => 'date',
-        'next_payment_date'  => 'date',
-        'original_amount'    => 'decimal:2',
-        'remaining_balance'  => 'decimal:2',
-        'interest_rate'      => 'decimal:2',
-        'accrued_interest'   => 'decimal:2',
-        'pending_interest'   => 'decimal:2',
-        'accumulated_penalty'=> 'decimal:2',
+        'start_date'          => 'date',
+        'due_date'            => 'date',
+        'next_payment_date'   => 'date',
+        'original_amount'     => 'decimal:2',
+        'remaining_balance'   => 'decimal:2',
+        'interest_rate'       => 'decimal:2',
+        'accrued_interest'    => 'decimal:2',
+        'pending_interest'    => 'decimal:2',
+        'daily_payment'       => 'decimal:2',
+        'accumulated_penalty' => 'decimal:2',
     ];
 
     // — Relationships —
@@ -57,7 +59,7 @@ class Loan extends Model
 
     public function restructurings()
     {
-        return $this->hasMany(Restructuring::class, 'loan_original_id');
+        return $this->hasMany(Restructuring::class, 'original_loan_id');
     }
 
     // — Accessors —
@@ -68,8 +70,31 @@ class Loan extends Model
 
     public function getSuggestedPaymentAttribute(): float
     {
+        if ($this->type === 'daily') {
+            return $this->daily_payment ?? 0;
+        }
+
         if (!$this->number_of_periods || $this->number_of_periods == 0) return 0;
         return round($this->remaining_balance / $this->number_of_periods, 2);
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return match($this->type) {
+            'interest' => 'Interés',
+            'term'     => 'Plazo',
+            'daily'    => 'Diario',
+        };
+    }
+
+    public function getFrequencyLabelAttribute(): string
+    {
+        return match($this->payment_frequency) {
+            'weekly'   => 'Semanal',
+            'biweekly' => 'Quincenal',
+            'monthly'  => 'Mensual',
+            'daily'    => 'Diario',
+        };
     }
 
     public function isOverdue(): bool

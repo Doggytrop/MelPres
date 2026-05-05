@@ -18,16 +18,17 @@ return new class extends Migration
                   ->restrictOnDelete();
 
             // — Type & configuration —
-            $table->enum('type', ['interest', 'term']);
-            $table->enum('payment_frequency', ['weekly', 'biweekly', 'monthly']);
-            $table->unsignedTinyInteger('number_of_periods')->nullable();
+            $table->enum('type', ['interest', 'term', 'daily']);
+            $table->enum('payment_frequency', ['weekly', 'biweekly', 'monthly', 'daily']);
+            $table->unsignedSmallInteger('number_of_periods')->nullable(); // periodos o días
 
             // — Amounts —
             $table->decimal('original_amount', 12, 2);
             $table->decimal('remaining_balance', 12, 2);
-            $table->decimal('interest_rate', 5, 2);
+            $table->decimal('interest_rate', 5, 2);        // mensual para term/interest, total para daily
             $table->decimal('accrued_interest', 12, 2)->default(0);
             $table->decimal('pending_interest', 12, 2)->default(0);
+            $table->decimal('daily_payment', 12, 2)->nullable(); // pago diario calculado
 
             // — Penalty —
             $table->enum('penalty_type', ['fixed', 'percentage'])->nullable();

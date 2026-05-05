@@ -18,11 +18,11 @@ class SimulatorController extends Controller
         $request->validate([
             'monto'              => ['required', 'numeric', 'min:1'],
             'interest_rate'      => ['required', 'numeric', 'min:0'],
-            'type'               => ['required', 'in:interest,term'],
-            'frequency'          => ['required', 'in:weekly,biweekly,monthly'],
+            'type'               => ['required', 'in:interest,term,daily'],
+            'frequency'          => ['required', 'in:weekly,biweekly,monthly,daily'],
             'number_of_periods'  => ['nullable', 'integer', 'min:1'],
             'customer_income'    => ['nullable', 'numeric', 'min:0'],
-            'income_frequency'   => ['nullable', 'in:weekly,biweekly,monthly'],
+            'income_frequency'   => ['nullable', 'in:weekly,biweekly,monthly,daily'],
             'customer_id'        => ['nullable', 'exists:customers,id'],
         ]);
 
@@ -32,19 +32,25 @@ class SimulatorController extends Controller
         $freq     = $request->frequency;
         $periods  = intval($request->number_of_periods ?? 1);
 
-        // Convert periods to months
-        $periodsInMonths = match($freq) {
-            'weekly'   => round($periods / 4, 2),
-            'biweekly' => round($periods / 2, 2),
-            'monthly'  => $periods,
-        };
-
-        // Calculate based on type
         if ($type === 'term') {
+            $periodsInMonths = match($freq) {
+                'weekly'   => round($periods / 4, 2),
+                'biweekly' => round($periods / 2, 2),
+                'monthly'  => $periods,
+            };
+
             $monthlyInterest  = round($amount * ($interest / 100), 2);
             $totalInterest    = round($amount * ($interest / 100) * $periodsInMonths, 2);
             $totalAmount      = round($amount + $totalInterest, 2);
             $suggestedPayment = round($totalAmount / $periods, 2);
+
+        } elseif ($type === 'daily') {
+            $totalInterest    = round($amount * ($interest / 100), 2);
+            $totalAmount      = round($amount + $totalInterest, 2);
+            $suggestedPayment = round($totalAmount / $periods, 2);
+            $monthlyInterest  = $totalInterest;
+            $freq             = 'daily';
+
         } else {
             $monthlyInterest  = round($amount * ($interest / 100), 2);
             $totalAmount      = null;
@@ -52,20 +58,21 @@ class SimulatorController extends Controller
             $totalInterest    = null;
         }
 
-        // Evaluate payment capacity
         $evaluation = null;
 
         if ($request->customer_income && $request->income_frequency) {
-            $income      = floatval($request->customer_income);
-            $incomeFreq  = $request->income_frequency;
+            $income     = floatval($request->customer_income);
+            $incomeFreq = $request->income_frequency;
 
             $monthlyIncome = match($incomeFreq) {
+                'daily'    => $income * 30,
                 'weekly'   => $income * 4,
                 'biweekly' => $income * 2,
                 'monthly'  => $income,
             };
 
             $monthlyPayment = match($freq) {
+                'daily'    => $suggestedPayment * 30,
                 'weekly'   => $suggestedPayment * 4,
                 'biweekly' => $suggestedPayment * 2,
                 'monthly'  => $suggestedPayment,
@@ -77,11 +84,16 @@ class SimulatorController extends Controller
                     ->whereIn('status', ['active', 'overdue'])
                     ->get()
                     ->sum(function ($loan) {
+                        if ($loan->type === 'daily') {
+                            return ($loan->daily_payment ?? 0) * 30;
+                        }
+
                         $payment = $loan->type === 'term'
                             ? round($loan->remaining_balance / max($loan->number_of_periods, 1), 2)
                             : round($loan->original_amount * ($loan->interest_rate / 100), 2);
 
                         return match($loan->payment_frequency) {
+                            'daily'    => $payment * 30,
                             'weekly'   => $payment * 4,
                             'biweekly' => $payment * 2,
                             'monthly'  => $payment,
@@ -121,11 +133,11 @@ class SimulatorController extends Controller
                 ];
             }
 
-            $evaluation['percentage']          = $percentage;
-            $evaluation['monthly_income']       = $monthlyIncome;
-            $evaluation['monthly_payment']      = $monthlyPayment;
-            $evaluation['current_commitment']   = $currentCommitment;
-            $evaluation['total_commitment']     = $totalMonthlyCommitment;
+            $evaluation['percentage']        = $percentage;
+            $evaluation['monthly_income']    = $monthlyIncome;
+            $evaluation['monthly_payment']   = $monthlyPayment;
+            $evaluation['current_commitment'] = $currentCommitment;
+            $evaluation['total_commitment']  = $totalMonthlyCommitment;
         }
 
         return response()->json([
@@ -134,7 +146,6 @@ class SimulatorController extends Controller
             'type'              => $type,
             'frequency'         => $freq,
             'periods'           => $periods,
-            'periods_in_months' => $periodsInMonths,
             'monthly_interest'  => $monthlyInterest,
             'total_interest'    => $totalInterest,
             'total_amount'      => $totalAmount,

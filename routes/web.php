@@ -18,7 +18,7 @@ Route::get('/', function () {
     return redirect('/dashboard');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'redirect.customer')->group(function () {
 
     // — Dashboard —
     Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -84,5 +84,9 @@ Route::middleware('auth')->group(function () {
     });
 
 });
-
+// — Portal del cliente —
+Route::middleware(['auth'])->prefix('portal')->group(function () {
+    Route::get('/', [App\Http\Controllers\PortalController::class, 'index'])->name('portal.index');
+    Route::get('/loan/{loan}', [App\Http\Controllers\PortalController::class, 'show'])->name('portal.show');
+});
 require __DIR__.'/auth.php';
