@@ -2,47 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\customer;
-use App\Models\customerDocumento;
-use App\Http\Requests\StorecustomerDocumentoRequest;
+use App\Models\Customer;
+use App\Models\CustomerDocument;
+use App\Http\Requests\StoreCustomerDocumentRequest;
 use Illuminate\Support\Facades\Storage;
 
 class CustomerDocumentController extends Controller
 {
-    public function store(StorecustomerDocumentoRequest $request, customer $customer)
+    public function store(StoreCustomerDocumentRequest $request, Customer $customer)
     {
-        $archivo = $request->file('archivo');
+        $file = $request->file('file');
 
-        // Carpeta organizada por customer
-        $carpeta = "customers/{$customer->id}/documentos";
+        $folder = "customers/{$customer->id}/documents";
+        $path = $file->store($folder, 'public');
 
-        $ruta = $archivo->store($carpeta, 'public');
-
-        customerDocumento::create([
-            'customer_id'      => $customer->id,
-            'tipo'            => $request->type,
-            'original_name' => $archivo->getClientOriginalName(),
-            'ruta'            => $ruta,
-            'mime_type'       => $archivo->getMimeType(),
-            'size'         => $archivo->getSize(),
-            'notas'           => $request->notes,
+        CustomerDocument::create([
+            'customer_id'  => $customer->id,
+            'type'         => $request->type,
+            'original_name'=> $file->getClientOriginalName(),
+            'path'         => $path,
+            'mime_type'    => $file->getMimeType(),
+            'size'         => $file->getSize(),
+            'notes'        => $request->notes,
         ]);
 
         return redirect()->route('customers.show', $customer)
                          ->with('success', 'Documento subido correctamente.');
     }
 
-    public function destroy(customer $customer, customerDocumento $documento)
+    public function destroy(Customer $customer, CustomerDocument $document)
     {
-        // Verificar que el documento pertenece al customer
-        if ($documento->customer_id !== $customer->id) {
+        if ($document->customer_id !== $customer->id) {
             abort(403);
         }
 
-        // Eliminar archivo físico
-        Storage::disk('public')->delete($documento->path);
-
-        $documento->delete();
+        Storage::disk('public')->delete($document->path);
+        $document->delete();
 
         return redirect()->route('customers.show', $customer)
                          ->with('success', 'Documento eliminado correctamente.');

@@ -15,32 +15,32 @@
 </div>
 
 @if(session('success'))
-@if(session('credentials'))
-    <div class="alert border rounded-3 mb-4 p-4" style="background:#e3f2fd; border-color:#90caf9 !important;">
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.5">
-                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <span class="fw-medium" style="color:#1565c0; font-size:14px;">Credenciales del cliente</span>
-        </div>
-        <p class="mb-1" style="font-size:13px; color:#333;">
-            Se creó un acceso para que el cliente consulte sus préstamos:
-        </p>
-        <div class="p-3 rounded-2 mt-2" style="background:#fff; border:0.5px solid #90caf9;">
-            <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
-                <span class="text-muted">Usuario (teléfono):</span>
-                <span class="fw-medium" style="color:#1a2e1a;">{{ session('credentials')['phone'] }}</span>
+    @if(session('credentials'))
+        <div class="alert border rounded-3 mb-4 p-4" style="background:#e3f2fd; border-color:#90caf9 !important;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="1.5">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span class="fw-medium" style="color:#1565c0; font-size:14px;">Credenciales del cliente</span>
             </div>
-            <div class="d-flex justify-content-between" style="font-size:13px;">
-                <span class="text-muted">Contraseña:</span>
-                <span class="fw-medium" style="color:#1565c0; font-family:monospace; font-size:15px;">{{ session('credentials')['password'] }}</span>
+            <p class="mb-1" style="font-size:13px; color:#333;">
+                Se creó un acceso para que el cliente consulte sus préstamos:
+            </p>
+            <div class="p-3 rounded-2 mt-2" style="background:#fff; border:0.5px solid #90caf9;">
+                <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
+                    <span class="text-muted">Usuario (teléfono):</span>
+                    <span class="fw-medium" style="color:#1a2e1a;">{{ session('credentials')['phone'] }}</span>
+                </div>
+                <div class="d-flex justify-content-between" style="font-size:13px;">
+                    <span class="text-muted">Contraseña:</span>
+                    <span class="fw-medium" style="color:#1565c0; font-family:monospace; font-size:15px;">{{ session('credentials')['password'] }}</span>
+                </div>
             </div>
+            <p class="mt-2 mb-0" style="font-size:11px; color:#c0392b;">
+                ⚠ Esta contraseña solo se muestra una vez. Anótala y entrégala al cliente.
+            </p>
         </div>
-        <p class="mt-2 mb-0" style="font-size:11px; color:#c0392b;">
-            ⚠ Esta contraseña solo se muestra una vez. Anótala y entrégala al cliente.
-        </p>
-    </div>
-@endif
+    @endif
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
          style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -68,7 +68,6 @@
         {{-- Card perfil --}}
         <div class="bg-white border rounded-3 p-4 mb-3 text-center" style="border-color:#e8e8e8 !important;">
 
-            {{-- Foto de perfil --}}
             @if($customer->photo_url)
                 <img src="{{ $customer->photo_url }}" alt="Foto"
                      class="rounded-circle mb-3"
@@ -80,21 +79,21 @@
                 </div>
             @endif
 
-            <p class="fw-medium mb-0" style="color:#1a2e1a; font-size:16px;">{{ $customer->first_name_complete }}</p>
+            <p class="fw-medium mb-0" style="color:#1a2e1a; font-size:16px;">{{ $customer->full_name }}</p>
             <p class="text-muted mb-3" style="font-size:12px;">ID #{{ $customer->id }}</p>
 
-            {{-- Badge status --}}
             @php
                 $badge = match($customer->status) {
-                    'active'    => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
-                    'inactive'  => ['bg' => '#f5f5f5', 'color' => '#888',    'label' => 'Inactivo'],
-                    'blocked' => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Bloqueado'],
+                    'active'   => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                    'inactive' => ['bg' => '#f5f5f5', 'color' => '#888',    'label' => 'Inactivo'],
+                    'blocked'  => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Bloqueado'],
                 };
             @endphp
             <span class="px-3 py-1 rounded-pill"
                   style="background:{{ $badge['bg'] }}; color:{{ $badge['color'] }}; font-size:11px; font-weight:500;">
                 {{ $badge['label'] }}
             </span>
+
             {{-- Score de crédito --}}
             <div class="mt-3 pt-3" style="border-top:0.5px solid #f0f0f0;">
                 <p class="text-muted mb-2" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Score de crédito</p>
@@ -104,15 +103,14 @@
                         {{ $customer->score ?? 100 }}
                     </span>
                     <span class="px-2 py-1 rounded-2 fw-medium"
-                        style="background:{{ $scoreData['bg'] }}; color:{{ $scoreData['color'] }}; font-size:12px;">
+                          style="background:{{ $scoreData['bg'] }}; color:{{ $scoreData['color'] }}; font-size:12px;">
                         {{ $scoreData['label'] }}
                     </span>
                 </div>
 
-                {{-- Barra de progreso --}}
                 <div class="rounded-pill overflow-hidden mb-1" style="height:6px; background:#e8e8e8;">
                     <div class="rounded-pill"
-                        style="height:6px; width:{{ min($customer->score ?? 100, 100) }}%;
+                         style="height:6px; width:{{ min($customer->score ?? 100, 100) }}%;
                                 background:{{ $scoreData['color'] }}; transition:width .3s;">
                     </div>
                 </div>
@@ -167,15 +165,27 @@
             </div>
 
             @forelse($customer->activeLoans as $loan)
+                @php
+                    $typeBadge = match($loan->type) {
+                        'interest' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
+                        'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                        'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Diario'],
+                    };
+                @endphp
                 <div class="px-4 py-3 border-bottom" style="border-color:#f8f8f8 !important; font-size:14px;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                        <div class="d-flex align-items-center gap-2">
                             <a href="{{ route('loans.show', $loan) }}"
                                style="color:#1a2e1a; text-decoration:none; font-weight:500;">
-                                #{{ $loan->id }} — {{ ucfirst($loan->type) }}
+                                #{{ $loan->id }}
                             </a>
-                            <span class="text-muted ms-2" style="font-size:12px;">
-                                {{ ucfirst($loan->payment_frequency) }} · {{ $loan->interest_rate }}% mensual
+                            <span class="px-2 py-1 rounded-2"
+                                  style="background:{{ $typeBadge['bg'] }}; color:{{ $typeBadge['color'] }}; font-size:10px; font-weight:500;">
+                                {{ $typeBadge['label'] }}
+                            </span>
+                            <span class="text-muted" style="font-size:12px;">
+                                {{ $loan->frequency_label }} · {{ $loan->interest_rate }}%
+                                {{ $loan->type === 'daily' ? 'total' : 'mensual' }}
                             </span>
                         </div>
                         <span style="color:#1f6b21; font-weight:500;">
@@ -205,14 +215,14 @@
                     <div class="row g-2 align-items-end">
                         <div class="col-md-4">
                             <label class="d-block mb-1 text-muted" style="font-size:11px;">Tipo *</label>
-                            <select name="tipo" class="form-control form-control-sm">
+                            <select name="type" class="form-control form-control-sm">
                                 @foreach([
-                                    'profile_photo'           => 'Foto de perfil',
-                                    'id_front'            => 'INE (frente)',
-                                    'id_back'           => 'INE (reverso)',
-                                    'address_proof' => 'Comprobante de domicilio',
-                                    'payroll'                => 'Nómina',
-                                    'otro'                  => 'Otro',
+                                    'profile_photo'  => 'Foto de perfil',
+                                    'id_front'       => 'INE (frente)',
+                                    'id_back'        => 'INE (reverso)',
+                                    'address_proof'  => 'Comprobante de domicilio',
+                                    'payroll'        => 'Nómina',
+                                    'other'          => 'Otro',
                                 ] as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
@@ -220,13 +230,13 @@
                         </div>
                         <div class="col-md-4">
                             <label class="d-block mb-1 text-muted" style="font-size:11px;">Archivo * (JPG, PNG, PDF — máx 10MB)</label>
-                            <input type="file" name="archivo" accept=".jpg,.jpeg,.png,.pdf,.webp"
-                                   class="form-control form-control-sm @error('archivo') is-invalid @enderror">
-                            @error('archivo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <input type="file" name="file" accept=".jpg,.jpeg,.png,.pdf,.webp"
+                                   class="form-control form-control-sm @error('file') is-invalid @enderror">
+                            @error('file') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-2">
                             <label class="d-block mb-1 text-muted" style="font-size:11px;">Notas</label>
-                            <input type="text" name="notas" class="form-control form-control-sm" placeholder="Opcional">
+                            <input type="text" name="notes" class="form-control form-control-sm" placeholder="Opcional">
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-sm w-100"
@@ -243,8 +253,6 @@
                 <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between"
                      style="border-color:#f8f8f8 !important;">
                     <div class="d-flex align-items-center gap-3">
-
-                        {{-- Ícono según tipo --}}
                         <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
                              style="width:36px; height:36px; background:{{ $doc->isImage() ? '#e8f5e9' : '#e3f2fd' }};">
                             @if($doc->isImage())
@@ -264,7 +272,7 @@
                         <div>
                             <p class="mb-0 fw-medium" style="font-size:13px; color:#1a2e1a;">{{ $doc->type_label }}</p>
                             <p class="mb-0 text-muted" style="font-size:11px;">
-                                {{ $doc->original_name }} · {{ $doc->size_formateado }}
+                                {{ $doc->original_name }} · {{ $doc->formatted_size }}
                             </p>
                             @if($doc->notes)
                                 <p class="mb-0 text-muted" style="font-size:11px;">{{ $doc->notes }}</p>
@@ -273,13 +281,10 @@
                     </div>
 
                     <div class="d-flex gap-2">
-                        {{-- Ver/Descargar --}}
                         <a href="{{ asset('storage/' . $doc->path) }}" target="_blank"
                            style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
                             Ver
                         </a>
-
-                        {{-- Eliminar --}}
                         <form method="POST"
                               action="{{ route('customers.documents.destroy', [$customer, $doc]) }}"
                               onsubmit="return confirm('¿Eliminar este documento?')">
@@ -296,7 +301,6 @@
                     No hay documentos subidos aún.
                 </div>
             @endforelse
-
         </div>
     </div>
 </div>

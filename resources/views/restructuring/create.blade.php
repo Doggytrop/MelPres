@@ -20,17 +20,17 @@
     </svg>
     <div>
         <p class="fw-medium mb-1" style="color:#e65100; font-size:14px;">
-            Reestructuración de préstamo — {{ $loan->customer->first_name_complete }}
+            Reestructuración de préstamo — {{ $loan->customer->full_name }}
         </p>
         <div class="d-flex gap-4" style="font-size:13px; color:#e65100;">
             <span>Saldo: <strong>${{ number_format($loan->remaining_balance, 2) }}</strong></span>
             <span>Mora: <strong>${{ number_format($loan->accumulated_penalty, 2) }}</strong></span>
-            <span>Días de atraso: <strong>{{ $diasAtraso }}</strong></span>
+            <span>Días de atraso: <strong>{{ $daysOverdue }}</strong></span>
         </div>
     </div>
 </div>
 
-<form method="POST" action="{{ route('restructuring.store', $loan) }}" id="formrestructuring">
+<form method="POST" action="{{ route('restructuring.store', $loan) }}" id="formRestructuring">
     @csrf
 
     <div class="row g-4">
@@ -41,37 +41,33 @@
                 <p class="fw-medium mb-3" style="color:#1a2e1a; font-size:13px;">Selecciona el tipo de reestructuración</p>
 
                 <div class="row g-3">
-
                     <div class="col-md-4">
                         <label class="d-block p-3 rounded-3 h-100" style="border:0.5px solid #ddd; cursor:pointer;" id="card_forgiveness">
-                            <input type="radio" name="tipo" value="forgiveness" class="me-2" onchange="mostrarOpcion('forgiveness')">
+                            <input type="radio" name="type" value="forgiveness" class="me-2" onchange="showOption('forgiveness')">
                             <span class="fw-medium" style="font-size:13px; color:#1a2e1a;">Condonación de mora</span>
                             <p class="mb-0 mt-2" style="font-size:12px; color:#888;">
-                                Se condona un porcentaje de la mora acumulada para que el cliente pueda reanudar pagos más fácilmente.
+                                Se condona un porcentaje de la mora acumulada para que el cliente pueda reanudar pagos.
                             </p>
                         </label>
                     </div>
-
                     <div class="col-md-4">
                         <label class="d-block p-3 rounded-3 h-100" style="border:0.5px solid #ddd; cursor:pointer;" id="card_extension">
-                            <input type="radio" name="tipo" value="extension" class="me-2" onchange="mostrarOpcion('extension')">
+                            <input type="radio" name="type" value="extension" class="me-2" onchange="showOption('extension')">
                             <span class="fw-medium" style="font-size:13px; color:#1a2e1a;">Extensión de plazo</span>
                             <p class="mb-0 mt-2" style="font-size:12px; color:#888;">
                                 Se extiende el número de periodos y se congela la mora para dar más tiempo al cliente.
                             </p>
                         </label>
                     </div>
-
                     <div class="col-md-4">
-                        <label class="d-block p-3 rounded-3 h-100" style="border:0.5px solid #ddd; cursor:pointer;" id="card_nuevo">
-                            <input type="radio" name="tipo" value="new_loan" class="me-2" onchange="mostrarOpcion('new_loan')">
+                        <label class="d-block p-3 rounded-3 h-100" style="border:0.5px solid #ddd; cursor:pointer;" id="card_new_loan">
+                            <input type="radio" name="type" value="new_loan" class="me-2" onchange="showOption('new_loan')">
                             <span class="fw-medium" style="font-size:13px; color:#1a2e1a;">Nuevo préstamo</span>
                             <p class="mb-0 mt-2" style="font-size:12px; color:#888;">
-                                Se cierra el préstamo actual y se crea uno nuevo con condiciones completamente diferentes.
+                                Se cierra el préstamo actual y se crea uno nuevo con condiciones diferentes.
                             </p>
                         </label>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -86,19 +82,19 @@
                         <div class="input-group input-group-sm">
                             <input type="number" name="percentage_forgiveness" id="percentage_forgiveness"
                                    class="form-control form-control-sm" min="1" max="100" placeholder="Ej: 50"
-                                   oninput="calcularforgiveness()">
+                                   oninput="calculateForgiveness()">
                             <span class="input-group-text">%</span>
                         </div>
                         <small class="text-muted" style="font-size:11px;">Del total de mora acumulada</small>
                     </div>
                     <div class="col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Mora a condonar</label>
-                        <input type="text" id="mora_condonada_display" class="form-control form-control-sm"
+                        <input type="text" id="forgiven_display" class="form-control form-control-sm"
                                readonly style="background:#f8f9f8; color:#1f6b21; font-weight:500;">
                     </div>
                     <div class="col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Mora restante</label>
-                        <input type="text" id="mora_restante_display" class="form-control form-control-sm"
+                        <input type="text" id="remaining_display" class="form-control form-control-sm"
                                readonly style="background:#f8f9f8;">
                     </div>
                 </div>
@@ -117,15 +113,16 @@
                     </div>
                     <div class="col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Nuevos periodos *</label>
-                        <input type="number" name="periodos_nuevos" class="form-control form-control-sm"
+                        <input type="number" name="new_periods" class="form-control form-control-sm"
                                min="1" placeholder="Ej: 12">
                     </div>
                     <div class="col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Nueva frecuencia</label>
-                        <select name="frecuencia_nueva" class="form-control form-control-sm">
+                        <select name="new_frequency" class="form-control form-control-sm">
                             <option value="weekly" {{ $loan->payment_frequency === 'weekly' ? 'selected' : '' }}>Semanal</option>
                             <option value="biweekly" {{ $loan->payment_frequency === 'biweekly' ? 'selected' : '' }}>Quincenal</option>
                             <option value="monthly" {{ $loan->payment_frequency === 'monthly' ? 'selected' : '' }}>Mensual</option>
+                            <option value="daily" {{ $loan->payment_frequency === 'daily' ? 'selected' : '' }}>Diario</option>
                         </select>
                     </div>
                     <div class="col-12">
@@ -145,41 +142,43 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Tipo</label>
-                        <select name="nuevo_tipo" class="form-control form-control-sm">
+                        <select name="new_type" class="form-control form-control-sm">
                             <option value="term" {{ $loan->type === 'term' ? 'selected' : '' }}>Plazo</option>
                             <option value="interest" {{ $loan->type === 'interest' ? 'selected' : '' }}>Interés</option>
+                            <option value="daily" {{ $loan->type === 'daily' ? 'selected' : '' }}>Diario</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Nuevo monto</label>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">$</span>
-                            <input type="number" step="0.01" name="nuevo_monto"
+                            <input type="number" step="0.01" name="new_amount"
                                    value="{{ $loan->remaining_balance }}"
                                    class="form-control form-control-sm">
                         </div>
                         <small class="text-muted" style="font-size:11px;">Por defecto: saldo actual</small>
                     </div>
                     <div class="col-md-3">
-                        <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Nuevo interés mensual</label>
+                        <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Nuevo interés</label>
                         <div class="input-group input-group-sm">
-                            <input type="number" step="0.01" name="nuevo_interest"
-                                   value="{{ $loan->interestt_rate }}"
+                            <input type="number" step="0.01" name="new_interest_rate"
+                                   value="{{ $loan->interest_rate }}"
                                    class="form-control form-control-sm">
                             <span class="input-group-text">%</span>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Frecuencia</label>
-                        <select name="nuevo_frecuencia" class="form-control form-control-sm">
+                        <select name="new_frequency" class="form-control form-control-sm">
                             <option value="weekly" {{ $loan->payment_frequency === 'weekly' ? 'selected' : '' }}>Semanal</option>
                             <option value="biweekly" {{ $loan->payment_frequency === 'biweekly' ? 'selected' : '' }}>Quincenal</option>
                             <option value="monthly" {{ $loan->payment_frequency === 'monthly' ? 'selected' : '' }}>Mensual</option>
+                            <option value="daily" {{ $loan->payment_frequency === 'daily' ? 'selected' : '' }}>Diario</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Número de periodos</label>
-                        <input type="number" name="nuevo_periodos"
+                        <input type="number" name="new_periods"
                                value="{{ $loan->number_of_periods }}"
                                class="form-control form-control-sm" min="1">
                     </div>
@@ -200,14 +199,14 @@
                 <div class="row g-3">
                     <div class="col-12">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Motivo de la reestructuración *</label>
-                        <textarea name="motivo" rows="2" class="form-control form-control-sm @error('motivo') is-invalid @enderror"
-                                  placeholder="Ej: El cliente perdió su empleo, acuerdo de pago voluntario...">{{ old('motivo') }}</textarea>
-                        @error('motivo') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <textarea name="reason" rows="2" class="form-control form-control-sm @error('reason') is-invalid @enderror"
+                                  placeholder="Ej: El cliente perdió su empleo, acuerdo de pago voluntario...">{{ old('reason') }}</textarea>
+                        @error('reason') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-12">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Observaciones adicionales</label>
-                        <textarea name="observaciones" rows="2" class="form-control form-control-sm"
-                                  placeholder="Notas internas, condiciones especiales...">{{ old('observaciones') }}</textarea>
+                        <textarea name="notes" rows="2" class="form-control form-control-sm"
+                                  placeholder="Notas internas, condiciones especiales...">{{ old('notes') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -231,27 +230,27 @@
 </form>
 
 <script>
-const moraAcumulada = {{ $loan->accumulated_penalty }};
+const accumulatedPenalty = {{ $loan->accumulated_penalty }};
 
-function mostrarOpcion(tipo) {
+function showOption(type) {
     ['forgiveness', 'extension', 'new_loan'].forEach(t => {
         document.getElementById('opcion_' + t).style.display = 'none';
         document.getElementById('card_' + t).style.borderColor = '#ddd';
         document.getElementById('card_' + t).style.background  = '#fff';
     });
 
-    document.getElementById('opcion_' + tipo).style.display = 'block';
-    document.getElementById('card_' + tipo).style.borderColor = '#1f6b21';
-    document.getElementById('card_' + tipo).style.background  = '#f0faf0';
+    document.getElementById('opcion_' + type).style.display = 'block';
+    document.getElementById('card_' + type).style.borderColor = '#1f6b21';
+    document.getElementById('card_' + type).style.background  = '#f0faf0';
 }
 
-function calcularforgiveness() {
+function calculateForgiveness() {
     const pct = parseFloat(document.getElementById('percentage_forgiveness').value) || 0;
-    const condonada = Math.round(moraAcumulada * (pct / 100) * 100) / 100;
-    const restante  = Math.round((moraAcumulada - condonada) * 100) / 100;
+    const forgiven  = Math.round(accumulatedPenalty * (pct / 100) * 100) / 100;
+    const remaining = Math.round((accumulatedPenalty - forgiven) * 100) / 100;
 
-    document.getElementById('mora_condonada_display').value = '$ ' + condonada.toFixed(2);
-    document.getElementById('mora_restante_display').value  = '$ ' + restante.toFixed(2);
+    document.getElementById('forgiven_display').value   = '$ ' + forgiven.toFixed(2);
+    document.getElementById('remaining_display').value = '$ ' + remaining.toFixed(2);
 }
 </script>
 

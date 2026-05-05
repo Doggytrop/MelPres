@@ -13,30 +13,31 @@ class CustomerDocument extends Model
 
     protected $fillable = [
         'customer_id',
-        'tipo',
+        'type',
         'original_name',
-        'ruta',
+        'path',
         'mime_type',
         'size',
-        'notas',
+        'notes',
     ];
 
-    // — Relaciones —
+    // — Relationships —
     public function customer()
     {
-        return $this->belongsTo(customer::class);
+        return $this->belongsTo(Customer::class);
     }
 
     // — Helpers —
     public function getTypeLabelAttribute(): string
     {
         return match($this->type) {
-            'profile_photo'           => 'Foto de perfil',
-            'id_front'            => 'INE (frente)',
-            'id_back'           => 'INE (reverso)',
-            'address_proof' => 'Comprobante de domicilio',
-            'payroll'                => 'Nómina',
-            'otro'                  => 'Otro',
+            'profile_photo'  => 'Foto de perfil',
+            'id_front'       => 'INE (frente)',
+            'id_back'        => 'INE (reverso)',
+            'address_proof'  => 'Comprobante de domicilio',
+            'payroll'        => 'Nómina',
+            'other'          => 'Otro',
+            default          => $this->type ?? 'Documento',
         };
     }
 
@@ -45,11 +46,11 @@ class CustomerDocument extends Model
         return str_contains($this->mime_type, 'image');
     }
 
-    public function getsizeFormateadoAttribute(): string
+    public function getFormattedSizeAttribute(): string
     {
         $bytes = $this->size ?? 0;
-        if ($bytes < 1024)        return $bytes . ' B';
-        if ($bytes < 1048576)     return round($bytes / 1024, 1) . ' KB';
+        if ($bytes < 1024)    return $bytes . ' B';
+        if ($bytes < 1048576) return round($bytes / 1024, 1) . ' KB';
         return round($bytes / 1048576, 1) . ' MB';
     }
 }

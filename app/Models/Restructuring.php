@@ -12,38 +12,38 @@ class Restructuring extends Model
     protected $table = 'restructurings';
 
     protected $fillable = [
-        'loan_original_id',
-        'loan_nuevo_id',
+        'original_loan_id',
+        'new_loan_id',
         'recorded_by',
-        'tipo',
-        'mora_original',
-        'mora_condonada',
-        'mora_restante',
-        'periodos_anteriores',
-        'periodos_nuevos',
-        'saldo_al_reestructurar',
-        'motivo',
-        'observaciones',
+        'type',
+        'original_penalty',
+        'forgiven_penalty',
+        'remaining_penalty',
+        'previous_periods',
+        'new_periods',
+        'balance_at_restructuring',
+        'reason',
+        'notes',
     ];
 
     protected $casts = [
-        'mora_original'          => 'decimal:2',
-        'mora_condonada'         => 'decimal:2',
-        'mora_restante'          => 'decimal:2',
-        'saldo_al_reestructurar' => 'decimal:2',
+        'original_penalty'          => 'decimal:2',
+        'forgiven_penalty'          => 'decimal:2',
+        'remaining_penalty'         => 'decimal:2',
+        'balance_at_restructuring'  => 'decimal:2',
     ];
 
-    public function loanOriginal()
+    public function originalLoan()
     {
-        return $this->belongsTo(loan::class, 'loan_original_id');
+        return $this->belongsTo(Loan::class, 'original_loan_id');
     }
 
-    public function loanNuevo()
+    public function newLoan()
     {
-        return $this->belongsTo(loan::class, 'loan_nuevo_id');
+        return $this->belongsTo(Loan::class, 'new_loan_id');
     }
 
-    public function registradoPor()
+    public function recordedBy()
     {
         return $this->belongsTo(User::class, 'recorded_by');
     }
@@ -51,9 +51,9 @@ class Restructuring extends Model
     public function getTypeLabelAttribute(): string
     {
         return match($this->type) {
-            'forgiveness'    => 'Condonación de mora',
-            'extension'      => 'Extensión de term',
-            'new_loan' => 'Nuevo préstamo',
+            'forgiveness' => 'Condonación de mora',
+            'extension'   => 'Extensión de plazo',
+            'new_loan'    => 'Nuevo préstamo',
         };
     }
 }

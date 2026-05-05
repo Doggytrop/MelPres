@@ -11,7 +11,6 @@ use Carbon\Carbon;
 
 class RestructuringController extends Controller
 {
-    // — Lista de préstamos vencidos —
     public function overdue()
     {
         $loans = Loan::with('customer')
@@ -20,10 +19,9 @@ class RestructuringController extends Controller
                      ->latest()
                      ->paginate(15);
 
-        return view('restructuring.vencidos', compact('loans'));
+        return view('restructuring.overdue', compact('loans'));
     }
 
-    // — Lista de préstamos reestructurados activos —
     public function active()
     {
         $loans = Loan::with(['customer', 'restructurings'])
@@ -32,10 +30,9 @@ class RestructuringController extends Controller
                      ->latest()
                      ->paginate(15);
 
-        return view('restructuring.activos', compact('loans'));
+        return view('restructuring.active', compact('loans'));
     }
 
-    // — Historial de reestructurados pagados —
     public function history()
     {
         $loans = Loan::with(['customer', 'restructurings'])
@@ -47,145 +44,151 @@ class RestructuringController extends Controller
         return view('restructuring.history', compact('loans'));
     }
 
-    // — Formulario de reestructuración —
-    public function create(loan $loan)
+    public function create(Loan $loan)
     {
         if ($loan->status === 'paid') {
-            return redirect()->route('restructuring.overdues')
-                             ->with('error', 'Este préstamo ya está paid.');
+            return redirect()->route('restructuring.overdue')
+                             ->with('error', 'Este préstamo ya está pagado.');
         }
 
         $loan->load(['customer', 'restructurings']);
-        $diasAtraso = $this->calcularDiasAtraso($loan);
+        $daysOverdue = $this->calculateDaysOverdue($loan);
 
-        return view('restructuring.create', compact('loan', 'diasAtraso'));
+        return view('restructuring.create', compact('loan', 'daysOverdue'));
     }
 
-    // — Aplicar reestructuración —
-    public function store(Request $request, loan $loan)
+    public function store(Request $request, Loan $loan)
     {
         $request->validate([
-            'tipo'                   => ['required', 'in:forgiveness,extension,new_loan'],
-            'motivo'                 => ['required', 'string'],
-            'observaciones'          => ['nullable', 'string'],
+            'type'                   => ['required', 'in:forgiveness,extension,new_loan'],
+            'reason'                 => ['required', 'string'],
+            'notes'                  => ['nullable', 'string'],
             'percentage_forgiveness' => ['nullable', 'numeric', 'min:1', 'max:100'],
-            'periodos_nuevos'        => ['nullable', 'integer', 'min:1'],
-            'frecuencia_nueva'       => ['nullable', 'in:weekly,biweekly,monthly'],
-            'nuevo_monto'            => ['nullable', 'numeric', 'min:1'],
-            'nuevo_interest_rate'          => ['nullable', 'numeric', 'min:0'],
-            'nuevo_frecuencia'       => ['nullable', 'in:weekly,biweekly,monthly'],
-            'nuevo_periodos'         => ['nullable', 'integer', 'min:1'],
-            'nuevo_tipo'             => ['nullable', 'in:interest,term'],
+            'new_periods'            => ['nullable', 'integer', 'min:1'],
+            'new_frequency'          => ['nullable', 'in:weekly,biweekly,monthly,daily'],
+            'new_amount'             => ['nullable', 'numeric', 'min:1'],
+            'new_interest_rate'      => ['nullable', 'numeric', 'min:0'],
+            'new_type'               => ['nullable', 'in:interest,term,daily'],
         ]);
 
         DB::transaction(function () use ($request, $loan) {
-            $tipo = $request->type;
+            $type = $request->type;
 
-            $datosrestructuring = [
-                'loan_original_id'   => $loan->id,
-                'recorded_by'         => auth()->id(),
-                'tipo'                   => $tipo,
-                'mora_original'          => $loan->accumulated_penalty,
-                'saldo_al_reestructurar' => $loan->remaining_balance,
-                'motivo'                 => $request->reason,
-                'observaciones'          => $request->notes,
-                'mora_condonada'         => 0,
-                'mora_restante'          => $loan->accumulated_penalty,
+            $restructuringData = [
+                'original_loan_id'         => $loan->id,
+                'recorded_by'              => auth()->id(),
+                'type'                     => $type,
+                'original_penalty'         => $loan->accumulated_penalty,
+                'balance_at_restructuring' => $loan->remaining_balance,
+                'reason'                   => $request->reason,
+                'notes'                    => $request->notes,
+                'forgiven_penalty'         => 0,
+                'remaining_penalty'        => $loan->accumulated_penalty,
             ];
 
-            if ($tipo === 'forgiveness') {
-                $percentage    = floatval($request->percentage_forgiveness);
-                $moraCondonada = round($loan->accumulated_penalty * ($percentage / 100), 2);
-                $moraRestante  = round($loan->accumulated_penalty - $moraCondonada, 2);
+            if ($type === 'forgiveness') {
+                $percentage     = floatval($request->percentage_forgiveness);
+                $forgivenAmount = round($loan->accumulated_penalty * ($percentage / 100), 2);
+                $remaining      = round($loan->accumulated_penalty - $forgivenAmount, 2);
 
-                $loan->accumulated_penalty    = $moraRestante;
-                $loan->status            = 'active';
-                $loan->restructured    = true;
-                $loan->next_payment_date = $this->calcularProximopayment(
+                $loan->accumulated_penalty = $remaining;
+                $loan->status              = 'active';
+                $loan->restructured        = true;
+                $loan->next_payment_date   = $this->calculateNextPayment(
                     Carbon::today()->toDateString(),
                     $loan->payment_frequency
                 );
                 $loan->save();
 
-                $datosrestructuring['mora_condonada'] = $moraCondonada;
-                $datosrestructuring['mora_restante']  = $moraRestante;
+                $restructuringData['forgiven_penalty']  = $forgivenAmount;
+                $restructuringData['remaining_penalty'] = $remaining;
 
-            } elseif ($tipo === 'extension') {
-                $datosrestructuring['periodos_anteriores'] = $loan->number_of_periods;
-                $datosrestructuring['periodos_nuevos']     = $request->new_periods;
+            } elseif ($type === 'extension') {
+                $restructuringData['previous_periods'] = $loan->number_of_periods;
+                $restructuringData['new_periods']      = $request->new_periods;
 
-                $loan->number_of_periods    = $request->new_periods;
-                $loan->payment_frequency    = $request->frecuencia_nueva ?? $loan->payment_frequency;
-                $loan->accumulated_penalty     = 0;
+                $loan->number_of_periods  = $request->new_periods;
+                $loan->payment_frequency  = $request->new_frequency ?? $loan->payment_frequency;
+                $loan->accumulated_penalty = 0;
                 $loan->status             = 'active';
-                $loan->restructured     = true;
-                $loan->next_payment_date = $this->calcularProximopayment(
+                $loan->restructured       = true;
+                $loan->next_payment_date  = $this->calculateNextPayment(
                     Carbon::today()->toDateString(),
                     $loan->payment_frequency
                 );
                 $loan->save();
 
-            } elseif ($tipo === 'new_loan') {
-                // Cerrar préstamo original
-                $loan->status         = 'refinanced';
+            } elseif ($type === 'new_loan') {
+                $loan->status       = 'refinanced';
                 $loan->restructured = true;
                 $loan->save();
 
-                // Crear nuevo préstamo reestructurado
-                $nuevoMonto = floatval($request->nuevo_monto ?? $loan->remaining_balance);
-                $nuevoTipo  = $request->nuevo_tipo ?? $loan->type;
-                $nuevaFreq  = $request->nuevo_frecuencia ?? $loan->payment_frequency;
-                $nuevoInt   = floatval($request->nuevo_interest_rate ?? $loan->interest_rate);
-                $nuevoPer   = intval($request->nuevo_periodos ?? 1);
+                $newAmount    = floatval($request->new_amount ?? $loan->remaining_balance);
+                $newType      = $request->new_type ?? $loan->type;
+                $newFrequency = $request->new_frequency ?? $loan->payment_frequency;
+                $newRate      = floatval($request->new_interest_rate ?? $loan->interest_rate);
+                $newPeriods   = intval($request->new_periods ?? 1);
 
-                $nuevoSaldo            = $nuevoMonto;
-                $nuevoInterestAcumulado = 0;
+                $newBalance        = $newAmount;
+                $newAccruedInterest = 0;
+                $dailyPayment      = null;
 
-                if ($nuevoTipo === 'term') {
-                    $nuevoInterestAcumulado = round($nuevoMonto * ($nuevoInt / 100) * $nuevoPer, 2);
-                    $nuevoSaldo            = $nuevoMonto + $nuevoInterestAcumulado;
+                if ($newType === 'term') {
+                    $periodsInMonths = match($newFrequency) {
+                        'weekly'   => round($newPeriods / 4, 2),
+                        'biweekly' => round($newPeriods / 2, 2),
+                        'monthly'  => $newPeriods,
+                    };
+                    $newAccruedInterest = round($newAmount * ($newRate / 100) * $periodsInMonths, 2);
+                    $newBalance = $newAmount + $newAccruedInterest;
+                } elseif ($newType === 'daily') {
+                    $newFrequency       = 'daily';
+                    $newAccruedInterest = round($newAmount * ($newRate / 100), 2);
+                    $newBalance         = $newAmount + $newAccruedInterest;
+                    $dailyPayment       = round($newBalance / $newPeriods, 2);
                 }
 
-                $nuevoloan = loan::create([
-                    'customer_id'          => $loan->customer_id,
-                    'tipo'                => $nuevoTipo,
-                    'payment_frequency'     => $nuevaFreq,
-                    'number_of_periods'     => $nuevoPer,
-                    'original_amount'      => $nuevoMonto,
-                    'remaining_balance'      => $nuevoSaldo,
-                    'interest_rate'        => $nuevoInt,
-                    'accrued_interest'   => $nuevoInterestAcumulado,
+                $newLoan = Loan::create([
+                    'customer_id'        => $loan->customer_id,
+                    'type'               => $newType,
+                    'payment_frequency'  => $newFrequency,
+                    'number_of_periods'  => $newPeriods,
+                    'original_amount'    => $newAmount,
+                    'remaining_balance'  => $newBalance,
+                    'interest_rate'      => $newRate,
+                    'accrued_interest'   => $newAccruedInterest,
                     'pending_interest'   => 0,
-                    'accumulated_penalty'      => 0,
-                    'penalty_type'           => $loan->penalty_type,
-                    'penalty_value'          => $loan->penalty_value,
+                    'daily_payment'      => $dailyPayment,
+                    'accumulated_penalty' => 0,
+                    'penalty_type'       => $loan->penalty_type,
+                    'penalty_value'      => $loan->penalty_value,
                     'grace_days'         => $loan->grace_days,
-                    'start_date'        => Carbon::today()->toDateString(),
-                    'next_payment_date'  => $this->calcularProximopayment(
+                    'start_date'         => Carbon::today()->toDateString(),
+                    'next_payment_date'  => $this->calculateNextPayment(
                         Carbon::today()->toDateString(),
-                        $nuevaFreq
+                        $newFrequency
                     ),
-                    'status'              => 'active',
-                    'reestructurado'      => true,
-                    'observaciones'       => 'Reestructurado del préstamo #' . $loan->id,
+                    'status'             => 'active',
+                    'restructured'       => true,
+                    'notes'              => 'Reestructurado del préstamo #' . $loan->id,
                 ]);
 
-                $datosrestructuring['loan_nuevo_id'] = $nuevoloan->id;
+                $restructuringData['new_loan_id'] = $newLoan->id;
             }
 
-            restructuring::create($datosrestructuring);
+            Restructuring::create($restructuringData);
         });
 
-        return redirect()->route('restructuring.actives')
+        return redirect()->route('restructuring.active')
                          ->with('success', 'Préstamo reestructurado correctamente.');
     }
 
-    public function pdf(restructuring $restructuring)
+    public function pdf(Restructuring $restructuring)
     {
         $restructuring->load([
-            'loanOriginal.customer',
-            'loanNuevo',
-            'registradoPor',
+            'originalLoan.customer',
+            'newLoan',
+            'recordedBy',
         ]);
 
         $pdf = Pdf::loadView('restructuring.pdf', compact('restructuring'))
@@ -194,20 +197,21 @@ class RestructuringController extends Controller
         return $pdf->stream("restructuring-{$restructuring->id}.pdf");
     }
 
-    private function calcularDiasAtraso(loan $loan): int
+    private function calculateDaysOverdue(Loan $loan): int
     {
         if (!$loan->next_payment_date) return 0;
-        return max(0, Carbon::today()->diffInDays($loan->next_payment_date, false) * -1);
+        return (int) max(0, Carbon::today()->diffInDays($loan->next_payment_date, false) * -1);
     }
 
-    private function calcularProximopayment(string $fecha, string $frecuencia): string
+    private function calculateNextPayment(string $date, string $frequency): string
     {
-        $date = Carbon::parse($fecha);
-        return match($frecuencia) {
-            'weekly'   => $date->addWeek()->toDateString(),
-            'biweekly' => $date->addDays(15)->toDateString(),
-            'monthly'   => $date->addMonth()->toDateString(),
-            default     => $date->addMonth()->toDateString(),
+        $carbon = Carbon::parse($date);
+        return match($frequency) {
+            'daily'    => $carbon->addDay()->toDateString(),
+            'weekly'   => $carbon->addWeek()->toDateString(),
+            'biweekly' => $carbon->addDays(15)->toDateString(),
+            'monthly'  => $carbon->addMonth()->toDateString(),
+            default    => $carbon->addMonth()->toDateString(),
         };
     }
-}// Restructuring module with PDF legal letter
+}

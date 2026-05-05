@@ -33,6 +33,120 @@
     </div>
 @endif
 
+{{-- Filtro --}}
+<div class="d-flex align-items-center gap-2 mb-4">
+    <div class="position-relative">
+        <button onclick="document.getElementById('filtroDropdown').classList.toggle('show')"
+                class="btn btn-sm d-flex align-items-center gap-2"
+                style="background:#fff; border:0.5px solid #ddd; border-radius:8px; font-size:13px; padding:7px 14px; color:#555;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+            </svg>
+            Filtrar
+            @if(request('type') || request('status'))
+                <span class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                      style="width:18px; height:18px; background:#1f6b21; color:white; font-size:10px;">
+                    {{ (request('type') ? 1 : 0) + (request('status') ? 1 : 0) }}
+                </span>
+            @endif
+        </button>
+
+        <div id="filtroDropdown" class="position-absolute bg-white rounded-3 shadow-sm mt-1"
+             style="display:none; min-width:200px; border:0.5px solid #e8e8e8; z-index:100; left:0;">
+
+            <div class="px-3 py-2 border-bottom" style="border-color:#f0f0f0 !important;">
+                <span class="text-muted fw-medium" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Tipo</span>
+            </div>
+            <div class="px-2 py-2">
+                <a href="{{ route('loans.index', array_merge(request()->except('type'), [])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
+                   style="font-size:13px; {{ !request('type') ? 'background:#f0f7f0; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                    Todos
+                </a>
+                <a href="{{ route('loans.index', array_merge(request()->except('type'), ['type' => 'term'])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
+                   style="font-size:13px; {{ request('type') === 'term' ? 'background:#e8f5e9; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                    Plazo
+                </a>
+                <a href="{{ route('loans.index', array_merge(request()->except('type'), ['type' => 'interest'])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
+                   style="font-size:13px; {{ request('type') === 'interest' ? 'background:#fff3e0; color:#e65100; font-weight:500;' : 'color:#555;' }}">
+                    Interés
+                </a>
+                <a href="{{ route('loans.index', array_merge(request()->except('type'), ['type' => 'daily'])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none"
+                   style="font-size:13px; {{ request('type') === 'daily' ? 'background:#e3f2fd; color:#1565c0; font-weight:500;' : 'color:#555;' }}">
+                    Diario
+                </a>
+            </div>
+
+            <div class="px-3 py-2 border-bottom border-top" style="border-color:#f0f0f0 !important;">
+                <span class="text-muted fw-medium" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Estado</span>
+            </div>
+            <div class="px-2 py-2">
+                <a href="{{ route('loans.index', array_merge(request()->except('status'), [])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
+                   style="font-size:13px; {{ !request('status') ? 'background:#f0f7f0; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                    Todos
+                </a>
+                <a href="{{ route('loans.index', array_merge(request()->except('status'), ['status' => 'active'])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
+                   style="font-size:13px; {{ request('status') === 'active' ? 'background:#e8f5e9; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                    Activos
+                </a>
+                <a href="{{ route('loans.index', array_merge(request()->except('status'), ['status' => 'overdue'])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
+                   style="font-size:13px; {{ request('status') === 'overdue' ? 'background:#fdecea; color:#c0392b; font-weight:500;' : 'color:#555;' }}">
+                    Vencidos
+                </a>
+                <a href="{{ route('loans.index', array_merge(request()->except('status'), ['status' => 'refinanced'])) }}"
+                   class="d-block px-3 py-1 rounded-2 text-decoration-none"
+                   style="font-size:13px; {{ request('status') === 'refinanced' ? 'background:#f3e5f5; color:#6a1b9a; font-weight:500;' : 'color:#555;' }}">
+                    Refinanciados
+                </a>
+            </div>
+
+            @if(request('type') || request('status'))
+                <div class="px-2 py-2 border-top" style="border-color:#f0f0f0 !important;">
+                    <a href="{{ route('loans.index') }}"
+                       class="d-block px-3 py-1 rounded-2 text-decoration-none text-center"
+                       style="font-size:12px; color:#c0392b;">
+                        Limpiar filtros
+                    </a>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    @if(request('type') || request('status'))
+        <div class="d-flex gap-1">
+            @if(request('type'))
+                @php
+                    $typeLabel = match(request('type')) {
+                        'term' => 'Plazo', 'interest' => 'Interés', 'daily' => 'Diario', default => request('type')
+                    };
+                @endphp
+                <a href="{{ route('loans.index', request()->except('type')) }}"
+                   class="px-2 py-1 rounded-2 d-flex align-items-center gap-1 text-decoration-none"
+                   style="background:#f5f5f5; font-size:11px; color:#555;">
+                    {{ $typeLabel }} ×
+                </a>
+            @endif
+            @if(request('status'))
+                @php
+                    $statusLabel = match(request('status')) {
+                        'active' => 'Activos', 'overdue' => 'Vencidos', 'refinanced' => 'Refinanciados', default => request('status')
+                    };
+                @endphp
+                <a href="{{ route('loans.index', request()->except('status')) }}"
+                   class="px-2 py-1 rounded-2 d-flex align-items-center gap-1 text-decoration-none"
+                   style="background:#f5f5f5; font-size:11px; color:#555;">
+                    {{ $statusLabel }} ×
+                </a>
+            @endif
+        </div>
+    @endif
+</div>
 <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
     <div class="table-responsive">
         <table class="table mb-0" style="font-size:14px; min-width:640px;">
@@ -111,7 +225,7 @@
                 @empty
                     <tr>
                         <td colspan="8" class="text-center py-5 text-muted" style="font-size:13px;">
-                            No hay préstamos registrados aún.
+                            No hay préstamos que coincidan con el filtro.
                         </td>
                     </tr>
                 @endforelse
@@ -121,7 +235,7 @@
 </div>
 
 @if($loans->hasPages())
-    <div class="mt-3">{{ $loans->links() }}</div>
+    <div class="mt-3">{{ $loans->appends(request()->query())->links() }}</div>
 @endif
 
 {{-- MODAL NUEVO PAGO --}}
@@ -272,6 +386,19 @@ function limpiarSeleccion() {
 
 document.getElementById('modalPago').addEventListener('click', function(e) {
     if (e.target === this) cerrarModalPago();
+});
+</script>
+<style>
+    #filtroDropdown.show { display: block !important; }
+</style>
+
+<script>
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('filtroDropdown');
+    if (!e.target.closest('.position-relative')) {
+        dropdown.classList.remove('show');
+    }
 });
 </script>
 

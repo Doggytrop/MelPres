@@ -10,12 +10,20 @@ use Carbon\Carbon;
 
 class LoanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $loans = Loan::with('customer')
-                     ->whereIn('status', ['active', 'overdue', 'refinanced'])
-                     ->latest()
-                     ->paginate(15);
+        $query = Loan::with('customer')
+                    ->whereIn('status', ['active', 'overdue', 'refinanced']);
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $loans = $query->latest()->paginate(15);
 
         return view('loans.index', compact('loans'));
     }
