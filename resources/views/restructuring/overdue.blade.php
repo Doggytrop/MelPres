@@ -53,7 +53,7 @@
                             <td class="px-4 py-3">
                                 <a href="{{ route('loans.show', $loan) }}"
                                    style="color:#1a2e1a; text-decoration:none; font-weight:500;">
-                                    {{ $loan->customer?->full_name ?? 'Cliente eliminado' }}                                </a>
+                                    {{ $loan->customer?->full_name ?? 'Cliente eliminado' }}    </a>
                             </td>
                             <td class="px-4 py-3" style="color:#c0392b; font-weight:500;">
                                 ${{ number_format($loan->remaining_balance, 2) }}
