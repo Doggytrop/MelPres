@@ -81,8 +81,12 @@ Route::middleware('auth', 'redirect.customer')->group(function () {
         Route::post('settings', [SettingController::class, 'update'])
             ->name('settings.update');
         Route::resource('advisors', AdvisorController::class)->except(['show']);
-    });
 
+    });
+    // Ruta de Gestion de usuarios
+    Route::resource('users', App\Http\Controllers\UserController::class)->except(['show']);
+    // Bitacora de movimientos
+    Route::get('activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
 });
 // — Portal del cliente —
 Route::middleware(['auth'])->prefix('portal')->group(function () {

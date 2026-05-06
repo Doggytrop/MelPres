@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
         if (auth()->user()->isCustomer()) {
             return redirect()->route('portal.index');
         }
-
+        \App\Models\ActivityLog::log('login', 'users', 'El usuario se ha conectado', auth()->user());
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

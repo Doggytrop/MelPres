@@ -177,6 +177,7 @@ class RestructuringController extends Controller
             }
 
             Restructuring::create($restructuringData);
+            \App\Models\ActivityLog::log('create', 'restructuring', 'Creó reestructuración del préstamo #' . $loan->id, $loan);
         });
 
         return redirect()->route('restructuring.active')

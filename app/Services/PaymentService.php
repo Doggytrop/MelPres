@@ -64,6 +64,7 @@ class PaymentService
             app(\App\Services\ScoreService::class)->actualizar($loan->customer);
 
             // 7 — Registrar movimiento
+            \App\Models\ActivityLog::log('payment', 'payments', 'Registró pago por $' . number_format($amountPaid, 2) . ' en préstamo #' . $loan->id, $loan);
             return Payment::create([
                 'loan_id'          => $loan->id,
                 'amount_paid'      => $amountPaid,

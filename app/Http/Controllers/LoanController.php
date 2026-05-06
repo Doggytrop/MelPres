@@ -95,6 +95,7 @@ class LoanController extends Controller
         );
 
         Loan::create($data);
+        \App\Models\ActivityLog::log('create', 'loans', 'Creó préstamo #' . $loan->id, $loan);
 
         return redirect()->route('loans.index')
                          ->with('success', 'Préstamo registrado correctamente.');

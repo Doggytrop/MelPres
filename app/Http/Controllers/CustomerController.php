@@ -20,10 +20,12 @@ class CustomerController extends Controller
     {
         $customer = new customer();
         return view('customers.create', compact('customer'));
+       
     }
 public function store(StoreCustomerRequest $request)
 {
     $customer = Customer::create($request->validated());
+    \App\Models\ActivityLog::log('create', 'customers', 'Creó cliente ' . $customer->full_name, $customer);
 
     
     $generatedPassword = null;
@@ -75,12 +77,16 @@ public function store(StoreCustomerRequest $request)
     {
         $customer->update($request->validated());
 
+        \App\Models\ActivityLog::log('update', 'customers', 'Actualizó al cliente ' . $customer->full_name, $customer);
+
         return redirect()->route('customers.show', $customer)
                         ->with('success', 'Cliente actualizado correctamente.');
     }
 
     public function destroy(customer $customer)
     {
+        \App\Models\ActivityLog::log('delete', 'customers', 'Eliminó al cliente ' . $customer->full_name, $customer);
+
         if ($customer->loans()->exists()) {
             return redirect()->route('customers.index')
                             ->with('error', 'No se puede eliminar un customer con préstamos registrados.');
