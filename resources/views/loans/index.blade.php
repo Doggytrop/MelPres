@@ -214,11 +214,11 @@
                                    style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
                                     Ver
                                 </a>
-                                <a href="{{ route('loans.edit', $loan) }}"
+                                <!-- <a href="{{ route('loans.edit', $loan) }}"
                                    class="d-none d-sm-inline"
                                    style="font-size:12px; color:#555; text-decoration:none; border:0.5px solid #ddd; border-radius:6px; padding:4px 10px;">
                                     Editar
-                                </a>
+                                </a> -->
                             </div>
                         </td>
                     </tr>

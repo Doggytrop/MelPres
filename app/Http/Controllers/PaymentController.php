@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\loan;
-use App\Services\paymentservice;
-use App\Http\Requests\StorepaymentRequest;
+use App\Models\Loan;
+use App\Services\PaymentService;
+use App\Http\Requests\StorePaymentRequest;
 
 class PaymentController extends Controller
 {
-    public function __construct(protected paymentservice $paymentservice) {}
+    public function __construct(protected PaymentService $paymentService) {}
 
-    public function store(StorepaymentRequest $request, loan $loan)
+    public function store(StorePaymentRequest $request, Loan $loan)
     {
         if ($loan->status === 'paid') {
-            return back()->with('error', 'Este préstamo ya está paid.');
+            return back()->with('error', 'Este préstamo ya está pagado.');
         }
 
-        $this->paymentservice->aplicarpayment($loan, $request->validated());
+        $this->paymentService->applyPayment($loan, $request->validated());
 
         return redirect()->route('loans.show', $loan)
-                         ->with('success', 'payment registrado correctamente.');
+                         ->with('success', 'Pago registrado correctamente.');
     }
 }

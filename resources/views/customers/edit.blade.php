@@ -12,8 +12,7 @@
 
 <div class="bg-white border rounded-3 p-3 p-md-4" style="max-width:640px; border-color:#e8e8e8 !important;">
 
-    <h6 class="fw-medium mb-4" style="color:#1a2e1a;">Editar cliente — {{ $customer->first_name_complete }}</h6>
-
+        <h6 class="fw-medium mb-4" style="color:#1a2e1a;">Editar cliente — {{ $customer->full_name }}</h6>
     <form method="POST" action="{{ route('customers.update', $customer) }}">
         @csrf @method('PUT')
         @include('customers._form')

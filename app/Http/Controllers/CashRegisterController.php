@@ -16,7 +16,7 @@ class CashRegisterController extends Controller
         $query = payment::whereDate('payment_date', $fecha)
                      ->with(['loan.customer', 'registradoPor']);
 
-        if (auth()->user()->esadvisor()) {
+        if (auth()->user()->isadvisor()) {
             $query->where('recorded_by', auth()->id());
         }
 
@@ -48,7 +48,7 @@ class CashRegisterController extends Controller
         $query = payment::whereDate('payment_date', $fecha)
                      ->with(['loan.customer', 'registradoPor']);
 
-        if (auth()->user()->esadvisor()) {
+        if (auth()->user()->isadvisor()) {
             $query->where('recorded_by', auth()->id());
         }
 

@@ -7,7 +7,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Asesores</h5>
-        <span class="text-muted" style="font-size:13px;">{{ $advisores->total() }} registrados</span>
+        <span class="text-muted" style="font-size:13px;">{{ $advisors->total() }} registrados</span>
     </div>
     <a href="{{ route('advisors.create') }}"
        class="btn btn-sm"
@@ -37,7 +37,7 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($advisores as $advisor)
+            @forelse($advisors as $advisor)
                 <tr style="border-top:0.5px solid #f0f0f0;">
                     <td class="px-4 py-3">
                         <div class="d-flex align-items-center gap-3">
@@ -78,8 +78,8 @@
     </table>
 </div>
 
-@if($advisores->hasPages())
-    <div class="mt-3">{{ $advisores->links() }}</div>
+@if($advisors->hasPages())
+    <div class="mt-3">{{ $advisors->links() }}</div>
 @endif
 
 @endsection

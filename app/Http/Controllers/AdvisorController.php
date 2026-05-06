@@ -10,8 +10,8 @@ class AdvisorController extends Controller
 {
     public function index()
     {
-        $advisores = User::where('rol', 'advisor')->latest()->paginate(15);
-        return view('advisors.index', compact('advisores'));
+        $advisors = User::where('role', 'advisor')->latest()->paginate(15);
+        return view('advisors.index', compact('advisors'));
     }
 
     public function create()
@@ -37,8 +37,8 @@ class AdvisorController extends Controller
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'rol'      => 'advisor',
+            'password' => $request->password,
+            'role'      => 'advisor',
         ]);
 
         return redirect()->route('advisors.index')
@@ -73,7 +73,7 @@ class AdvisorController extends Controller
         $advisor->email = $request->email;
 
         if ($request->filled('password')) {
-            $advisor->password = Hash::make($request->password);
+            $advisor->password = $request->password;
         }
 
         $advisor->save();

@@ -74,8 +74,13 @@ class Loan extends Model
             return $this->daily_payment ?? 0;
         }
 
-        if (!$this->number_of_periods || $this->number_of_periods == 0) return 0;
-        return round($this->remaining_balance / $this->number_of_periods, 2);
+        if ($this->type === 'term') {
+            if (!$this->number_of_periods || $this->number_of_periods == 0) return 0;
+            return round(($this->original_amount + $this->accrued_interest) / $this->number_of_periods, 2);
+        }
+
+        // Interest type — pago por periodo es el interés mensual
+        return round($this->original_amount * ($this->interest_rate / 100), 2);
     }
 
     public function getTypeLabelAttribute(): string

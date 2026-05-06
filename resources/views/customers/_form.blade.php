@@ -1,25 +1,33 @@
-@php $inputClass = 'form-control form-control-sm'; @endphp
-@php $labelStyle = 'font-size:11px; text-transform:uppercase; letter-spacing:.05em;'; @endphp
+@php
+    $inputClass = 'form-control form-control-sm';
+    $labelStyle = 'font-size:11px; text-transform:uppercase; letter-spacing:.05em;';
+    $isEdit = isset($customer) && $customer->exists;
+@endphp
 
 <div class="row g-3">
 
     <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Nombre *</label>
         <input type="text" name="first_name" value="{{ old('first_name', $customer->first_name ?? '') }}"
-               class="{{ $inputClass }} @error('first_name') is-invalid @enderror" placeholder="Ej: Juan">
+               class="{{ $inputClass }} @error('first_name') is-invalid @enderror" placeholder="Ej: Juan"
+               {{ $isEdit ? 'readonly style=background:#f0f0f0;cursor:not-allowed;' : '' }}>
         @error('first_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        @if($isEdit) <small class="text-muted" style="font-size:11px;">No se puede modificar</small> @endif
     </div>
 
     <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Apellido *</label>
         <input type="text" name="last_name" value="{{ old('last_name', $customer->last_name ?? '') }}"
-               class="{{ $inputClass }} @error('last_name') is-invalid @enderror" placeholder="Ej: García">
+               class="{{ $inputClass }} @error('last_name') is-invalid @enderror" placeholder="Ej: García"
+               {{ $isEdit ? 'readonly style=background:#f0f0f0;cursor:not-allowed;' : '' }}>
         @error('last_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        @if($isEdit) <small class="text-muted" style="font-size:11px;">No se puede modificar</small> @endif
     </div>
 
     <div class="col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Tipo de documento</label>
-        <select name="document_type" class="{{ $inputClass }}">
+        <select name="document_type" class="{{ $inputClass }}" {{ $isEdit ? 'disabled' : '' }}
+                {{ $isEdit ? 'style=background:#f0f0f0;cursor:not-allowed;' : '' }}>
             <option value="">Sin documento</option>
             @foreach([
                 'ine'      => 'INE',
@@ -34,20 +42,29 @@
                 </option>
             @endforeach
         </select>
+        @if($isEdit)
+            <input type="hidden" name="document_type" value="{{ $customer->document_type }}">
+            <small class="text-muted" style="font-size:11px;">No se puede modificar</small>
+        @endif
     </div>
 
     <div class="col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Número de documento</label>
         <input type="text" name="document_number"
                value="{{ old('document_number', $customer->document_number ?? '') }}"
-               class="{{ $inputClass }}" placeholder="Ej: GOMJ850101HDFXXX">
-        <small class="text-muted" style="font-size:11px;">Opcional</small>
+               class="{{ $inputClass }}" placeholder="Ej: GOMJ850101HDFXXX"
+               {{ $isEdit ? 'readonly style=background:#f0f0f0;cursor:not-allowed;' : '' }}>
+        @if($isEdit)
+            <small class="text-muted" style="font-size:11px;">No se puede modificar</small>
+        @else
+            <small class="text-muted" style="font-size:11px;">Opcional</small>
+        @endif
     </div>
 
     <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Teléfono</label>
         <input type="text" name="phone" value="{{ old('phone', $customer->phone ?? '') }}"
-               class="{{ $inputClass }}" placeholder="Ej: 7777-1234">
+               class="{{ $inputClass }}" placeholder="Ej: 6621234567">
     </div>
 
     <div class="col-12">

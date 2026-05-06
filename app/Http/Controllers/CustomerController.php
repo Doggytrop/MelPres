@@ -28,7 +28,7 @@ public function store(StoreCustomerRequest $request)
     
     $generatedPassword = null;
 
-    if ($customer->phone) {
+    if ($customer->phone && !\App\Models\User::where('phone', $customer->phone)->exists()) {
         $plainPassword = strtoupper(substr(str_replace(' ', '', $customer->first_name), 0, 3))
                        . rand(1000, 9999);
 
@@ -71,12 +71,12 @@ public function store(StoreCustomerRequest $request)
         return view('customers.edit', compact('customer'));
     }
 
-    public function update(UpdatecustomerRequest $request, customer $customer)
+    public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         $customer->update($request->validated());
 
-        return redirect()->route('customers.index')
-                        ->with('success', 'customer actualizado correctamente.');
+        return redirect()->route('customers.show', $customer)
+                        ->with('success', 'Cliente actualizado correctamente.');
     }
 
     public function destroy(customer $customer)
