@@ -9,8 +9,13 @@ class RedirectCustomer
 {
     public function handle(Request $request, Closure $next)
     {
-        if (auth()->check() && auth()->user()->isCustomer()) {
-            return redirect()->route('portal.index');
+        if (auth()->check()) {
+            if (auth()->user()->isCustomer()) {
+                return redirect()->route('portal.index');
+            }
+            if (auth()->user()->isCollector()) {
+                return redirect()->route('collector.index');
+            }
         }
 
         return $next($request);

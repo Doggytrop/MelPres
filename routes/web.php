@@ -93,4 +93,9 @@ Route::middleware(['auth'])->prefix('portal')->group(function () {
     Route::get('/', [App\Http\Controllers\PortalController::class, 'index'])->name('portal.index');
     Route::get('/loan/{loan}', [App\Http\Controllers\PortalController::class, 'show'])->name('portal.show');
 });
+// — Panel del cobrador —
+Route::middleware(['auth'])->prefix('collector')->group(function () {
+    Route::get('/', [App\Http\Controllers\CollectorController::class, 'index'])->name('collector.index');
+    Route::post('/collect/{loan}', [App\Http\Controllers\CollectorController::class, 'collect'])->name('collector.collect');
+});
 require __DIR__.'/auth.php';

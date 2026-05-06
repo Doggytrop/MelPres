@@ -27,7 +27,7 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'unique:users,email'],
             'phone'    => ['nullable', 'string', 'max:20', 'unique:users,phone'],
-            'role'     => ['required', 'in:admin,advisor'],
+            'role'     => ['required', 'in:admin,advisor,collector'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required'      => 'El nombre es obligatorio.',
@@ -68,8 +68,8 @@ class UserController extends Controller
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'unique:users,email,' . $user->id],
             'phone'    => ['nullable', 'string', 'max:20', 'unique:users,phone,' . $user->id],
-            'role'     => ['required', 'in:admin,advisor'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', 'in:admin,advisor,collector'], 
+                       'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required'      => 'El nombre es obligatorio.',
             'email.unique'       => 'Este correo ya está registrado.',

@@ -21,6 +21,8 @@ class StoreCustomerRequest extends FormRequest
             'references'      => ['nullable', 'string'],
             'status'          => ['required', 'in:active,inactive,blocked'],
             'notes'           => ['nullable', 'string'],
+            'latitude'        => ['nullable', 'numeric'],
+            'longitude'       => ['nullable', 'numeric'],
         ];
     }
 

@@ -94,7 +94,7 @@ class LoanController extends Controller
             $data['payment_frequency']
         );
 
-        Loan::create($data);
+        $loan = Loan::create($data);
         \App\Models\ActivityLog::log('create', 'loans', 'Creó préstamo #' . $loan->id, $loan);
 
         return redirect()->route('loans.index')

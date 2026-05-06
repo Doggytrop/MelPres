@@ -71,6 +71,10 @@ class User extends Authenticatable
 
     public function isStaff(): bool
     {
-        return in_array($this->role, ['superadmin', 'admin', 'advisor']);
+        return in_array($this->role, ['superadmin', 'admin', 'advisor', 'collector']);
+    }
+    public function isCollector(): bool
+    {
+        return $this->role === 'collector';
     }
 }

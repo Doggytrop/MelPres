@@ -55,6 +55,14 @@
                             <span style="font-size:11px; color:#888;">Solo registra pagos y consulta información de clientes</span>
                         </div>
                     </label>
+                    <label class="d-flex align-items-start gap-2 p-3 rounded-3 flex-fill"
+                            style="border:0.5px solid {{ old('role') === 'collector' ? '#e65100' : '#ddd' }}; cursor:pointer; background:{{ old('role') === 'collector' ? '#fff3e0' : '#fff' }};">
+                    <input type="radio" name="role" value="collector" {{ old('role') === 'collector' ? 'checked' : '' }} style="margin-top:2px;">
+                    <div>
+                        <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Cobrador</span>
+                        <span style="font-size:11px; color:#888;">Panel de cobros con mapa, registra cobros en campo</span>
+                    </div>
+                </label>
                 </div>
                 @error('role') <div class="text-danger mt-1" style="font-size:12px;">{{ $message }}</div> @enderror
             </div>

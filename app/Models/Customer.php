@@ -22,6 +22,8 @@ class Customer extends Model
         'notes',
         'score',
         'score_updated_at',
+        'latitude',
+        'longitude',
     ];
 
     protected $casts = [

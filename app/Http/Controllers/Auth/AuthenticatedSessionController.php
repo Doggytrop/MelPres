@@ -25,13 +25,18 @@ class AuthenticatedSessionController extends Controller
    public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
+
+        \App\Models\ActivityLog::log('login', 'auth', 'Inició sesión');
 
         if (auth()->user()->isCustomer()) {
             return redirect()->route('portal.index');
         }
-        \App\Models\ActivityLog::log('login', 'users', 'El usuario se ha conectado', auth()->user());
+
+        if (auth()->user()->isCollector()) {
+            return redirect()->route('collector.index');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
