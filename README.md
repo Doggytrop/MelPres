@@ -22,7 +22,7 @@ Sistema de gestion de prestamos personales desarrollado con Laravel 13, Bootstra
 
 ## Descripcion
 
-MelPres es un sistema completo de gestion de prestamos personales orientado a financieras, prestamistas independientes y casas de empenio. El sistema permite controlar todo el ciclo de vida de un prestamo: desde la evaluacion del cliente hasta la cobranza en campo, incluyendo reestructuraciones, generacion de documentos legales en PDF y un portal exclusivo para que los clientes consulten sus prestamos.
+MelPres es un sistema completo de gestion de prestamos personales orientado a financieras, prestamistas independientes y casas de empeño. El sistema permite controlar todo el ciclo de vida de un prestamo: desde la evaluacion del cliente hasta la cobranza en campo, incluyendo reestructuraciones, generacion de documentos legales en PDF y un portal exclusivo para que los clientes consulten sus prestamos.
 
 El sistema es multiusuario con cinco roles diferenciados (Super Admin, Administrador, Asesor, Cobrador y Cliente), cada uno con su propio nivel de acceso y panel personalizado.
 
