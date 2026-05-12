@@ -4,12 +4,12 @@
 
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
         <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Préstamos</h5>
         <span class="text-muted" style="font-size:13px;">{{ $loans->total() }} registrados</span>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 page-actions">
         <button onclick="abrirModalPago()"
                 class="btn btn-sm"
                 style="background:#fff; color:var(--color-primary); border:0.5px solid var(--color-secondary); border-radius:8px; font-size:13px; padding:7px 16px;">

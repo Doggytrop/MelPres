@@ -4,16 +4,18 @@
 
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
         <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Asesores</h5>
         <span class="text-muted" style="font-size:13px;">{{ $advisors->total() }} registrados</span>
     </div>
+    <div class="d-flex gap-2 page-actions page-actions-single">
     <a href="{{ route('advisors.create') }}"
        class="btn btn-sm"
        style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
         + Nuevo asesor
     </a>
+    </div>
 </div>
 
 @if(session('success'))
@@ -27,7 +29,8 @@
 @endif
 
 <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
-    <table class="table mb-0" style="font-size:14px;">
+    <div class="table-responsive">
+    <table class="table mb-0" style="font-size:14px; min-width:640px;">
         <thead style="background:#f8f9f8; border-bottom:1px solid #e8e8e8;">
             <tr>
                 <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Asesor</th>
@@ -76,6 +79,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
 @if($advisors->hasPages())

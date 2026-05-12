@@ -4,12 +4,12 @@
 
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 page-header">
     <div>
         <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Corte de caja</h5>
         <span class="text-muted" style="font-size:13px;">Resumen de pagos del día</span>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 page-actions">
         <form method="GET" action="{{ route('cash-register.index') }}" class="d-flex gap-2">
             <input type="date" name="fecha" value="{{ $fecha }}"
                    class="form-control form-control-sm"
@@ -63,7 +63,8 @@
         <div class="px-4 py-3 border-bottom" style="border-color:#f0f0f0 !important;">
             <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Resumen por asesor</span>
         </div>
-        <table class="table mb-0" style="font-size:14px;">
+        <div class="table-responsive">
+        <table class="table mb-0" style="font-size:14px; min-width:640px;">
             <thead style="background:#f8f9f8;">
                 <tr>
                     <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">asesor</th>
@@ -93,6 +94,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
 @endif
 

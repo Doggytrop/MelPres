@@ -59,6 +59,95 @@
             margin-bottom: 0;
         }
 
+        .table td a,
+        .table td button {
+            line-height: 1.2;
+        }
+
+        .table td a[style*="border"],
+        .table td button[style*="border"] {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 32px;
+            white-space: nowrap;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page-header {
+            gap: 1rem;
+        }
+
+        .page-actions {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 575.98px) {
+            .page-header {
+                align-items: flex-start !important;
+                flex-wrap: wrap;
+                margin-bottom: .75rem !important;
+            }
+
+            .page-header > div:first-child {
+                min-width: 0;
+                flex: 1 1 140px;
+            }
+
+            .page-actions {
+                flex: 1 1 100%;
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .5rem !important;
+                align-items: start;
+            }
+
+            .page-actions > *,
+            .page-actions .btn,
+            .page-actions form,
+            .page-actions .form-control {
+                width: 100%;
+            }
+
+            .page-actions.page-actions-single {
+                flex: 0 0 auto;
+                display: flex !important;
+                align-items: flex-start;
+                justify-content: flex-end;
+                max-width: 55%;
+            }
+
+            .page-actions.page-actions-single > *,
+            .page-actions.page-actions-single .btn {
+                width: auto;
+                min-width: 150px;
+            }
+
+            .page-actions .btn {
+                align-items: center;
+                justify-content: center;
+                white-space: normal;
+                text-align: center;
+                min-height: 0;
+                line-height: 1.25;
+                padding-top: .55rem !important;
+                padding-bottom: .55rem !important;
+            }
+
+            .table-responsive {
+                border-radius: inherit;
+            }
+
+            .table-responsive .table {
+                min-width: 680px;
+            }
+        }
+
         /* Sidebar desktop */
         @media (min-width: 992px) {
             #sidebarOffcanvas {
