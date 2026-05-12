@@ -22,7 +22,7 @@
                 Filtrar
                 @if(request('module') || request('action') || request('user'))
                     <span class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                          style="width:18px; height:18px; background:#1f6b21; color:white; font-size:10px;">!</span>
+                          style="width:18px; height:18px; background:var(--color-primary); color:white; font-size:10px;">!</span>
                 @endif
             </button>
 
@@ -61,7 +61,7 @@
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-sm flex-fill"
-                                style="background:#1f6b21; color:white; border-radius:6px; font-size:12px;">
+                                style="background:var(--color-primary); color:white; border-radius:6px; font-size:12px;">
                             Aplicar
                         </button>
                         <a href="{{ route('activity-logs.index') }}" class="btn btn-sm flex-fill"
@@ -128,11 +128,27 @@
 </div>
 
 @if($logs->hasPages())
-    <div class="mt-3">{{ $logs->appends(request()->query())->links() }}</div>
+    <div class="mt-3 activity-log-pagination">{{ $logs->appends(request()->query())->links() }}</div>
 @endif
 
 <style>
     #filtroLog.show { display: block !important; }
+
+    .activity-log-pagination nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .activity-log-pagination svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .activity-log-pagination p {
+        margin-bottom: 0;
+    }
 </style>
 <script>
     document.addEventListener('click', function(e) {

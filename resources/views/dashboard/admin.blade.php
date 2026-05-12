@@ -6,7 +6,7 @@
 
 <div class="mb-4">
     <h5 class="fw-medium mb-0" style="color:#1a2e1a;">Panel de control</h5>
-    <span class="text-muted" style="font-size:13px;">{{ now()->format('l, d \d\e F \d\e Y') }}</span>
+    <span class="text-muted" style="font-size:13px;">{{ now()->translatedFormat('l, d \d\e F \d\e Y') }}</span>
 </div>
 
 {{-- Métricas principales --}}
@@ -17,13 +17,13 @@
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Capital en calle</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
-                     style="width:34px; height:34px; background:#e8f5e9;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                     style="width:34px; height:34px; background:var(--color-secondary);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
                 </div>
             </div>
-            <h3 class="fw-medium mb-0" style="color:#1f6b21; font-size:24px;">${{ number_format($totalCapital, 2) }}</h3>
+            <h3 class="fw-medium mb-0" style="color:var(--color-primary); font-size:24px;">${{ number_format($totalCapital, 2) }}</h3>
         </div>
     </div>
 
@@ -32,8 +32,8 @@
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cobrado hoy</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
-                     style="width:34px; height:34px; background:#e8f5e9;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                     style="width:34px; height:34px; background:var(--color-secondary);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                         <path d="M20 6 9 17l-5-5"/>
                     </svg>
                 </div>
@@ -48,8 +48,8 @@
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Clientes activos</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
-                     style="width:34px; height:34px; background:#e8f5e9;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                     style="width:34px; height:34px; background:var(--color-secondary);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                         <circle cx="9" cy="7" r="4"/>
                         <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
                     </svg>
@@ -65,8 +65,8 @@
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Vencidos</span>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
-                     style="width:34px; height:34px; background:{{ $loansoverdues > 0 ? '#fdecea' : '#e8f5e9' }};">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ $loansoverdues > 0 ? '#c0392b' : '#1f6b21' }}" stroke-width="1.5">
+                     style="width:34px; height:34px; background:{{ $loansoverdues > 0 ? '#fdecea' : 'var(--color-secondary)' }};">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ $loansoverdues > 0 ? '#c0392b' : 'var(--color-primary)' }}" stroke-width="1.5">
                         <circle cx="12" cy="12" r="9"/>
                         <path d="M12 8v4M12 16h.01"/>
                     </svg>
@@ -86,11 +86,11 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés cobrado este mes</span>
-                    <h4 class="fw-medium mb-0" style="color:#1f6b21; font-size:22px;">${{ number_format($interestDelMes, 2) }}</h4>
+                    <h4 class="fw-medium mb-0" style="color:var(--color-primary); font-size:22px;">${{ number_format($interestDelMes, 2) }}</h4>
                 </div>
                 <div class="rounded-2 d-flex align-items-center justify-content-center"
-                     style="width:40px; height:40px; background:#e8f5e9;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                     style="width:40px; height:40px; background:var(--color-secondary);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                     </svg>
                 </div>
@@ -152,7 +152,7 @@
                                 Asesor: {{ $payment->recordedBy?->name ?? '—' }}
                             </p>
                         </div>
-                        <span style="font-size:14px; color:#1f6b21; font-weight:500;">
+                        <span style="font-size:14px; color:var(--color-primary); font-weight:500;">
                             ${{ number_format($payment->amount_paid, 2) }}
                         </span>
                     </div>
@@ -213,11 +213,11 @@
                             {{ $loan->customer?->full_name ?? 'Cliente eliminado' }}
                         </a>
                         <p class="mb-0 text-muted" style="font-size:11px;">
-                            Vence: {{ $loan->next_payment_date->format('d/m/Y') }}
+                            Vence: {{ $loan->next_payment_date->translatedFormat('d/m/Y') }}
                             — {{ $loan->next_payment_date->diffForHumans() }}
                         </p>
                     </div>
-                    <span style="font-size:13px; color:#1f6b21; font-weight:500;">
+                    <span style="font-size:13px; color:var(--color-primary); font-weight:500;">
                         ${{ number_format($loan->remaining_balance, 2) }}
                     </span>
                 </div>
@@ -233,6 +233,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+const dashboardThemeColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--color-primary')
+    .trim() || '#1f6b21';
+
 new Chart(document.getElementById('chartPagos'), {
     type: 'bar',
     data: {
@@ -240,7 +244,7 @@ new Chart(document.getElementById('chartPagos'), {
         datasets: [{
             label: 'Pagos recibidos ($)',
             data: @json($chartData),
-            backgroundColor: '#1f6b21',
+            backgroundColor: dashboardThemeColor,
             borderRadius: 6,
             maxBarThickness: 60
         }]

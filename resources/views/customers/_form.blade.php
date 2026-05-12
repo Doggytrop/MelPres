@@ -88,7 +88,7 @@
         <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $customer->longitude ?? '') }}">
         <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted" style="font-size:11px;">Escribe la dirección o haz clic en el mapa para marcar la ubicación</small>
-            <small id="coordsDisplay" style="font-size:11px; color:#1f6b21; font-weight:500;">
+            <small id="coordsDisplay" style="font-size:11px; color:var(--color-primary); font-weight:500;">
                 @if(old('latitude', $customer->latitude ?? ''))
                     {{ old('latitude', $customer->latitude) }}, {{ old('longitude', $customer->longitude) }}
                 @endif
@@ -193,7 +193,7 @@ function searchAddress(query) {
                          onmouseover="this.style.background='#f8f9f8'" onmouseout="this.style.background='white'"
                          onclick="selectAddress('${r.display_name.replace(/'/g, "\\'")}', ${r.lat}, ${r.lon})">
                         <div class="d-flex align-items-start gap-2">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5" style="flex-shrink:0; margin-top:3px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" style="flex-shrink:0; margin-top:3px;">
                                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                                 <circle cx="12" cy="10" r="3"/>
                             </svg>

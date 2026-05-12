@@ -9,7 +9,7 @@
 <body style="background:#f5f5f5; min-height:100vh;">
 
     {{-- Header --}}
-    <div style="background:#1f6b21; padding:16px 24px;">
+    <div style="background:var(--color-primary); padding:16px 24px;">
         <div class="d-flex justify-content-between align-items-center" style="max-width:800px; margin:0 auto;">
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle d-flex align-items-center justify-content-center"
@@ -50,7 +50,7 @@
                 @php
                     $typeColors = [
                         'interest' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
-                        'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                        'term'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Plazo'],
                         'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Diario'],
                     ];
                     $tc = $typeColors[$loan->type];
@@ -81,7 +81,7 @@
                                     Vencido
                                 </span>
                             @else
-                                <span class="px-2 py-1 rounded-2" style="background:#e8f5e9; color:#1f6b21; font-size:11px; font-weight:500;">
+                                <span class="px-2 py-1 rounded-2" style="background:var(--color-secondary); color:var(--color-primary); font-size:11px; font-weight:500;">
                                     Activo
                                 </span>
                             @endif
@@ -90,7 +90,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-4">
                                 <span class="d-block text-muted" style="font-size:11px;">Saldo pendiente</span>
-                                <span class="fw-medium" style="font-size:18px; color:#1f6b21;">${{ number_format($loan->remaining_balance, 2) }}</span>
+                                <span class="fw-medium" style="font-size:18px; color:var(--color-primary);">${{ number_format($loan->remaining_balance, 2) }}</span>
                             </div>
                             <div class="col-4">
                                 <span class="d-block text-muted" style="font-size:11px;">

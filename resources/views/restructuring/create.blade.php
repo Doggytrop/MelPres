@@ -90,7 +90,7 @@
                     <div class="col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Mora a condonar</label>
                         <input type="text" id="forgiven_display" class="form-control form-control-sm"
-                               readonly style="background:#f8f9f8; color:#1f6b21; font-weight:500;">
+                               readonly style="background:#f8f9f8; color:var(--color-primary); font-weight:500;">
                     </div>
                     <div class="col-md-4">
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Mora restante</label>
@@ -126,8 +126,8 @@
                         </select>
                     </div>
                     <div class="col-12">
-                        <div class="p-3 rounded-3" style="background:#e8f5e9; border:0.5px solid #c8e6c9; font-size:13px;">
-                            <strong style="color:#1f6b21;">Nota:</strong>
+                        <div class="p-3 rounded-3" style="background:var(--color-secondary); border:0.5px solid var(--color-secondary); font-size:13px;">
+                            <strong style="color:var(--color-primary);">Nota:</strong>
                             <span style="color:#1a2e1a;"> La mora acumulada se congela en ${{ number_format($loan->accumulated_penalty, 2) }} y el préstamo vuelve a estado activo con el nuevo calendario de pagos.</span>
                         </div>
                     </div>
@@ -216,7 +216,7 @@
         <div class="col-12">
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-sm"
-                        style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:10px 24px;">
+                        style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:10px 24px;">
                     Aplicar reestructuración
                 </button>
                 <a href="{{ route('loans.show', $loan) }}" class="btn btn-sm"
@@ -240,7 +240,7 @@ function showOption(type) {
     });
 
     document.getElementById('opcion_' + type).style.display = 'block';
-    document.getElementById('card_' + type).style.borderColor = '#1f6b21';
+    document.getElementById('card_' + type).style.borderColor = 'var(--color-primary)';
     document.getElementById('card_' + type).style.background  = '#f0faf0';
 }
 

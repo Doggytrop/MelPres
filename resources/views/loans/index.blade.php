@@ -12,12 +12,12 @@
     <div class="d-flex gap-2">
         <button onclick="abrirModalPago()"
                 class="btn btn-sm"
-                style="background:#fff; color:#1f6b21; border:0.5px solid #c8e6c9; border-radius:8px; font-size:13px; padding:7px 16px;">
+                style="background:#fff; color:var(--color-primary); border:0.5px solid var(--color-secondary); border-radius:8px; font-size:13px; padding:7px 16px;">
             + Nuevo pago
         </button>
         <a href="{{ route('loans.create') }}"
            class="btn btn-sm"
-           style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
+           style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
             + Nuevo préstamo
         </a>
     </div>
@@ -25,7 +25,7 @@
 
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-         style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+         style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5"/>
         </svg>
@@ -45,7 +45,7 @@
             Filtrar
             @if(request('type') || request('status'))
                 <span class="rounded-circle d-inline-flex align-items-center justify-content-center"
-                      style="width:18px; height:18px; background:#1f6b21; color:white; font-size:10px;">
+                      style="width:18px; height:18px; background:var(--color-primary); color:white; font-size:10px;">
                     {{ (request('type') ? 1 : 0) + (request('status') ? 1 : 0) }}
                 </span>
             @endif
@@ -60,12 +60,12 @@
             <div class="px-2 py-2">
                 <a href="{{ route('loans.index', array_merge(request()->except('type'), [])) }}"
                    class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
-                   style="font-size:13px; {{ !request('type') ? 'background:#f0f7f0; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                   style="font-size:13px; {{ !request('type') ? 'background:#f0f7f0; color:var(--color-primary); font-weight:500;' : 'color:#555;' }}">
                     Todos
                 </a>
                 <a href="{{ route('loans.index', array_merge(request()->except('type'), ['type' => 'term'])) }}"
                    class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
-                   style="font-size:13px; {{ request('type') === 'term' ? 'background:#e8f5e9; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                   style="font-size:13px; {{ request('type') === 'term' ? 'background:var(--color-secondary); color:var(--color-primary); font-weight:500;' : 'color:#555;' }}">
                     Plazo
                 </a>
                 <a href="{{ route('loans.index', array_merge(request()->except('type'), ['type' => 'interest'])) }}"
@@ -86,12 +86,12 @@
             <div class="px-2 py-2">
                 <a href="{{ route('loans.index', array_merge(request()->except('status'), [])) }}"
                    class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
-                   style="font-size:13px; {{ !request('status') ? 'background:#f0f7f0; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                   style="font-size:13px; {{ !request('status') ? 'background:#f0f7f0; color:var(--color-primary); font-weight:500;' : 'color:#555;' }}">
                     Todos
                 </a>
                 <a href="{{ route('loans.index', array_merge(request()->except('status'), ['status' => 'active'])) }}"
                    class="d-block px-3 py-1 rounded-2 text-decoration-none mb-1"
-                   style="font-size:13px; {{ request('status') === 'active' ? 'background:#e8f5e9; color:#1f6b21; font-weight:500;' : 'color:#555;' }}">
+                   style="font-size:13px; {{ request('status') === 'active' ? 'background:var(--color-secondary); color:var(--color-primary); font-weight:500;' : 'color:#555;' }}">
                     Activos
                 </a>
                 <a href="{{ route('loans.index', array_merge(request()->except('status'), ['status' => 'overdue'])) }}"
@@ -176,7 +176,7 @@
                             @php
                                 $tipoBadge = match($loan->type) {
                                     'interest' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
-                                    'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                                    'term'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Plazo'],
                                     'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Diario'],
                                 };
                             @endphp
@@ -188,7 +188,7 @@
                         <td class="px-4 py-3" style="color:#1a2e1a;">
                             ${{ number_format($loan->original_amount, 2) }}
                         </td>
-                        <td class="px-4 py-3" style="color:#1f6b21; font-weight:500;">
+                        <td class="px-4 py-3" style="color:var(--color-primary); font-weight:500;">
                             ${{ number_format($loan->remaining_balance, 2) }}
                         </td>
                         <td class="px-4 py-3 text-muted d-none d-md-table-cell">
@@ -197,7 +197,7 @@
                         <td class="px-4 py-3 d-none d-sm-table-cell">
                             @php
                                 $statusBadge = match($loan->status) {
-                                    'active'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                                    'active'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Activo'],
                                     'paid'       => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Pagado'],
                                     'overdue'    => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Vencido'],
                                     'refinanced' => ['bg' => '#f3e5f5', 'color' => '#6a1b9a', 'label' => 'Refinanciado'],
@@ -211,7 +211,7 @@
                         <td class="px-4 py-3">
                             <div class="d-flex gap-2">
                                 <a href="{{ route('loans.show', $loan) }}"
-                                   style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                                   style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                                     Ver
                                 </a>
                                 <!-- <a href="{{ route('loans.edit', $loan) }}"
@@ -291,7 +291,7 @@
 
                 <div class="d-flex gap-2 mt-3">
                     <button type="submit" class="btn btn-sm"
-                            style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
+                            style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
                         Aplicar pago
                     </button>
                     <button type="button" onclick="limpiarSeleccion()"
@@ -353,7 +353,7 @@ function mostrarResultados(customers) {
                          style="border-top:0.5px solid #f5f5f5; cursor:pointer;"
                          onclick="seleccionarPrestamo('${c.name}', ${p.id}, '${p.type}', '${p.balance}', '${p.penalty}', '${p.url}')">
                         <span style="font-size:12px; color:#555;">Préstamo #${p.id} — ${p.type}</span>
-                        <span style="font-size:12px; color:#1f6b21; font-weight:500;">Saldo: $${p.balance}</span>
+                        <span style="font-size:12px; color:var(--color-primary); font-weight:500;">Saldo: $${p.balance}</span>
                     </div>
                 `).join('')
                 : '<p class="mb-0 text-muted" style="font-size:12px;">Sin préstamos activos</p>'

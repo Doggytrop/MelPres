@@ -20,7 +20,7 @@
 
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-sm"
-                    style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
+                    style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
                 Guardar asesor
             </button>
             <a href="{{ route('advisors.index') }}" class="btn btn-sm"

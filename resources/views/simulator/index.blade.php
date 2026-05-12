@@ -90,7 +90,7 @@
 
             <button onclick="calcular()"
                     class="btn btn-sm w-100"
-                    style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:10px;">
+                    style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:10px;">
                 Calcular
             </button>
         </div>
@@ -101,8 +101,8 @@
 
         <div id="placeholder" class="bg-white border rounded-3 p-5 text-center" style="border-color:#e8e8e8 !important;">
             <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                 style="width:56px; height:56px; background:#e8f5e9;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                 style="width:56px; height:56px; background:var(--color-secondary);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                     <rect x="2" y="3" width="20" height="14" rx="2"/>
                     <path d="M8 21h8M12 17v4"/>
                 </svg>
@@ -128,7 +128,7 @@
                 <div class="col-md-4">
                     <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
                         <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;" id="res_payment_label">Pago sugerido</span>
-                        <span class="fw-medium" style="font-size:20px; color:#1f6b21;" id="res_payment_sugerido">—</span>
+                        <span class="fw-medium" style="font-size:20px; color:var(--color-primary);" id="res_payment_sugerido">—</span>
                         <span class="text-muted d-block" style="font-size:11px;" id="res_frecuencia">—</span>
                     </div>
                 </div>

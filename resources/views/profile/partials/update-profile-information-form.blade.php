@@ -23,7 +23,7 @@
                     Tu correo no está verificado.
                     <form id="send-verification" method="POST" action="{{ route('verification.send') }}" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-link p-0" style="font-size:12px; color:#1f6b21;">
+                        <button type="submit" class="btn btn-link p-0" style="font-size:12px; color:var(--color-primary);">
                             Reenviar verificación
                         </button>
                     </form>
@@ -37,7 +37,7 @@
 
     <div class="d-flex align-items-center gap-3 mt-4">
         <button type="submit" class="btn btn-sm"
-                style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
+                style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
             Guardar cambios
         </button>
         @if (session('status') === 'profile-updated')

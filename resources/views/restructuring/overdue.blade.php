@@ -13,7 +13,7 @@
 
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-         style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+         style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5"/>
         </svg>
@@ -24,8 +24,8 @@
 @if(!$loans->total())
     <div class="bg-white border rounded-3 p-5 text-center" style="border-color:#e8e8e8 !important;">
         <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-             style="width:56px; height:56px; background:#e8f5e9;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+             style="width:56px; height:56px; background:var(--color-secondary);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                 <path d="M20 6 9 17l-5-5"/>
             </svg>
         </div>
@@ -67,7 +67,7 @@
                             <td class="px-4 py-3">
                                 <div class="d-flex gap-2">
                                     <a href="{{ route('loans.show', $loan) }}"
-                                       style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                                       style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                                         Ver
                                     </a>
                                     <a href="{{ route('restructuring.create', $loan) }}"

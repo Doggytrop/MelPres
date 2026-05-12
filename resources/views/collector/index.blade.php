@@ -10,17 +10,17 @@
         * { box-sizing: border-box; }
         body { background: #f0f2f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
 
-        .header-bar { background: linear-gradient(135deg, #1a4a1c 0%, #1f6b21 100%); padding: 20px 24px; }
+        .header-bar { background: linear-gradient(135deg, #1a4a1c 0%, var(--color-primary) 100%); padding: 20px 24px; }
         .metric-card { background: white; border-radius: 14px; padding: 18px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
         .loan-card { background: white; border-radius: 14px; padding: 18px; margin-bottom: 12px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all .2s; position: relative; overflow: hidden; }
         .loan-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
-        .loan-card.today::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #1f6b21; border-radius: 4px 0 0 4px; }
+        .loan-card.today::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--color-primary); border-radius: 4px 0 0 4px; }
         .loan-card.overdue::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #c0392b; border-radius: 4px 0 0 4px; }
         .loan-card.collected::before { background: #888; }
         .loan-card.collected { opacity: 0.6; }
 
         .pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-        .btn-collect { background: #1f6b21; color: white; border: none; border-radius: 10px; padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+        .btn-collect { background: var(--color-primary); color: white; border: none; border-radius: 10px; padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
         .btn-collect:hover { background: #176319; transform: scale(1.02); }
         .btn-collect-danger { background: #c0392b; }
         .btn-collect-danger:hover { background: #a93226; }
@@ -34,7 +34,7 @@
         #map { height: 380px; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 
         .tab-btn { padding: 8px 16px; border: none; background: #e8e8e8; color: #555; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
-        .tab-btn.active { background: #1f6b21; color: white; }
+        .tab-btn.active { background: var(--color-primary); color: white; }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .animate-in { animation: slideIn 0.3s ease forwards; }
@@ -80,7 +80,7 @@
 
         @if(session('success'))
             <div class="rounded-3 p-3 mb-4 d-flex align-items-center gap-2 animate-in"
-                 style="background:#e8f5e9; color:#1f6b21; font-size:13px;">
+                 style="background:var(--color-secondary); color:var(--color-primary); font-size:13px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M20 6 9 17l-5-5"/>
                 </svg>
@@ -93,7 +93,7 @@
             <div class="col-6 col-md-3">
                 <div class="metric-card text-center">
                     <span class="d-block" style="font-size:11px; color:#888; text-transform:uppercase; letter-spacing:.05em;">Pendientes hoy</span>
-                    <span class="d-block fw-medium" style="font-size:28px; color:#1f6b21;">{{ $totalToday }}</span>
+                    <span class="d-block fw-medium" style="font-size:28px; color:var(--color-primary);">{{ $totalToday }}</span>
                 </div>
             </div>
             <div class="col-6 col-md-3">
@@ -111,9 +111,9 @@
             <div class="col-6 col-md-3">
                 <div class="metric-card text-center" style="{{ $totalCollected > 0 ? 'background:#f0faf0;' : '' }}">
                     <span class="d-block" style="font-size:11px; color:#888; text-transform:uppercase; letter-spacing:.05em;">Cobrado hoy</span>
-                    <span class="d-block fw-medium" style="font-size:28px; color:#1f6b21;">${{ number_format($totalCollected, 2) }}</span>
+                    <span class="d-block fw-medium" style="font-size:28px; color:var(--color-primary);">${{ number_format($totalCollected, 2) }}</span>
                     @if($collectCount > 0)
-                        <span style="font-size:11px; color:#1f6b21;">{{ $collectCount }} cobros</span>
+                        <span style="font-size:11px; color:var(--color-primary);">{{ $collectCount }} cobros</span>
                     @endif
                 </div>
             </div>
@@ -124,7 +124,7 @@
             <div class="metric-card mb-4 p-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="section-title mb-0">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                             <circle cx="12" cy="10" r="3"/>
                         </svg>
@@ -132,7 +132,7 @@
                     </div>
                     <div class="d-flex align-items-center gap-3" style="font-size:11px;">
                         <span class="d-flex align-items-center gap-1">
-                            <span style="width:10px; height:10px; border-radius:50%; background:#1f6b21; display:inline-block;"></span>
+                            <span style="width:10px; height:10px; border-radius:50%; background:var(--color-primary); display:inline-block;"></span>
                             Hoy
                         </span>
                         <span class="d-flex align-items-center gap-1">
@@ -163,8 +163,8 @@
 
                 {{-- Cobros de hoy --}}
                 <div class="col-md-6">
-                    <div class="section-title" style="color:#1f6b21;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                    <div class="section-title" style="color:var(--color-primary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                             <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
                         </svg>
                         Cobros de hoy ({{ $todayLoans->count() }})
@@ -177,7 +177,7 @@
                                     <span class="fw-medium" style="font-size:15px; color:#1a2e1a;">{{ $loan->customer->full_name }}</span>
                                     <span class="d-block" style="font-size:12px; color:#888;">{{ $loan->customer->phone ?? '—' }}</span>
                                 </div>
-                                <span class="pill" style="background:#e8f5e9; color:#1f6b21;">{{ $loan->type_label }}</span>
+                                <span class="pill" style="background:var(--color-secondary); color:var(--color-primary);">{{ $loan->type_label }}</span>
                             </div>
 
                             @if($loan->customer->address)
@@ -203,7 +203,7 @@
                             <div class="d-flex justify-content-between align-items-end">
                                 <div>
                                     <span style="font-size:11px; color:#888;">Monto a cobrar</span>
-                                    <span class="d-block fw-medium" style="font-size:22px; color:#1f6b21;">
+                                    <span class="d-block fw-medium" style="font-size:22px; color:var(--color-primary);">
                                         ${{ number_format($loan->suggested_payment, 2) }}
                                     </span>
                                     <span style="font-size:11px; color:#aaa;">Saldo: ${{ number_format($loan->remaining_balance, 2) }}</span>
@@ -225,7 +225,7 @@
                         </div>
                     @empty
                         <div class="metric-card text-center py-4">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5" class="mb-2">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" class="mb-2">
                                 <path d="M20 6 9 17l-5-5"/>
                             </svg>
                             <p class="mb-0" style="font-size:13px; color:#888;">No hay cobros pendientes para hoy</p>
@@ -302,7 +302,7 @@
                         </div>
                     @empty
                         <div class="metric-card text-center py-4">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5" class="mb-2">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" class="mb-2">
                                 <path d="M20 6 9 17l-5-5"/>
                             </svg>
                             <p class="mb-0" style="font-size:13px; color:#888;">Sin cobros atrasados</p>
@@ -317,13 +317,13 @@
         <div id="tab_collected" style="display:none;">
             <div class="metric-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="section-title mb-0" style="color:#1f6b21;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                    <div class="section-title mb-0" style="color:var(--color-primary);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                             <path d="M20 6 9 17l-5-5"/>
                         </svg>
                         Cobrados hoy
                     </div>
-                    <span class="pill" style="background:#e8f5e9; color:#1f6b21; font-size:13px;">
+                    <span class="pill" style="background:var(--color-secondary); color:var(--color-primary); font-size:13px;">
                         Total: ${{ number_format($totalCollected, 2) }}
                     </span>
                 </div>
@@ -332,8 +332,8 @@
                     <div class="collected-row">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                 style="width:32px; height:32px; background:#e8f5e9; flex-shrink:0;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="2">
+                                 style="width:32px; height:32px; background:var(--color-secondary); flex-shrink:0;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
                                     <path d="M20 6 9 17l-5-5"/>
                                 </svg>
                             </div>
@@ -347,7 +347,7 @@
                             </div>
                         </div>
                         <div class="text-end">
-                            <span class="fw-medium" style="font-size:16px; color:#1f6b21;">
+                            <span class="fw-medium" style="font-size:16px; color:var(--color-primary);">
                                 ${{ number_format($payment->amount_paid, 2) }}
                             </span>
                             <span class="d-block" style="font-size:11px; color:#888;">
@@ -385,7 +385,7 @@
             }).addTo(map);
 
             const greenIcon = L.divIcon({
-                html: `<div style="background:#1f6b21; width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
+                html: `<div style="background:var(--color-primary); width:28px; height:28px; border-radius:50%; border:3px solid white; box-shadow:0 2px 8px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center;">
                     <span style="color:white; font-size:12px; font-weight:bold;">$</span>
                 </div>`,
                 iconSize: [28, 28], iconAnchor: [14, 14], className: ''
@@ -420,7 +420,7 @@
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <span style="font-size:11px; color:#888;">A cobrar</span><br>
-                                <strong style="font-size:16px; color:{{ $isOverdue ? '#c0392b' : '#1f6b21' }};">
+                                <strong style="font-size:16px; color:{{ $isOverdue ? '#c0392b' : 'var(--color-primary)' }};">
                                     ${{ number_format($loan->suggested_payment, 2) }}
                                 </strong>
                             </div>

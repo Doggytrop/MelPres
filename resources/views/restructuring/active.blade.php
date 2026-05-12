@@ -13,7 +13,7 @@
 
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-         style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+         style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5"/>
         </svg>
@@ -58,7 +58,7 @@
                                     {{ $loan->customer?->full_name ?? 'Cliente eliminado' }}    </a>
                                 </a>
                             </td>
-                            <td class="px-4 py-3" style="color:#1f6b21; font-weight:500;">
+                            <td class="px-4 py-3" style="color:var(--color-primary); font-weight:500;">
                                 ${{ number_format($loan->remaining_balance, 2) }}
                             </td>
                             <td class="px-4 py-3" style="color:{{ $loan->accumulated_penalty > 0 ? '#c0392b' : '#888' }};">
@@ -67,7 +67,7 @@
                             <td class="px-4 py-3">
                                 @php
                                     $badge = match($loan->status) {
-                                        'active'  => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                                        'active'  => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Activo'],
                                         'overdue' => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Vencido'],
                                         default   => ['bg' => '#f5f5f5', 'color' => '#888',    'label' => ucfirst($loan->status)],
                                     };
@@ -84,7 +84,7 @@
                             <td class="px-4 py-3">
                                 <div class="d-flex gap-2">
                                     <a href="{{ route('loans.show', $loan) }}"
-                                    style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                                    style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                                         Ver / Abonar
                                     </a>
                                     @foreach($loan->restructurings as $r)

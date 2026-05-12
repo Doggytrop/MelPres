@@ -34,6 +34,31 @@
             color: {{ $colorPrimario }} !important;
         }
 
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            min-height: 72px;
+        }
+
+        .table td > .d-flex {
+            align-items: center;
+        }
+
+        .table td form {
+            margin-bottom: 0;
+        }
+
         /* Sidebar desktop */
         @media (min-width: 992px) {
             #sidebarOffcanvas {

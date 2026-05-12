@@ -35,7 +35,7 @@
 
         {{-- Avatar --}}
         <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium flex-shrink-0"
-             style="width:32px; height:32px; background:#e8f5e9; color:#1f6b21; font-size:13px; cursor:pointer;">
+             style="width:32px; height:32px; background:var(--color-secondary); color:var(--color-primary); font-size:13px; cursor:pointer;">
             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
         </div>
 

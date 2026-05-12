@@ -9,7 +9,7 @@
     </a>
     <a href="{{ route('history.pdf', $loan) }}" target="_blank"
        class="btn btn-sm d-flex align-items-center gap-2"
-       style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
+       style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
@@ -57,7 +57,7 @@
     <div class="col-md-3">
         <div class="p-3 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Interés cobrado</span>
-            <span class="d-block fw-medium" style="font-size:20px; color:#1f6b21;">${{ number_format($totalinterest, 2) }}</span>
+            <span class="d-block fw-medium" style="font-size:20px; color:var(--color-primary);">${{ number_format($totalinterest, 2) }}</span>
         </div>
     </div>
     <div class="col-md-3">
@@ -78,7 +78,7 @@
             <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cliente</p>
             <div class="d-flex align-items-center gap-3 mb-4">
                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium"
-                     style="width:40px; height:40px; background:#e8f5e9; color:#1f6b21; font-size:16px; flex-shrink:0;">
+                     style="width:40px; height:40px; background:var(--color-secondary); color:var(--color-primary); font-size:16px; flex-shrink:0;">
                     {{ strtoupper(substr($loan->customer->full_name ?? 'C', 0, 1)) }}
                 </div>
                 <div>
@@ -145,7 +145,7 @@
                                 ${{ number_format($payment->amount_paid, 2) }}
                             </span>
                             <span class="ms-2 px-2 py-1 rounded-2"
-                                  style="background:#e8f5e9; color:#1f6b21; font-size:11px;">
+                                  style="background:var(--color-secondary); color:var(--color-primary); font-size:11px;">
                                 {{ ucfirst(str_replace('_', ' ', $payment->payment_type)) }}
                             </span>
                         </div>

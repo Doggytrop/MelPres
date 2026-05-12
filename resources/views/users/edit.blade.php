@@ -48,11 +48,19 @@
                         </div>
                     </label>
                     <label class="d-flex align-items-start gap-2 p-3 rounded-3 flex-fill"
-                           style="border:0.5px solid {{ old('role', $user->role) === 'advisor' ? '#1f6b21' : '#ddd' }}; cursor:pointer; background:{{ old('role', $user->role) === 'advisor' ? '#e8f5e9' : '#fff' }};">
+                           style="border:0.5px solid {{ old('role', $user->role) === 'advisor' ? 'var(--color-primary)' : '#ddd' }}; cursor:pointer; background:{{ old('role', $user->role) === 'advisor' ? 'var(--color-secondary)' : '#fff' }};">
                         <input type="radio" name="role" value="advisor" {{ old('role', $user->role) === 'advisor' ? 'checked' : '' }} style="margin-top:2px;">
                         <div>
                             <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Asesor</span>
                             <span style="font-size:11px; color:#888;">Solo registra pagos y consulta</span>
+                        </div>
+                    </label>
+                    <label class="d-flex align-items-start gap-2 p-3 rounded-3 flex-fill"
+                           style="border:0.5px solid {{ old('role', $user->role) === 'collector' ? '#e65100' : '#ddd' }}; cursor:pointer; background:{{ old('role', $user->role) === 'collector' ? '#fff3e0' : '#fff' }};">
+                        <input type="radio" name="role" value="collector" {{ old('role', $user->role) === 'collector' ? 'checked' : '' }} style="margin-top:2px;">
+                        <div>
+                            <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Cobrador</span>
+                            <span style="font-size:11px; color:#888;">Panel de cobros en campo</span>
                         </div>
                     </label>
                 </div>
@@ -73,7 +81,7 @@
 
         <div class="d-flex gap-2 mt-4">
             <button type="submit" class="btn btn-sm"
-                    style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
+                    style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
                 Actualizar usuario
             </button>
             <a href="{{ route('users.index') }}" class="btn btn-sm"

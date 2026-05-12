@@ -9,7 +9,7 @@
 <body style="background:#f5f5f5; min-height:100vh;">
 
     {{-- Header --}}
-    <div style="background:#1f6b21; padding:16px 24px;">
+    <div style="background:var(--color-primary); padding:16px 24px;">
         <div class="d-flex justify-content-between align-items-center" style="max-width:800px; margin:0 auto;">
             <a href="{{ route('portal.index') }}" class="text-white text-decoration-none d-flex align-items-center gap-2" style="font-size:14px;">
                 ← Mis préstamos
@@ -29,7 +29,7 @@
         @php
             $typeColors = [
                 'interest' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
-                'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                'term'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Plazo'],
                 'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Diario'],
             ];
             $tc = $typeColors[$loan->type];
@@ -47,7 +47,7 @@
                 </div>
                 @php
                     $statusBadge = match($loan->status) {
-                        'active'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                        'active'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Activo'],
                         'paid'       => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Liquidado'],
                         'overdue'    => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Vencido'],
                         'refinanced' => ['bg' => '#f3e5f5', 'color' => '#6a1b9a', 'label' => 'Refinanciado'],
@@ -66,7 +66,7 @@
                 </div>
                 <div class="col-6 col-md-3">
                     <span class="d-block text-muted" style="font-size:11px;">Saldo pendiente</span>
-                    <span class="fw-medium" style="font-size:16px; color:#1f6b21;">${{ number_format($loan->remaining_balance, 2) }}</span>
+                    <span class="fw-medium" style="font-size:16px; color:var(--color-primary);">${{ number_format($loan->remaining_balance, 2) }}</span>
                 </div>
                 <div class="col-6 col-md-3">
                     <span class="d-block text-muted" style="font-size:11px;">
@@ -122,7 +122,7 @@
                 <div class="px-4 py-3 border-bottom" style="border-color:#f8f8f8 !important;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <span class="fw-medium" style="font-size:14px; color:#1f6b21;">
+                            <span class="fw-medium" style="font-size:14px; color:var(--color-primary);">
                                 ${{ number_format($payment->amount_paid, 2) }}
                             </span>
                             <span class="text-muted ms-2" style="font-size:12px;">

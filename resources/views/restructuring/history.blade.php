@@ -14,8 +14,8 @@
 @if(!$loans->total())
     <div class="bg-white border rounded-3 p-5 text-center" style="border-color:#e8e8e8 !important;">
         <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-             style="width:56px; height:56px; background:#e8f5e9;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+             style="width:56px; height:56px; background:var(--color-secondary);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                 <path d="M20 6 9 17l-5-5"/>
             </svg>
         </div>
@@ -48,7 +48,7 @@
                             <td class="px-4 py-3" style="color:#1a2e1a;">
                                 ${{ number_format($loan->original_amount, 2) }}
                             </td>
-                            <td class="px-4 py-3" style="color:#1f6b21; font-weight:500;">
+                            <td class="px-4 py-3" style="color:var(--color-primary); font-weight:500;">
                                 ${{ number_format($loan->payments->sum('amount_paid'), 2) }}
                             </td>
                             <td class="px-4 py-3 text-muted">
@@ -63,7 +63,7 @@
                                         </a>
                                     @endforeach
                                     <a href="{{ route('history.show', $loan) }}" target="_blank"
-                                       style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                                       style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                                         Ver detalle
                                     </a>
                                 </div>

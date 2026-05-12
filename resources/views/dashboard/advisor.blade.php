@@ -15,7 +15,7 @@
     <div class="col-md-4">
         <div class="p-4 rounded-3 bg-white border" style="border-color:#e8e8e8 !important;">
             <span class="text-muted d-block mb-1" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cobrado hoy</span>
-            <h3 class="fw-medium mb-0" style="color:#1f6b21; font-size:24px;">${{ number_format($totalCobradoHoy, 2) }}</h3>
+            <h3 class="fw-medium mb-0" style="color:var(--color-primary); font-size:24px;">${{ number_format($totalCobradoHoy, 2) }}</h3>
             <span class="text-muted" style="font-size:12px;">{{ $paymentsHoy->count() }} pagos registrados</span>
         </div>
     </div>
@@ -64,7 +64,7 @@
                             </p>
                         </div>
                         <a href="{{ route('loans.show', $loan) }}"
-                           style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                           style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                             Cobrar
                         </a>
                     </div>
@@ -95,7 +95,7 @@
                                 {{ $payment->payment_date->format('d/m/Y') }}
                             </p>
                         </div>
-                        <span style="font-size:14px; color:#1f6b21; font-weight:500;">
+                        <span style="font-size:14px; color:var(--color-primary); font-weight:500;">
                             ${{ number_format($payment->amount_paid, 2) }}
                         </span>
                     </div>

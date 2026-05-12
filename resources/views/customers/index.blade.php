@@ -11,14 +11,14 @@
     </div>
     <a href="{{ route('customers.create') }}"
         class="btn btn-sm"
-        style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
+        style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
         + Nuevo cliente
     </a>
 </div>
 
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-        style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+        style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5" />
         </svg>
@@ -62,7 +62,7 @@
                                      style="width:28px; height:28px; object-fit:cover; flex-shrink:0;">
                             @else
                                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium flex-shrink-0"
-                                     style="width:28px; height:28px; background:#e8f5e9; color:#1f6b21; font-size:11px;">
+                                     style="width:28px; height:28px; background:var(--color-secondary); color:var(--color-primary); font-size:11px;">
                                     {{ strtoupper(substr($customer->first_name, 0, 1)) }}
                                 </div>
                             @endif
@@ -81,7 +81,7 @@
                     <td class="px-4 py-3">
                         @php
                             $badge = match($customer->status) {
-                                'active'    => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                                'active'    => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Activo'],
                                 'inactive'  => ['bg' => '#f5f5f5', 'color' => '#888',    'label' => 'Inactivo'],
                                 'blocked' => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Bloqueado'],
                             };
@@ -94,7 +94,7 @@
                     <td class="px-4 py-3">
                         <div class="d-flex gap-2">
                             <a href="{{ route('customers.show', $customer) }}"
-                                style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;"
+                                style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;"
                                 title="Ver detalle">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />

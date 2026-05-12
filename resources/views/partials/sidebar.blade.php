@@ -1,12 +1,12 @@
 @php
-    $cp = $config_sistema['color_primario'] ?? '#1f6b21';
-    $cs = $config_sistema['color_secundario'] ?? '#e8f5e9';
+    $cp = $config_sistema['color_primario'] ?? 'var(--color-primary)';
+    $cs = $config_sistema['color_secundario'] ?? 'var(--color-secondary)';
 @endphp
 
-<div class="d-flex flex-column h-100 p-0">
+<div class="d-flex flex-column h-100 p-0 overflow-hidden sidebar-shell">
 
     {{-- Logo --}}
-    <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 px-4 py-4 border-bottom text-decoration-none">
+    <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 px-4 py-4 border-bottom text-decoration-none flex-shrink-0">
         @if($config_sistema['negocio_logo'] ?? null)
             <img src="{{ asset('storage/' . $config_sistema['negocio_logo']) }}" alt="Logo"
                  style="height:34px; max-width:120px; object-fit:contain;">
@@ -26,7 +26,7 @@
     </a>
 
     {{-- Nav --}}
-    <ul class="nav flex-column px-3 py-3 gap-1 overflow-auto flex-grow-1">
+    <ul class="nav flex-column px-3 py-3 gap-1 flex-grow-1 sidebar-nav">
 
         @php
             $menuItems = [
@@ -68,14 +68,14 @@
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                     <path d="M3 3v5h5"/>
                 </svg>
-                Reestructuración
+                <span class="sidebar-label">Reestructuración</span>
                 <svg id="arrow_reest" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      class="ms-auto" style="transition:transform .2s;">
                     <path d="M6 9l6 6 6-6"/>
                 </svg>
             </div>
 
-            <ul class="nav flex-column ps-4 gap-1 mt-1" id="submenu_reest"
+            <ul class="nav flex-column ps-4 gap-1 mt-1 sidebar-submenu" id="submenu_reest"
                 style="{{ $reestActive ? '' : 'display:none;' }}">
                 @php
                     $subItems = [
@@ -94,7 +94,7 @@
                                : 'color:#6b7280;'
                            }} font-size:13px; transition:all .15s;">
                             <div class="rounded-circle" style="width:5px; height:5px; background:{{ $subActive ? 'white' : '#ccc' }};"></div>
-                            {{ $sub['label'] }}
+                            <span class="sidebar-label">{{ $sub['label'] }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -191,7 +191,7 @@
                 <line x1="16" y1="13" x2="8" y2="13"/>
                 <line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
-            Bitácora
+            <span class="sidebar-label">Bitácora</span>
             @if($logsActive)
                 <div class="ms-auto rounded-circle" style="width:6px; height:6px; background:rgba(255,255,255,0.5);"></div>
             @endif
@@ -201,7 +201,7 @@
     </ul>
 
     {{-- Footer --}}
-    <div class="px-4 py-3 border-top">
+    <div class="px-4 py-3 border-top flex-shrink-0">
         @auth
             <div class="d-flex align-items-center gap-2">
                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium"
@@ -239,6 +239,77 @@
 </div>
 
 <style>
+    #sidebarOffcanvas {
+        height: 100dvh;
+        overflow-x: hidden;
+    }
+
+    .sidebar-shell {
+        height: 100dvh;
+        max-height: 100dvh;
+    }
+
+    .sidebar-nav {
+        display: block !important;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }
+
+    .sidebar-nav,
+    .sidebar-nav ul {
+        box-sizing: border-box;
+    }
+
+    .sidebar-nav .nav-item,
+    .sidebar-nav .nav-link,
+    .sidebar-submenu {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .sidebar-nav > .nav-item {
+        display: block;
+        width: 100%;
+    }
+
+    .sidebar-nav .nav-link {
+        box-sizing: border-box;
+        display: flex;
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav .nav-link > svg,
+    .sidebar-nav .nav-link > .rounded-circle {
+        flex: 0 0 auto;
+    }
+
+    .sidebar-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sidebar-submenu {
+        overflow-x: hidden;
+        padding-left: 1rem !important;
+        width: 100%;
+    }
+
+    .sidebar-submenu .nav-link {
+        padding-left: .75rem !important;
+        padding-right: .75rem !important;
+    }
+
     .nav-link:hover:not(.text-white) {
         background: {{ $cs }} !important;
         color: {{ $cp }} !important;

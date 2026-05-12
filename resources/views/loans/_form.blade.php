@@ -33,13 +33,13 @@
                      style="border:1.5px solid #ddd; cursor:pointer; transition:.2s; height:100%;">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <div class="rounded-circle d-flex align-items-center justify-content-center"
-                             style="width:28px; height:28px; background:#e8f5e9;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                             style="width:28px; height:28px; background:var(--color-secondary);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                                 <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/>
                             </svg>
                         </div>
                         <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Plazo</span>
-                        <span class="ms-auto px-2 py-1 rounded-2" style="background:#e8f5e9; color:#1f6b21; font-size:10px;">Fijo</span>
+                        <span class="ms-auto px-2 py-1 rounded-2" style="background:var(--color-secondary); color:var(--color-primary); font-size:10px;">Fijo</span>
                     </div>
                     <p class="mb-0" style="font-size:12px; color:#888;">
                         Capital + interés dividido en cuotas fijas. Semanal, quincenal o mensual.
@@ -132,7 +132,7 @@
         </div>
 
         {{-- Resumen plazo --}}
-        <div class="mt-3 p-3 rounded-3" id="term_summary" style="display:none; background:#e8f5e9; border:0.5px solid #c8e6c9;">
+        <div class="mt-3 p-3 rounded-3" id="term_summary" style="display:none; background:var(--color-secondary); border:0.5px solid var(--color-secondary);">
             <p class="fw-medium mb-2" style="font-size:12px; color:#1a2e1a;">Resumen del préstamo</p>
             <div class="row g-2" style="font-size:13px;">
                 <div class="col-md-3">
@@ -145,7 +145,7 @@
                 </div>
                 <div class="col-md-3">
                     <span class="text-muted d-block" style="font-size:11px;">Total a cobrar</span>
-                    <span id="term_res_total" class="fw-medium" style="color:#1f6b21; font-size:15px;">—</span>
+                    <span id="term_res_total" class="fw-medium" style="color:var(--color-primary); font-size:15px;">—</span>
                 </div>
                 <div class="col-md-3">
                     <span class="text-muted d-block" style="font-size:11px;">Pago por periodo</span>
@@ -283,7 +283,7 @@
             <div class="col-md-4">
                 <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Fecha de vencimiento</label>
                 <input type="date" name="due_date" id="due_date"
-                       class="{{ $inputClass }}" readonly style="background:#f8f9f8; color:#1f6b21; font-weight:500;">
+                       class="{{ $inputClass }}" readonly style="background:#f8f9f8; color:var(--color-primary); font-weight:500;">
                 <small class="text-muted" style="font-size:11px;">Se calcula automáticamente</small>
             </div>
         </div>
@@ -360,7 +360,7 @@ function selectType(type) {
     });
 
     // Activar card seleccionada
-    const colors = { term: '#1f6b21', interest: '#e65100', daily: '#1565c0' };
+    const colors = { term: 'var(--color-primary)', interest: '#e65100', daily: '#1565c0' };
     const bgs    = { term: '#f0faf0', interest: '#fff8f0', daily: '#f0f7ff' };
     document.getElementById('card_' + type).style.borderColor = colors[type];
     document.getElementById('card_' + type).style.background  = bgs[type];
@@ -478,7 +478,7 @@ function updatePenalty() {
     document.getElementById('penalty_value_field').style.display = show ? 'block' : 'none';
     document.getElementById('grace_days_field').style.display    = show ? 'block' : 'none';
 
-    document.getElementById('card_penalty_none').style.borderColor       = checked === ''           ? '#1f6b21' : '#ddd';
+    document.getElementById('card_penalty_none').style.borderColor       = checked === ''           ? 'var(--color-primary)' : '#ddd';
     document.getElementById('card_penalty_fixed').style.borderColor      = checked === 'fixed'      ? '#e65100' : '#ddd';
     document.getElementById('card_penalty_percentage').style.borderColor = checked === 'percentage'  ? '#e65100' : '#ddd';
 

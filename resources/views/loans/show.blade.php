@@ -12,7 +12,7 @@
 
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-         style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+         style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5"/>
         </svg>
@@ -38,7 +38,7 @@
 
     $typeColors = [
         'interest' => ['bg' => '#fff3e0', 'color' => '#e65100'],
-        'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21'],
+        'term'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)'],
         'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0'],
     ];
     $tc = $typeColors[$loan->type];
@@ -56,7 +56,7 @@
     $diasTranscurridos = $loan->start_date ? (int) $loan->start_date->diffInDays(now()) : 0;
 
     $statusBadge = match($loan->status) {
-        'active'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+        'active'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Activo'],
         'paid'       => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Pagado'],
         'overdue'    => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Vencido'],
         'refinanced' => ['bg' => '#f3e5f5', 'color' => '#6a1b9a', 'label' => 'Refinanciado'],
@@ -148,7 +148,7 @@
         </div>
         <div class="col-6 col-md-3">
             <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Saldo restante</span>
-            <span class="d-block fw-medium" style="font-size:20px; color:#1f6b21;">${{ number_format($loan->remaining_balance, 2) }}</span>
+            <span class="d-block fw-medium" style="font-size:20px; color:var(--color-primary);">${{ number_format($loan->remaining_balance, 2) }}</span>
         </div>
     </div>
 
@@ -324,7 +324,7 @@
                              style="font-size:12px; {{ $p['isNext'] ? 'background:' . $tc['bg'] . ';' : '' }}">
                             <div class="d-flex align-items-center gap-2">
                                 @if($p['isPaid'])
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
                                 @elseif($p['isOverdue'])
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
                                 @elseif($p['isNext'])
@@ -332,17 +332,17 @@
                                 @else
                                     <div class="rounded-circle" style="width:14px; height:14px; border:1.5px solid #ccc;"></div>
                                 @endif
-                                <span style="color:{{ $p['isPaid'] ? '#1f6b21' : ($p['isOverdue'] ? '#c0392b' : ($p['isNext'] ? $tc['color'] : '#888')) }};
+                                <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : ($p['isOverdue'] ? '#c0392b' : ($p['isNext'] ? $tc['color'] : '#888')) }};
                                              font-weight:{{ $p['isNext'] ? '500' : '400' }};">
                                     #{{ $p['number'] }} — {{ $p['date']->format('d/m/Y') }}
                                 </span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <span style="color:{{ $p['isPaid'] ? '#1f6b21' : '#888' }};">
+                                <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : '#888' }};">
                                     ${{ number_format($p['amount'], 2) }}
                                 </span>
                                 @if($p['isPaid'])
-                                    <span class="px-2 rounded-pill" style="background:#e8f5e9; color:#1f6b21; font-size:10px;">Pagado</span>
+                                    <span class="px-2 rounded-pill" style="background:var(--color-secondary); color:var(--color-primary); font-size:10px;">Pagado</span>
                                 @elseif($p['isOverdue'])
                                     <span class="px-2 rounded-pill" style="background:#fdecea; color:#c0392b; font-size:10px;">Atrasado</span>
                                 @elseif($p['isNext'])
@@ -371,7 +371,7 @@
                 </div>
                 <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
                     <span class="text-muted">Interés cobrado</span>
-                    <span class="fw-medium" style="color:#1f6b21;">${{ number_format($totalInteres, 2) }}</span>
+                    <span class="fw-medium" style="color:var(--color-primary);">${{ number_format($totalInteres, 2) }}</span>
                 </div>
                 <div class="d-flex justify-content-between py-2" style="font-size:13px;">
                     <span class="text-muted">Capital abonado</span>

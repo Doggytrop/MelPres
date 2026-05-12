@@ -26,7 +26,7 @@
                 </div>
                 <div class="col-4 col-md-2">
                     <button type="submit" class="btn btn-sm w-100"
-                            style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:6px;">
+                            style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:6px;">
                         Aplicar
                     </button>
                 </div>
@@ -48,13 +48,13 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                         style="width:28px; height:28px; background:#e8f5e9; flex-shrink:0;">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="2">
+                         style="width:28px; height:28px; background:var(--color-secondary); flex-shrink:0;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
                             <path d="M20 6 9 17l-5-5"/>
                         </svg>
                     </div>
                     <div>
-                        <span style="font-size:14px; color:#1f6b21; font-weight:500;">
+                        <span style="font-size:14px; color:var(--color-primary); font-weight:500;">
                             ${{ number_format($payment->amount_paid, 2) }}
                         </span>
                         <span class="text-muted ms-2" style="font-size:12px;">

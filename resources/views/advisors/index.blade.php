@@ -11,14 +11,14 @@
     </div>
     <a href="{{ route('advisors.create') }}"
        class="btn btn-sm"
-       style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
+       style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:7px 16px;">
         + Nuevo asesor
     </a>
 </div>
 
 @if(session('success'))
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-         style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+         style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5"/>
         </svg>
@@ -42,7 +42,7 @@
                     <td class="px-4 py-3">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium"
-                                 style="width:34px; height:34px; background:#e8f5e9; color:#1f6b21; font-size:13px; flex-shrink:0;">
+                                 style="width:34px; height:34px; background:var(--color-secondary); color:var(--color-primary); font-size:13px; flex-shrink:0;">
                                 {{ strtoupper(substr($advisor->name, 0, 1)) }}
                             </div>
                             <span style="color:#1a2e1a; font-weight:500;">{{ $advisor->name }}</span>

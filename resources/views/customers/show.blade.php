@@ -42,7 +42,7 @@
         </div>
     @endif
     <div class="alert border rounded-3 mb-4 d-flex align-items-center gap-2"
-         style="background:#e8f5e9; border-color:#c8e6c9 !important; color:#1f6b21; font-size:13px;">
+         style="background:var(--color-secondary); border-color:var(--color-secondary) !important; color:var(--color-primary); font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 6 9 17l-5-5"/>
         </svg>
@@ -71,10 +71,10 @@
             @if($customer->photo_url)
                 <img src="{{ $customer->photo_url }}" alt="Foto"
                      class="rounded-circle mb-3"
-                     style="width:80px; height:80px; object-fit:cover; border:2px solid #e8f5e9;">
+                     style="width:80px; height:80px; object-fit:cover; border:2px solid var(--color-secondary);">
             @else
                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-medium mx-auto mb-3"
-                     style="width:80px; height:80px; background:#e8f5e9; color:#1f6b21; font-size:28px;">
+                     style="width:80px; height:80px; background:var(--color-secondary); color:var(--color-primary); font-size:28px;">
                     {{ strtoupper(substr($customer->first_name, 0, 1)) }}
                 </div>
             @endif
@@ -84,7 +84,7 @@
 
             @php
                 $badge = match($customer->status) {
-                    'active'   => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Activo'],
+                    'active'   => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Activo'],
                     'inactive' => ['bg' => '#f5f5f5', 'color' => '#888',    'label' => 'Inactivo'],
                     'blocked'  => ['bg' => '#fdecea', 'color' => '#c0392b', 'label' => 'Bloqueado'],
                 };
@@ -159,7 +159,7 @@
                  style="border-color:#f0f0f0 !important;">
                 <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Préstamos activos</span>
                 <a href="{{ route('loans.create', ['customer_id' => $customer->id]) }}"
-                   style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                   style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                     + Nuevo préstamo
                 </a>
             </div>
@@ -168,7 +168,7 @@
                 @php
                     $typeBadge = match($loan->type) {
                         'interest' => ['bg' => '#fff3e0', 'color' => '#e65100', 'label' => 'Interés'],
-                        'term'     => ['bg' => '#e8f5e9', 'color' => '#1f6b21', 'label' => 'Plazo'],
+                        'term'     => ['bg' => 'var(--color-secondary)', 'color' => 'var(--color-primary)', 'label' => 'Plazo'],
                         'daily'    => ['bg' => '#e3f2fd', 'color' => '#1565c0', 'label' => 'Diario'],
                     };
                 @endphp
@@ -188,7 +188,7 @@
                                 {{ $loan->type === 'daily' ? 'total' : 'mensual' }}
                             </span>
                         </div>
-                        <span style="color:#1f6b21; font-weight:500;">
+                        <span style="color:var(--color-primary); font-weight:500;">
                             ${{ number_format($loan->remaining_balance, 2) }}
                         </span>
                     </div>
@@ -240,7 +240,7 @@
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-sm w-100"
-                                    style="background:#1f6b21; color:white; border-radius:8px; font-size:13px;">
+                                    style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px;">
                                 Subir
                             </button>
                         </div>
@@ -254,9 +254,9 @@
                      style="border-color:#f8f8f8 !important;">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                             style="width:36px; height:36px; background:{{ $doc->isImage() ? '#e8f5e9' : '#e3f2fd' }};">
+                             style="width:36px; height:36px; background:{{ $doc->isImage() ? 'var(--color-secondary)' : '#e3f2fd' }};">
                             @if($doc->isImage())
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1f6b21" stroke-width="1.5">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
                                     <rect x="3" y="3" width="18" height="18" rx="2"/>
                                     <circle cx="8.5" cy="8.5" r="1.5"/>
                                     <path d="m21 15-5-5L5 21"/>
@@ -282,7 +282,7 @@
 
                     <div class="d-flex gap-2">
                         <a href="{{ asset('storage/' . $doc->path) }}" target="_blank"
-                           style="font-size:12px; color:#1f6b21; text-decoration:none; border:0.5px solid #c8e6c9; border-radius:6px; padding:4px 10px;">
+                           style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                             Ver
                         </a>
                         <form method="POST"

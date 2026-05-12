@@ -31,7 +31,7 @@
 
     <div class="d-flex align-items-center gap-3 mt-4">
         <button type="submit" class="btn btn-sm"
-                style="background:#1f6b21; color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
+                style="background:var(--color-primary); color:white; border-radius:8px; font-size:13px; padding:8px 20px;">
             Actualizar contraseña
         </button>
         @if (session('status') === 'password-updated')
