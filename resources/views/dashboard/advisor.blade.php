@@ -60,7 +60,7 @@
                                 {{ $loan->customer?->first_name_complete ?? 'cliente eliminado' }}
                             </a>
                             <p class="mb-0 text-muted" style="font-size:11px;">
-                                {{ ucfirst($loan->type) }} — {{ ucfirst($loan->payment_frequency) }}
+                                {{ $loan->type_label }} &mdash; {{ $loan->frequency_label }}
                             </p>
                         </div>
                         <a href="{{ route('loans.show', $loan) }}"

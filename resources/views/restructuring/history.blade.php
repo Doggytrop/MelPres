@@ -20,7 +20,7 @@
             </svg>
         </div>
         <p class="fw-medium mb-1" style="color:#1a2e1a;">Sin historial aún</p>
-        <p class="text-muted mb-0" style="font-size:13px;">Los préstamos reestructurados paids aparecerán aquí.</p>
+        <p class="text-muted mb-0" style="font-size:13px;">Los prestamos reestructurados pagados aparecerán aquí.</p>
     </div>
 @else
     <div class="bg-white border rounded-3 overflow-hidden" style="border-color:#e8e8e8 !important;">
@@ -29,9 +29,9 @@
                 <thead style="background:#f8f9f8; border-bottom:1px solid #e8e8e8;">
                     <tr>
                         <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">#</th>
-                        <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">customer</th>
+                        <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cliente</th>
                         <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Monto original</th>
-                        <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Total paid</th>
+                        <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Total pagado</th>
                         <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Liquidado</th>
                         <th class="px-4 py-3 fw-medium text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Acciones</th>
                     </tr>
@@ -42,7 +42,7 @@
                             <td class="px-4 py-3 text-muted">{{ $loan->id }}</td>
                             <td class="px-4 py-3">
                                 <span style="color:#1a2e1a; font-weight:500;">
-                                    {{ $loan->customer?->first_name_complete ?? 'customer eliminado' }}
+                                    {{ $loan->customer?->first_name_complete ?? 'Cliente eliminado' }}
                                 </span>
                             </td>
                             <td class="px-4 py-3" style="color:#1a2e1a;">

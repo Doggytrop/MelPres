@@ -191,6 +191,18 @@
         .progress-dynamic {
             background: {{ $colorPrimario }} !important;
         }
+
+        .confirm-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #fdecea;
+            color: #c0392b;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -219,6 +231,76 @@
         </div>
     </div>
 
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-3 shadow-sm">
+                <div class="modal-body p-4">
+                    <div class="d-flex gap-3">
+                        <div class="confirm-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <path d="M12 9v4M12 17h.01"/>
+                            </svg>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="fw-medium mb-1" id="confirmActionTitle" style="color:#1a2e1a;">Confirmar acción</h6>
+                            <p class="text-muted mb-0" id="confirmActionMessage" style="font-size:13px;">
+                                Esta acción no se puede deshacer.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-sm"
+                            data-bs-dismiss="modal"
+                            style="background:#f5f5f5; color:#555; border-radius:8px; padding:8px 16px;">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-sm" id="confirmActionButton"
+                            style="background:#c0392b; color:white; border-radius:8px; padding:8px 16px;">
+                        Sí, eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalElement = document.getElementById('confirmActionModal');
+            if (!modalElement) return;
+
+            const modal = new bootstrap.Modal(modalElement);
+            const title = document.getElementById('confirmActionTitle');
+            const message = document.getElementById('confirmActionMessage');
+            const confirmButton = document.getElementById('confirmActionButton');
+            let pendingForm = null;
+
+            document.addEventListener('submit', function(event) {
+                const form = event.target.closest('form[data-confirm-submit]');
+                if (!form) return;
+
+                event.preventDefault();
+                pendingForm = form;
+                title.textContent = form.dataset.confirmTitle || 'Confirmar eliminación';
+                message.textContent = form.dataset.confirmMessage || 'Esta acción no se puede deshacer.';
+                confirmButton.textContent = form.dataset.confirmButton || 'Sí, eliminar';
+                modal.show();
+            });
+
+            confirmButton.addEventListener('click', function() {
+                if (!pendingForm) return;
+                const form = pendingForm;
+                pendingForm = null;
+                modal.hide();
+                HTMLFormElement.prototype.submit.call(form);
+            });
+
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                pendingForm = null;
+            });
+        });
+    </script>
 </body>
 </html>

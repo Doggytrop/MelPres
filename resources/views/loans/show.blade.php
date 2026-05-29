@@ -117,6 +117,19 @@
                 <a href="{{ route('restructuring.create', $loan) }}" class="d-block mt-1"
                    style="font-size:11px; color:#e65100; text-decoration:none;">Reestructurar →</a>
             @endif
+
+            <div class="d-flex gap-2 mt-2">
+                <a href="{{ route('loans.contract', $loan) }}" target="_blank"
+                    class="px-3 py-1 rounded-2 text-decoration-none"
+                    style="background:var(--color-secondary); color:var(--color-primary); font-size:11px; font-weight:500;">
+                    📄 Contrato
+                </a>
+                <a href="{{ route('loans.promissory-note', $loan) }}" target="_blank"
+                    class="px-3 py-1 rounded-2 text-decoration-none"
+                     style="background:#e3f2fd; color:#1565c0; font-size:11px; font-weight:500;">
+                    📋 Pagaré
+                </a>
+            </div>
         </div>
     </div>
 </div>

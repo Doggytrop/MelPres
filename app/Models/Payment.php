@@ -45,4 +45,16 @@ class Payment extends Model
     {
         return $this->belongsTo(User::class, 'recorded_by');
     }
+
+    public function getPaymentTypeLabelAttribute(): string
+    {
+        return match($this->payment_type) {
+            'penalty'       => 'Mora',
+            'interest_only' => 'Solo interés',
+            'capital'       => 'Capital',
+            'mixed'         => 'Mixto',
+            'complete'      => 'Completo',
+            default         => ucfirst(str_replace('_', ' ', $this->payment_type ?? '')),
+        };
+    }
 }

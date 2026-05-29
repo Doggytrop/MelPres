@@ -95,7 +95,9 @@
                                     </a>
                                     @if($user->id !== auth()->id())
                                         <form method="POST" action="{{ route('users.destroy', $user) }}"
-                                              onsubmit="return confirm('¿Eliminar este usuario?')">
+                                              data-confirm-submit
+                                              data-confirm-title="Eliminar usuario"
+                                              data-confirm-message="¿Seguro que quieres eliminar a {{ $user->name }}? Esta acción no se puede deshacer.">
                                             @csrf @method('DELETE')
                                             <button type="submit"
                                                     style="font-size:12px; color:#c0392b; background:none; border:0.5px solid #f5c6c6; border-radius:6px; padding:4px 10px; cursor:pointer;">

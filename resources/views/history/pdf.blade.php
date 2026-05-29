@@ -188,10 +188,10 @@
             {{-- customer --}}
             <div class="col-left">
                 <div class="section">
-                    <p class="section-title">Datos del customer</p>
+                    <p class="section-title">Datos del cliente</p>
                     <table class="info-table">
                         <tr>
-                            <td>Nombre complete</td>
+                            <td>Nombre completo</td>
                             <td>{{ $loan->customer->first_name_complete }}</td>
                         </tr>
                         <tr>
@@ -224,19 +224,19 @@
                     <table class="info-table">
                         <tr>
                             <td>Tipo de préstamo</td>
-                            <td>{{ ucfirst($loan->type) }}</td>
+                            <td>{{ $loan->type_label }}</td>
                         </tr>
                         <tr>
-                            <td>Monto prstatus</td>
+                            <td>Monto prestado</td>
                             <td>${{ number_format($loan->original_amount, 2) }}</td>
                         </tr>
                         <tr>
-                            <td>Interés monthly</td>
-                            <td>{{ $loan->interestt_rate }}%</td>
+                            <td>Interés mensual</td>
+                            <td>{{ $loan->interest_rate }}%</td>
                         </tr>
                         <tr>
-                            <td>Frecuencia de payment</td>
-                            <td>{{ ucfirst($loan->payment_frequency) }}</td>
+                            <td>Frecuencia de pago</td>
+                            <td>{{ $loan->frequency_label }}</td>
                         </tr>
                         <tr>
                             <td>Fecha de inicio</td>
@@ -258,11 +258,11 @@
             <table class="metricas">
                 <tr>
                     <td class="metrica">
-                        <span class="metrica-label">Total paid</span>
+                        <span class="metrica-label">Total pagado</span>
                         <span class="metrica-valor azul">${{ number_format($totalpaid, 2) }}</span>
                     </td>
                     <td class="metrica">
-                        <span class="metrica-label">Capital prstatus</span>
+                        <span class="metrica-label">Capital prestado</span>
                         <span class="metrica-valor">${{ number_format($loan->original_amount, 2) }}</span>
                     </td>
                     <td class="metrica">
@@ -279,15 +279,15 @@
             </table>
         </div>
 
-        {{-- Historial de payments --}}
+        {{-- Historial de pagos --}}
         <div class="section">
-            <p class="section-title">Historial de payments ({{ $loan->payments->count() }} movimientos)</p>
+            <p class="section-title">Historial de pagos ({{ $loan->payments->count() }} movimientos)</p>
             <table class="payments-table">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Fecha</th>
-                        <th>Monto paid</th>
+                        <th>Monto pagado</th>
                         <th>Tipo</th>
                         <th>Capital</th>
                         <th>Interés</th>
@@ -301,9 +301,9 @@
                             <td style="color:#aaa;">{{ $i + 1 }}</td>
                             <td>{{ $payment->payment_date->format('d/m/Y') }}</td>
                             <td style="font-weight:bold;">${{ number_format($payment->amount_paid, 2) }}</td>
-                            <td><span class="tipo-badge">{{ ucfirst(str_replace('_', ' ', $payment->payment_type)) }}</span></td>
+                            <td><span class="tipo-badge">{{ $payment->payment_type_label }}</span></td>
                             <td>${{ number_format($payment->capital_payment, 2) }}</td>
-                            <td>${{ number_format($payment->interestt_payment, 2) }}</td>
+                            <td>${{ number_format($payment->interest_payment, 2) }}</td>
                             @if($totalMora > 0) <td>${{ number_format($payment->penalty_payment, 2) }}</td> @endif
                             <td style="color:#888;">{{ $payment->notes ?? '—' }}</td>
                         </tr>
@@ -341,7 +341,7 @@
         </div>
         <div class="footer-right">
             <p>Sistema desarrollado por</p>
-            <span class="dev">melSolutions</span>
+            <span class="dev">Sonoyta Software</span>
         </div>
     </div>
 

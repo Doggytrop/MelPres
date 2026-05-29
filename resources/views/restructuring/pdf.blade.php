@@ -155,8 +155,8 @@
                 <li><strong>Monto original:</strong> ${{ number_format($restructuring->originalLoan->original_amount, 2) }}</li>
                 <li><strong>Saldo al momento de reestructurar:</strong> ${{ number_format($restructuring->balance_at_restructuring, 2) }}</li>
                 <li><strong>Mora acumulada:</strong> ${{ number_format($restructuring->original_penalty, 2) }}</li>
-                <li><strong>Tasa de interés:</strong> {{ $restructuring->originalLoan->interestt_rate }}% monthly</li>
-                <li><strong>Frecuencia de payment:</strong> {{ ucfirst($restructuring->originalLoan->payment_frequency) }}</li>
+                <li><strong>Tasa de interés:</strong> {{ $restructuring->originalLoan->interest_rate }}% mensual</li>
+                <li><strong>Frecuencia de pago:</strong> {{ $restructuring->originalLoan->frequency_label }}</li>
             </ul>
         </div>
 
@@ -181,7 +181,7 @@
                 <div class="condiciones-box">
                     <p><strong>Periodos anteriores:</strong> {{ $restructuring->previous_periods }}</p>
                     <p><strong>Nuevos periodos:</strong> {{ $restructuring->new_periods }}</p>
-                    <p><strong>Frecuencia de payment:</strong> {{ ucfirst($restructuring->originalLoan->payment_frequency) }}</p>
+                    <p><strong>Frecuencia de pago:</strong> {{ $restructuring->originalLoan->frequency_label }}</p>
                     <p><strong>Saldo pendiente:</strong> ${{ number_format($restructuring->balance_at_restructuring, 2) }}</p>
                     <p><strong>Mora congelada:</strong> ${{ number_format($restructuring->original_penalty, 2) }}</p>
                 </div>
@@ -194,8 +194,8 @@
                         <p><strong>Préstamo original cerrado:</strong> Folio #{{ $restructuring->original_loan_id }}</p>
                         <p><strong>Nuevo préstamo folio:</strong> #{{ $restructuring->new_loan_id }}</p>
                         <p><strong>Nuevo monto:</strong> ${{ number_format($restructuring->newLoan->original_amount, 2) }}</p>
-                        <p><strong>Tasa de interés:</strong> {{ $restructuring->newLoan->interestt_rate }}% monthly</p>
-                        <p><strong>Frecuencia:</strong> {{ ucfirst($restructuring->newLoan->payment_frequency) }}</p>
+                        <p><strong>Tasa de interés:</strong> {{ $restructuring->newLoan->interest_rate }}% mensual</p>
+                        <p><strong>Frecuencia:</strong> {{ $restructuring->newLoan->frequency_label }}</p>
                         <p><strong>Periodos:</strong> {{ $restructuring->newLoan->number_of_periods }}</p>
                     </div>
                 @endif
@@ -225,18 +225,18 @@
             <p class="section-title">{{ $restructuring->notes ? 'VII' : 'VI' }}. Cláusulas</p>
 
             <div class="clausula">
-                <p><span class="clausula-num">1. Obligación de payment.</span>
-                El cliente se compromete a cumplir puntualmente con los payments conforme al calendario establecido.</p>
+                <p><span class="clausula-num">1. Obligación de pago.</span>
+                El cliente se compromete a cumplir puntualmente con los pagos conforme al calendario establecido.</p>
             </div>
 
             <div class="clausula">
-                <p><span class="clausula-num">2. interestes moratorios.</span>
-                En caso de incumplimiento, se generarán interestes moratorios conforme a las políticas internas del Prestamista.</p>
+                <p><span class="clausula-num">2. intereses moratorios.</span>
+                En caso de incumplimiento, se generarán intereses moratorios conforme a las polticas internas del Prestamista.</p>
             </div>
 
             <div class="clausula">
                 <p><span class="clausula-num">3. Cláusula de incumplimiento y acción legal.</span>
-                En caso de que el cliente no realice el payment en la fecha establecida, el Prestamista podrá exigir el payment
+                En caso de que el cliente no realice el pago en la fecha establecida, el Prestamista podrá exigir el pago
                 inmediato del saldo total pendiente y tendrá la facultad de iniciar las acciones legales correspondientes
                 para la recuperación del adeudo.</p>
             </div>
@@ -248,7 +248,7 @@
                 <div class="pena-box">
                     <strong>$_____________________________________________________________________________________________________</strong>
                 </div>
-                <p>sin perjuicio de los interestes, gastos de cobranza y demás accesorios legales que procedan.</p>
+                <p>sin perjuicio de los intereses, gastos de cobranza y demás accesorios legales que procedan.</p>
             </div>
 
             <div class="clausula">
@@ -310,7 +310,7 @@
     </div>
     <div class="footer-right">
         <p>Sistema desarrollado por</p>
-        <span class="dev">melSolutions</span>
+        <span class="dev">Sonoyta Software</span>
     </div>
 </div>
 

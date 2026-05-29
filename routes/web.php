@@ -42,6 +42,8 @@ Route::middleware('auth', 'redirect.customer')->group(function () {
     Route::resource('loans', LoanController::class)->except(['destroy']);
     Route::post('loans/{loan}/payments', [PaymentController::class, 'store'])
         ->name('loans.payments.store');
+    Route::get('loans/{loan}/contract', [LoanController::class, 'contract'])->name('loans.contract');
+    Route::get('loans/{loan}/promissory-note', [LoanController::class, 'promissoryNote'])->name('loans.promissory-note');
 
     // — History —
     Route::get('history', [HistoryController::class, 'index'])->name('history.index');

@@ -7,6 +7,8 @@ use App\Models\Loan;
 use App\Http\Requests\StoreLoanRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\Setting;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LoanController extends Controller
 {
@@ -188,4 +190,31 @@ class LoanController extends Controller
             default    => $carbon->addMonths($periods)->toDateString(),
         };
     }
+
+    public function contract(Loan $loan)
+    {
+        $loan->load('customer');
+        $company = [
+            'name'    => Setting::get('company_name', 'Mi Empresa'),
+            'phone'   => Setting::get('company_phone'),
+            'email'   => Setting::get('company_email'),
+            'address' => Setting::get('company_address'),
+        ];
+        $pdf = Pdf::loadView('loans.pdf.contract', compact('loan', 'company'));
+        return $pdf->download("contrato-{$loan->id}.pdf");
+    }
+
+    public function promissoryNote(Loan $loan)
+    {
+        $loan->load('customer');
+        $company = [
+            'name'    => Setting::get('company_name', 'Mi Empresa'),
+            'phone'   => Setting::get('company_phone'),
+            'email'   => Setting::get('company_email'),
+            'address' => Setting::get('company_address'),
+        ];
+        $pdf = Pdf::loadView('loans.pdf.promissory-note', compact('loan', 'company'));
+        return $pdf->download("pagaré-{$loan->id}.pdf");
+    }
+
 }

@@ -287,7 +287,7 @@
                         </a>
                         <form method="POST"
                               action="{{ route('customers.documents.destroy', [$customer, $doc]) }}"
-                              onsubmit="return confirm('¿Eliminar este documento?')">
+                              data-confirm-submit data-confirm-title="Eliminar documento" data-confirm-message="¿Seguro que quieres eliminar este documento? Esta acción no se puede deshacer.">
                             @csrf @method('DELETE')
                             <button type="submit"
                                     style="font-size:12px; color:#c0392b; background:none; border:0.5px solid #f5c6c6; border-radius:6px; padding:4px 10px; cursor:pointer;">

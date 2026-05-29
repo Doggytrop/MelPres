@@ -99,9 +99,9 @@
             @php
                 $rows = [
                     'Monto original'  => '$' . number_format($loan->original_amount, 2),
-                    'Tipo'            => ucfirst($loan->type),
+                    'Tipo'            => $loan->type_label,
                     'Interés'         => $loan->interest_rate . '% mensual',
-                    'Frecuencia'      => ucfirst($loan->payment_frequency),
+                    'Frecuencia'      => $loan->frequency_label,
                     'Periodos'        => $loan->number_of_periods ?? '—',
                     'Fecha inicio'    => $loan->start_date->format('d/m/Y'),
                     'Fecha liquidado' => $loan->updated_at->format('d/m/Y'),
@@ -146,7 +146,7 @@
                             </span>
                             <span class="ms-2 px-2 py-1 rounded-2"
                                   style="background:var(--color-secondary); color:var(--color-primary); font-size:11px;">
-                                {{ ucfirst(str_replace('_', ' ', $payment->payment_type)) }}
+                                {{ $payment->payment_type_label }}
                             </span>
                         </div>
                         <span class="text-muted" style="font-size:12px;">

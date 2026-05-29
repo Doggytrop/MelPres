@@ -60,7 +60,9 @@
                                 Editar
                             </a>
                             <form method="POST" action="{{ route('advisors.destroy', $advisor) }}"
-                                  onsubmit="return confirm('¿Eliminar este asesor?')">
+                                  data-confirm-submit
+                                  data-confirm-title="Eliminar asesor"
+                                  data-confirm-message="¿Seguro que quieres eliminar a {{ $advisor->name }}? Esta acción no se puede deshacer.">
                                 @csrf @method('DELETE')
                                 <button type="submit"
                                         style="font-size:12px; color:#c0392b; background:none; border:0.5px solid #f5c6c6; border-radius:6px; padding:4px 10px; cursor:pointer;">
