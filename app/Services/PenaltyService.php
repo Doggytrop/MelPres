@@ -2,85 +2,97 @@
 
 namespace App\Services;
 
-use App\Models\loan;
+use App\Models\Loan;
 use Carbon\Carbon;
 
 class PenaltyService
 {
-    public function procesarMora(loan $loan): void
+    public function processLoan(Loan $loan): void
     {
-        // Si no tiene mora configurada, no hacer nada
         if (!$loan->penalty_type || !$loan->penalty_value) return;
-
-        // Si no tiene fecha de próximo payment, no hacer nada
         if (!$loan->next_payment_date) return;
 
-        $hoy          = Carbon::today();
-        $fechaEsperada = Carbon::parse($loan->next_payment_date);
-        $diasGracia   = $loan->grace_days ?? 0;
+        $today    = Carbon::today();
+        $graceEnd = Carbon::parse($loan->next_payment_date)->addDays($loan->grace_days ?? 0);
 
-        // Fecha límite = fecha esperada + días de gracia
-        $fechaLimite = $fechaEsperada->copy()->addDays($diasGracia);
+        // Dentro del periodo de gracia → nada
+        if ($today->lte($graceEnd)) return;
 
-        // Si aún está dentro del periodo de gracia, no hacer nada
-        if ($hoy->lte($fechaLimite)) return;
-
-        // — Fuera del periodo de gracia → marcar como overdue —
+        // Marcar como vencido
         if ($loan->status === 'active') {
             $loan->status = 'overdue';
         }
 
-        // — Calcular mora según tipo —
-        if ($loan->penalty_type === 'fixed') {
-            $this->aplicarMorafixed($loan, $hoy, $fechaLimite);
-        } else if ($loan->penalty_type === 'percentage') {
-            $this->aplicarMorapercentage($loan, $hoy, $fechaLimite);
+        // Evitar cobrar dos veces el mismo día
+        if ($loan->penalty_last_applied_date &&
+            Carbon::parse($loan->penalty_last_applied_date)->isSameDay($today)) {
+            $loan->save();
+            return;
         }
 
+        $daysOverdue = $graceEnd->diffInDays($today); // días desde que venció la gracia
+
+        match ($loan->penalty_type) {
+            'fixed'              => $this->applyFixed($loan, $daysOverdue),
+            'percentage_period'  => $this->applyPercentagePeriod($loan, $daysOverdue),
+            'percentage_balance' => $this->applyPercentageBalance($loan, $daysOverdue),
+            default              => null,
+        };
+
+        $loan->penalty_last_applied_date = $today->toDateString();
         $loan->save();
     }
 
-    // — Mora fixed: $X por cada día desde que venció la gracia —
-    private function aplicarMorafixed(loan $loan, Carbon $hoy, Carbon $fechaLimite): void
+    /**
+     * Monto fijo: $X por día de atraso, hasta un máximo de diasPeriodo días.
+     * Después del límite, deja de cobrar.
+     */
+    private function applyFixed(Loan $loan, int $daysOverdue): void
     {
-        // Solo cobra el día de hoy si es el primer día fuera de gracia
-        // o si no se ha cobrado mora hoy todavía
-        $diasAtraso = $fechaLimite->diffInDays($hoy);
+        $maxDays = $this->periodDays($loan->payment_frequency);
 
-        // El tope es el siguiente periodo — calculamos cuántos días tiene el periodo
-        $diasPeriodo = $this->diasPorFrecuencia($loan->payment_frequency);
-
-        // No cobrar más allá del periodo complete
-        $diasACobrar = min($diasAtraso, $diasPeriodo);
-
-        // Solo acumular el día de hoy (el comando corre diario)
-        // Para evitar duplicar, solo sumamos $penalty_value una vez por ejecución
-        if ($diasACobrar > 0) {
+        if ($daysOverdue >= 1 && $daysOverdue <= $maxDays) {
             $loan->accumulated_penalty += floatval($loan->penalty_value);
         }
     }
 
-    // — Mora percentage: X% del saldo por cada periodo overdue complete —
-    private function aplicarMorapercentage(loan $loan, Carbon $hoy, Carbon $fechaLimite): void
+    /**
+     * Porcentaje sobre saldo restante: X% del remaining_balance,
+     * cobrado una vez por periodo de atraso.
+     */
+    private function applyPercentagePeriod(Loan $loan, int $daysOverdue): void
     {
-        // Verificar si hoy es exactamente el día que vence (fechaLimite + 1)
-        // Solo cobrar una vez por periodo overdue
-        $primerDiaoverdue = $fechaLimite->copy()->addDay();
+        $periodDays = $this->periodDays($loan->payment_frequency);
 
-        // Solo cobrar si hoy es el primer día fuera de gracia del periodo actual
-        if ($hoy->isSameDay($primerDiaoverdue)) {
-            $mora = floatval($loan->remaining_balance) * (floatval($loan->penalty_value) / 100);
-            $loan->accumulated_penalty += round($mora, 2);
+        // Cobra el día 1, luego cada periodDays días (día 1, 8, 15... para semanal)
+        if (($daysOverdue - 1) % $periodDays === 0) {
+            $penalty = floatval($loan->remaining_balance) * (floatval($loan->penalty_value) / 100);
+            $loan->accumulated_penalty += round($penalty, 2);
         }
     }
 
-    private function diasPorFrecuencia(string $frecuencia): int
+    /**
+     * Porcentaje sobre saldo total original: X% del original_amount,
+     * cobrado una vez por periodo de atraso.
+     */
+    private function applyPercentageBalance(Loan $loan, int $daysOverdue): void
     {
-        return match($frecuencia) {
+        $periodDays = $this->periodDays($loan->payment_frequency);
+
+        if (($daysOverdue - 1) % $periodDays === 0) {
+            $penalty = floatval($loan->original_amount) * (floatval($loan->penalty_value) / 100);
+            $loan->accumulated_penalty += round($penalty, 2);
+        }
+    }
+
+    private function periodDays(string $frequency): int
+    {
+        return match ($frequency) {
+            'daily'    => 1,
             'weekly'   => 7,
             'biweekly' => 15,
-            'monthly'   => 30,
-            default     => 30,
+            'monthly'  => 30,
+            default    => 30,
         };
     }
 }

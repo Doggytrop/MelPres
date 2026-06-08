@@ -17,6 +17,8 @@ class User extends Authenticatable
         'password',
         'role',
         'customer_id',
+        'collector_frequencies',
+        'collector_overdue_days',
     ];
 
     protected $hidden = [
@@ -29,6 +31,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'collector_frequencies' => 'array',
         ];
     }
 

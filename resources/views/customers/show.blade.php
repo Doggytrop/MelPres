@@ -23,9 +23,7 @@
                 </svg>
                 <span class="fw-medium" style="color:#1565c0; font-size:14px;">Credenciales del cliente</span>
             </div>
-            <p class="mb-1" style="font-size:13px; color:#333;">
-                Se creó un acceso para que el cliente consulte sus préstamos:
-            </p>
+            <p class="mb-1" style="font-size:13px; color:#333;">Acceso para que el cliente consulte sus préstamos:</p>
             <div class="p-3 rounded-2 mt-2" style="background:#fff; border:0.5px solid #90caf9;">
                 <div class="d-flex justify-content-between mb-1" style="font-size:13px;">
                     <span class="text-muted">Usuario (teléfono):</span>
@@ -33,7 +31,9 @@
                 </div>
                 <div class="d-flex justify-content-between" style="font-size:13px;">
                     <span class="text-muted">Contraseña:</span>
-                    <span class="fw-medium" style="color:#1565c0; font-family:monospace; font-size:15px;">{{ session('credentials')['password'] }}</span>
+                    <span class="fw-medium" style="color:#1565c0; font-family:monospace; font-size:15px;">
+                        {{ session('credentials')['password'] }}
+                    </span>
                 </div>
             </div>
             <p class="mt-2 mb-0" style="font-size:11px; color:#c0392b;">
@@ -67,7 +67,6 @@
 
         {{-- Card perfil --}}
         <div class="bg-white border rounded-3 p-4 mb-3 text-center" style="border-color:#e8e8e8 !important;">
-
             @if($customer->photo_url)
                 <img src="{{ $customer->photo_url }}" alt="Foto"
                      class="rounded-circle mb-3"
@@ -94,10 +93,9 @@
                 {{ $badge['label'] }}
             </span>
 
-            {{-- Score de crédito --}}
+            {{-- Score --}}
             <div class="mt-3 pt-3" style="border-top:0.5px solid #f0f0f0;">
                 <p class="text-muted mb-2" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Score de crédito</p>
-
                 <div class="d-flex align-items-center gap-3 mb-2">
                     <span class="fw-medium" style="font-size:28px; color:{{ $scoreData['color'] }};">
                         {{ $customer->score ?? 100 }}
@@ -107,14 +105,12 @@
                         {{ $scoreData['label'] }}
                     </span>
                 </div>
-
                 <div class="rounded-pill overflow-hidden mb-1" style="height:6px; background:#e8e8e8;">
                     <div class="rounded-pill"
                          style="height:6px; width:{{ min($customer->score ?? 100, 100) }}%;
                                 background:{{ $scoreData['color'] }}; transition:width .3s;">
                     </div>
                 </div>
-
                 <div class="d-flex justify-content-between">
                     <span class="text-muted" style="font-size:10px;">0</span>
                     <span class="text-muted" style="font-size:10px;">
@@ -126,9 +122,8 @@
         </div>
 
         {{-- Card info --}}
-        <div class="bg-white border rounded-3 p-4" style="border-color:#e8e8e8 !important;">
+        <div class="bg-white border rounded-3 p-4 mb-3" style="border-color:#e8e8e8 !important;">
             <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Información</p>
-
             @php
                 $rows = [
                     'Documento'   => $customer->document_type
@@ -140,7 +135,6 @@
                     'Notas'       => $customer->notes ?? '—',
                 ];
             @endphp
-
             @foreach($rows as $key => $val)
                 <div class="mb-3">
                     <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">{{ $key }}</span>
@@ -148,6 +142,36 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- Card acceso al sistema --}}
+        <div class="bg-white border rounded-3 p-4" style="border-color:#e8e8e8 !important;">
+            <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Acceso al sistema</p>
+
+            @if($customer->user)
+                <div class="mb-2">
+                    <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Usuario</span>
+                    <span style="font-size:13px; color:#333; font-family:monospace;">{{ $customer->phone }}</span>
+                </div>
+                <div class="mb-3">
+                    <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Contraseña</span>
+                    <span style="font-size:13px; color:#888; font-family:monospace;">
+                        {{ strtoupper(substr(str_replace(' ', '', $customer->first_name), 0, 3)) }}•••
+                        <span class="ms-1 text-muted" style="font-size:10px;">(3 dígitos variables)</span>
+                    </span>
+                </div>
+                <form method="POST" action="{{ route('customers.reset-password', $customer) }}"
+                      onsubmit="return confirm('¿Generar una nueva contraseña? La actual dejará de funcionar.')">
+                    @csrf
+                    <button type="submit" class="btn btn-sm w-100"
+                            style="background:#e3f2fd; color:#1565c0; border:0.5px solid #90caf9; border-radius:8px; font-size:12px; padding:6px;">
+                        🔑 Resetear contraseña
+                    </button>
+                </form>
+            @else
+                <p class="text-muted mb-0" style="font-size:12px;">Este cliente no tiene acceso registrado.</p>
+            @endif
+        </div>
+
     </div>
 
     {{-- Panel derecho --}}
@@ -206,7 +230,6 @@
                 <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">Documentos</span>
             </div>
 
-            {{-- Subir documento --}}
             <div class="px-4 py-3 border-bottom" style="background:#fafafa; border-color:#f0f0f0 !important;">
                 <p class="text-muted mb-2" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Subir documento</p>
                 <form method="POST" action="{{ route('customers.documents.store', $customer) }}"
@@ -217,12 +240,12 @@
                             <label class="d-block mb-1 text-muted" style="font-size:11px;">Tipo *</label>
                             <select name="type" class="form-control form-control-sm">
                                 @foreach([
-                                    'profile_photo'  => 'Foto de perfil',
-                                    'id_front'       => 'INE (frente)',
-                                    'id_back'        => 'INE (reverso)',
-                                    'address_proof'  => 'Comprobante de domicilio',
-                                    'payroll'        => 'Nómina',
-                                    'other'          => 'Otro',
+                                    'profile_photo' => 'Foto de perfil',
+                                    'id_front'      => 'INE (frente)',
+                                    'id_back'       => 'INE (reverso)',
+                                    'address_proof' => 'Comprobante de domicilio',
+                                    'payroll'       => 'Nómina',
+                                    'other'         => 'Otro',
                                 ] as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
@@ -248,7 +271,6 @@
                 </form>
             </div>
 
-            {{-- Lista de documentos --}}
             @forelse($customer->documents as $doc)
                 <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between"
                      style="border-color:#f8f8f8 !important;">
@@ -268,7 +290,6 @@
                                 </svg>
                             @endif
                         </div>
-
                         <div>
                             <p class="mb-0 fw-medium" style="font-size:13px; color:#1a2e1a;">{{ $doc->type_label }}</p>
                             <p class="mb-0 text-muted" style="font-size:11px;">
@@ -279,7 +300,6 @@
                             @endif
                         </div>
                     </div>
-
                     <div class="d-flex gap-2">
                         <a href="{{ asset('storage/' . $doc->path) }}" target="_blank"
                            style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">

@@ -13,6 +13,7 @@ use App\Http\Controllers\AdvisorController;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\SimulatorController;
 use App\Http\Controllers\RestructuringController;
+use App\Http\Controllers\CollectorController;
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -35,6 +36,8 @@ Route::middleware('auth', 'redirect.customer')->group(function () {
         ->name('customers.documents.store');
     Route::delete('customers/{customer}/documents/{document}', [CustomerDocumentController::class, 'destroy'])
         ->name('customers.documents.destroy');
+    Route::post('customers/{customer}/reset-password', [CustomerController::class, 'resetPassword'])
+        ->name('customers.reset-password');
 
     // — Loans —
     Route::get('loans/search-customer', [LoanController::class, 'searchCustomer'])
@@ -82,22 +85,29 @@ Route::middleware('auth', 'redirect.customer')->group(function () {
             ->name('settings.index');
         Route::post('settings', [SettingController::class, 'update'])
             ->name('settings.update');
+        Route::post('settings/collectors/{user}', [CollectorController::class, 'adminUpdateConfig'])
+            ->name('settings.collectors.update');
         Route::resource('advisors', AdvisorController::class)->except(['show']);
-
     });
-    // Ruta de Gestion de usuarios
+
+    // — Gestión de usuarios —
     Route::resource('users', App\Http\Controllers\UserController::class)->except(['show']);
-    // Bitacora de movimientos
-    Route::get('activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-logs.index');
+
+    // — Bitácora —
+    Route::get('activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])
+        ->name('activity-logs.index');
 });
+
 // — Portal del cliente —
 Route::middleware(['auth'])->prefix('portal')->group(function () {
     Route::get('/', [App\Http\Controllers\PortalController::class, 'index'])->name('portal.index');
     Route::get('/loan/{loan}', [App\Http\Controllers\PortalController::class, 'show'])->name('portal.show');
 });
+
 // — Panel del cobrador —
 Route::middleware(['auth'])->prefix('collector')->group(function () {
     Route::get('/', [App\Http\Controllers\CollectorController::class, 'index'])->name('collector.index');
     Route::post('/collect/{loan}', [App\Http\Controllers\CollectorController::class, 'collect'])->name('collector.collect');
 });
+
 require __DIR__.'/auth.php';

@@ -74,4 +74,8 @@ class Customer extends Model
         $photo = $this->profilePhoto;
         return $photo ? asset('storage/' . $photo->path) : null;
     }
+    public function user()
+    {
+        return $this->hasOne(\App\Models\User::class, 'customer_id');
+    }
 }

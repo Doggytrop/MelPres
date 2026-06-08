@@ -12,11 +12,11 @@ class PaymentService
     {
         return DB::transaction(function () use ($loan, $data) {
 
-            $amountPaid = floatval($data['amount_paid']);
-            $remaining  = $amountPaid;
-            $penaltyPay = 0;
+            $amountPaid  = floatval($data['amount_paid']);
+            $remaining   = $amountPaid;
+            $penaltyPay  = 0;
             $interestPay = 0;
-            $capitalPay = 0;
+            $capitalPay  = 0;
 
             // 1 — Cubrir mora acumulada primero
             if ($loan->accumulated_penalty > 0) {
@@ -28,11 +28,11 @@ class PaymentService
             // 2 — Cubrir interés pendiente
             if ($remaining > 0 && $loan->pending_interest > 0) {
                 $interestPay = min($remaining, floatval($loan->pending_interest));
-                $remaining -= $interestPay;
+                $remaining  -= $interestPay;
                 $loan->pending_interest -= $interestPay;
             }
 
-            // 3 — El resto va a capital (remaining_balance)
+            // 3 — El resto va a capital
             if ($remaining > 0) {
                 $capitalPay = min($remaining, floatval($loan->remaining_balance));
                 $loan->remaining_balance -= $capitalPay;
@@ -43,7 +43,7 @@ class PaymentService
 
             // 5 — Actualizar status si ya está saldado
             if ($loan->remaining_balance <= 0 && $loan->pending_interest <= 0) {
-                $loan->status = 'paid';
+                $loan->status            = 'paid';
                 $loan->remaining_balance = 0;
                 $loan->next_payment_date = null;
             } elseif ($loan->status === 'overdue' && $loan->accumulated_penalty <= 0) {
@@ -60,12 +60,14 @@ class PaymentService
 
             $loan->save();
 
-            // Actualizar score del cliente
+            // 7 — Actualizar score del cliente
             app(\App\Services\ScoreService::class)->actualizar($loan->customer);
 
-            // 7 — Registrar movimiento
+            // 8 — Registrar en bitácora
             \App\Models\ActivityLog::log('payment', 'payments', 'Registró pago por $' . number_format($amountPaid, 2) . ' en préstamo #' . $loan->id, $loan);
-            return Payment::create([
+
+            // 9 — Crear pago
+            $payment = Payment::create([
                 'loan_id'          => $loan->id,
                 'amount_paid'      => $amountPaid,
                 'penalty_payment'  => $penaltyPay,
@@ -77,6 +79,15 @@ class PaymentService
                 'notes'            => $data['notes'] ?? null,
                 'recorded_by'      => auth()->id(),
             ]);
+
+            // 10 — Notificación WhatsApp
+            $customer = $loan->customer;
+            if ($customer?->phone) {
+                app(\App\Services\WhatsAppService::class)
+                    ->sendPaymentConfirmation($customer, $loan, $payment);
+            }
+
+            return $payment;
         });
     }
 
@@ -93,7 +104,7 @@ class PaymentService
     {
         $carbon = \Carbon\Carbon::parse($date);
 
-        return match($frequency) {
+        return match ($frequency) {
             'daily'    => $carbon->addDay()->toDateString(),
             'weekly'   => $carbon->addWeek()->toDateString(),
             'biweekly' => $carbon->addDays(15)->toDateString(),

@@ -31,6 +31,7 @@ class Loan extends Model
         'status',
         'restructured',
         'notes',
+        'penalty_last_applied_date',
     ];
 
     protected $casts = [
@@ -44,6 +45,7 @@ class Loan extends Model
         'pending_interest'    => 'decimal:2',
         'daily_payment'       => 'decimal:2',
         'accumulated_penalty' => 'decimal:2',
+        'penalty_last_applied_date' => 'date',
     ];
 
     // — Relationships —

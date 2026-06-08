@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Corte de caja — {{ \Carbon\Carbon::parse($fecha)->translatedFormat('d/m/Y') }}</title>
+    <title>Corte de caja — {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family: Arial, sans-serif; font-size:12px; color:#2c2c2c; }
@@ -45,9 +45,9 @@
             <div class="sub">Resumen de pagos del día</div>
         </div>
         <div class="header-right">
-            <div class="fecha">{{ \Carbon\Carbon::parse($fecha)->translatedFormat('d/m/Y') }}</div>
+            <div class="fecha">{{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</div>
             <div style="font-size:11px; color:#888; margin-top:4px;">
-                Generado el {{ now()->translatedFormat('d/m/Y H:i') }}
+                Generado el {{ now()->format('d/m/Y H:i') }}
             </div>
         </div>
     </div>
@@ -74,19 +74,19 @@
                     <span class="metrica-valor">${{ number_format($totalMora, 2) }}</span>
                 </td>
                 <td class="metrica">
-                    <span class="metrica-label">Total de pagos</span>
+                    <span class="metrica-label">Total Pagos</span>
                     <span class="metrica-valor">{{ $payments->count() }}</span>
                 </td>
             </tr>
         </table>
 
-        {{-- Resumen por asesor --}}
+        {{-- Resumen por advisor --}}
         @if($poradvisor->count() > 1)
-            <p class="section-title">Resumen por asesor</p>
+            <p class="section-title">Resumen por Asesor</p>
             <table class="payments-table">
                 <thead>
                     <tr>
-                        <th>advisor</th>
+                        <th>Asesor</th>
                         <th>Pagos</th>
                         <th>Total cobrado</th>
                         <th>Interés</th>
@@ -96,7 +96,7 @@
                 <tbody>
                     @foreach($poradvisor as $advisorId => $paymentsPoradvisor)
                         <tr>
-                            <td>{{ $paymentsPoradvisor->first()->recordedBy?->name ?? 'Sin asesor' }}</td>
+                            <td>{{ $paymentsPoradvisor->first()->recordedBy?->name ?? 'Sin Asesor' }}</td>
                             <td>{{ $paymentsPoradvisor->count() }}</td>
                             <td>${{ number_format($paymentsPoradvisor->sum('amount_paid'), 2) }}</td>
                             <td>${{ number_format($paymentsPoradvisor->sum('interestt_payment'), 2) }}</td>
@@ -107,14 +107,14 @@
             </table>
         @endif
 
-        {{-- Detalle de pagos --}}
-        <p class="section-title">Detalle de pagos</p>
+        {{-- Detalle de payments --}}
+        <p class="section-title">Detalle de Pagos</p>
         <table class="payments-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>cliente</th>
-                    <th>asesor</th>
+                    <th>Cliente</th>
+                    <th>Asesor</th>
                     <th>Capital</th>
                     <th>Interés</th>
                     <th>Mora</th>
@@ -125,14 +125,14 @@
                 @foreach($payments as $i => $payment)
                     <tr>
                         <td style="color:#aaa;">{{ $i + 1 }}</td>
-                        <td>{{ $payment->loan->customer?->first_name_complete ?? 'cliente eliminado' }}</td>
+                        <td>{{ $payment->loan->customer?->first_name_complete ?? 'customer eliminado' }}</td>
                         <td>{{ $payment->recordedBy?->name ?? '—' }}</td>
                         <td>${{ number_format($payment->capital_payment, 2) }}</td>
                         <td>${{ number_format($payment->interestt_payment, 2) }}</td>
                         <td>${{ number_format($payment->penalty_payment, 2) }}</td>
                         <td style="font-weight:bold;">${{ number_format($payment->amount_paid, 2) }}</td>
                     </tr>
-                @endforeach
+                @endforeach 
             </tbody>
             <tfoot>
                 <tr>
@@ -149,11 +149,11 @@
 
     <div class="footer">
         <div class="footer-left">
-            <p>Documento generado el {{ now()->translatedFormat('d/m/Y \a \l\a\s H:i') }}</p>
+            <p>Documento generado el {{ now()->format('d/m/Y \a \l\a\s H:i') }}</p>
         </div>
         <div class="footer-right">
             <p>Sistema desarrollado por</p>
-            <span class="dev">Sonoyta Software</span>
+            <span class="dev">melSolutions</span>
         </div>
     </div>
 
