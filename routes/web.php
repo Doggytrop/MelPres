@@ -35,6 +35,8 @@ Route::middleware('auth', 'redirect.customer')->group(function () {
         ->name('customers.documents.store');
     Route::delete('customers/{customer}/documents/{document}', [CustomerDocumentController::class, 'destroy'])
         ->name('customers.documents.destroy');
+        Route::post('customers/{customer}/reset-password', [CustomerController::class, 'resetPassword'])
+    ->name('customers.reset-password');
 
     // — Loans —
     Route::get('loans/search-customer', [LoanController::class, 'searchCustomer'])

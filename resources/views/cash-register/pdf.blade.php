@@ -42,7 +42,7 @@
     <div class="header">
         <div class="header-left">
             <h1>Corte de caja</h1>
-            <div class="sub">Resumen de payments del día</div>
+            <div class="sub">Resumen de pagos del día</div>
         </div>
         <div class="header-right">
             <div class="fecha">{{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}</div>
@@ -74,7 +74,7 @@
                     <span class="metrica-valor">${{ number_format($totalMora, 2) }}</span>
                 </td>
                 <td class="metrica">
-                    <span class="metrica-label">Total payments</span>
+                    <span class="metrica-label">Total Pagos</span>
                     <span class="metrica-valor">{{ $payments->count() }}</span>
                 </td>
             </tr>
@@ -82,12 +82,12 @@
 
         {{-- Resumen por advisor --}}
         @if($poradvisor->count() > 1)
-            <p class="section-title">Resumen por advisor</p>
+            <p class="section-title">Resumen por Asesor</p>
             <table class="payments-table">
                 <thead>
                     <tr>
-                        <th>advisor</th>
-                        <th>payments</th>
+                        <th>Asesor</th>
+                        <th>Pagos</th>
                         <th>Total cobrado</th>
                         <th>Interés</th>
                         <th>Mora</th>
@@ -96,7 +96,7 @@
                 <tbody>
                     @foreach($poradvisor as $advisorId => $paymentsPoradvisor)
                         <tr>
-                            <td>{{ $paymentsPoradvisor->first()->recordedBy?->name ?? 'Sin advisor' }}</td>
+                            <td>{{ $paymentsPoradvisor->first()->recordedBy?->name ?? 'Sin Asesor' }}</td>
                             <td>{{ $paymentsPoradvisor->count() }}</td>
                             <td>${{ number_format($paymentsPoradvisor->sum('amount_paid'), 2) }}</td>
                             <td>${{ number_format($paymentsPoradvisor->sum('interestt_payment'), 2) }}</td>
@@ -108,13 +108,13 @@
         @endif
 
         {{-- Detalle de payments --}}
-        <p class="section-title">Detalle de payments</p>
+        <p class="section-title">Detalle de Pagos</p>
         <table class="payments-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>customer</th>
-                    <th>advisor</th>
+                    <th>Cliente</th>
+                    <th>Asesor</th>
                     <th>Capital</th>
                     <th>Interés</th>
                     <th>Mora</th>
@@ -132,7 +132,7 @@
                         <td>${{ number_format($payment->penalty_payment, 2) }}</td>
                         <td style="font-weight:bold;">${{ number_format($payment->amount_paid, 2) }}</td>
                     </tr>
-                @endforeach
+                @endforeach 
             </tbody>
             <tfoot>
                 <tr>

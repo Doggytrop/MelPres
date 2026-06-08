@@ -121,7 +121,7 @@
                         <p class="mb-0 text-muted" style="font-size:11px;">
                             Préstamo #{{ $payment->loan_id }}
                             @if(auth()->user()->isAdmin())
-                                · advisor: {{ $payment->recordedBy?->name ?? '—' }}
+                                · Asesor: {{ $payment->recordedBy?->name ?? '—' }}
                             @endif
                             · {{ $payment->payment_date->translatedFormat('d/m/Y') }}
                         </p>

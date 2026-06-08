@@ -284,39 +284,47 @@
             @if($loan->type !== 'interest')
                 <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Calendario de pagos</p>
 
-                @php
-                    $paymentSchedule = [];
-                    $periods = $loan->number_of_periods ?? 0;
-                    $paymentAmount = $loan->suggested_payment;
-                    $startDate = $loan->start_date->copy();
+                            @php
+                $paymentSchedule = [];
+                $periods       = $loan->number_of_periods ?? 0;
+                $paymentAmount = $loan->suggested_payment;
+                $startDate     = $loan->start_date->copy();
+
+                // Para diario: calcular cuántos periodos cubre el capital pagado
+                // Para otros: cada pago = 1 periodo
+                if ($loan->type === 'daily' && $paymentAmount > 0) {
+                    $totalCapitalPaid = $loan->payments->sum('capital_payment');
+                    $paidCount = (int) floor($totalCapitalPaid / $paymentAmount);
+                } else {
                     $paidCount = $loan->payments->count();
+                }
 
-                    for ($i = 1; $i <= $periods; $i++) {
-                        if ($loan->type === 'daily') {
-                            $date = $startDate->copy()->addDays($i);
-                        } else {
-                            $date = match($loan->payment_frequency) {
-                                'weekly'   => $startDate->copy()->addWeeks($i),
-                                'biweekly' => $startDate->copy()->addDays($i * 15),
-                                'monthly'  => $startDate->copy()->addMonths($i),
-                                default    => $startDate->copy()->addMonths($i),
-                            };
-                        }
-
-                        $isPaid = $i <= $paidCount;
-                        $isNext = !$isPaid && ($i === $paidCount + 1);
-                        $isOverdue = !$isPaid && $date->isPast();
-
-                        $paymentSchedule[] = [
-                            'number'    => $i,
-                            'date'      => $date,
-                            'amount'    => $paymentAmount,
-                            'isPaid'    => $isPaid,
-                            'isNext'    => $isNext,
-                            'isOverdue' => $isOverdue,
-                        ];
+                for ($i = 1; $i <= $periods; $i++) {
+                    if ($loan->type === 'daily') {
+                        $date = $startDate->copy()->addDays($i);
+                    } else {
+                        $date = match($loan->payment_frequency) {
+                            'weekly'   => $startDate->copy()->addWeeks($i),
+                            'biweekly' => $startDate->copy()->addDays($i * 15),
+                            'monthly'  => $startDate->copy()->addMonths($i),
+                            default    => $startDate->copy()->addMonths($i),
+                        };
                     }
-                @endphp
+
+                    $isPaid    = $i <= $paidCount;
+                    $isNext    = !$isPaid && ($i === $paidCount + 1);
+                    $isOverdue = !$isPaid && $date->isPast();
+
+                    $paymentSchedule[] = [
+                        'number'    => $i,
+                        'date'      => $date,
+                        'amount'    => $paymentAmount,
+                        'isPaid'    => $isPaid,
+                        'isNext'    => $isNext,
+                        'isOverdue' => $isOverdue,
+                    ];
+                }
+@endphp
 
                 <div style="max-height:320px; overflow-y:auto;">
                     @foreach($paymentSchedule as $p)
