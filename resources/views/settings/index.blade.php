@@ -69,36 +69,41 @@ input:checked + .toggle-slider:before { transform: translateX(22px); }
     </div>
 @endif
 
+{{-- Tabs Navigation --}}
+<div class="settings-tabs">
+    <button type="button" class="tab-btn active" data-tab="company">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
+        Empresa
+    </button>
+    <button type="button" class="tab-btn" data-tab="loans">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Préstamos
+    </button>
+    <button type="button" class="tab-btn" data-tab="advisors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuarios
+    </button>
+    <button type="button" class="tab-btn" data-tab="collectors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Cobradores
+    </button>
+    <button type="button" class="tab-btn" data-tab="notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notificaciones
+    </button>
+    <button type="button" class="tab-btn" data-tab="documents">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Documentos
+    </button>
+    <button type="button" class="tab-btn" data-tab="advanced">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        Avanzado
+    </button>
+</div>
+
+{{-- Tabs dentro del form principal --}}
 <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
     @csrf
-
-    {{-- Tabs Navigation --}}
-    <div class="settings-tabs">
-        <button type="button" class="tab-btn active" data-tab="company">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
-            Empresa
-        </button>
-        <button type="button" class="tab-btn" data-tab="loans">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-            Préstamos
-        </button>
-        <button type="button" class="tab-btn" data-tab="advisors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Usuarios
-        </button>
-        <button type="button" class="tab-btn" data-tab="notifications">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notificaciones
-        </button>
-        <button type="button" class="tab-btn" data-tab="documents">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Documentos
-        </button>
-        <button type="button" class="tab-btn" data-tab="advanced">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-            Avanzado
-        </button>
-    </div>
 
     <div class="tab-content active" data-tab="company">
         @include('settings.tabs.company')
@@ -119,8 +124,8 @@ input:checked + .toggle-slider:before { transform: translateX(22px); }
         @include('settings.tabs.advanced')
     </div>
 
-    {{-- Botón Guardar --}}
-    <div class="mt-4 d-flex justify-content-end gap-3">
+    {{-- Botón Guardar — oculto cuando está activo el tab Cobradores --}}
+    <div class="mt-4 d-flex justify-content-end gap-3" id="mainSaveBtn">
         <button type="button" class="btn btn-sm" onclick="window.location.reload()"
                 style="background:#e8e8e8; color:#1a2e1a; border-radius:8px; padding:10px 24px;">
             Cancelar
@@ -130,7 +135,13 @@ input:checked + .toggle-slider:before { transform: translateX(22px); }
             Guardar Configuración
         </button>
     </div>
+
 </form>
+
+{{-- Tab Cobradores — fuera del form principal porque tiene sus propios forms --}}
+<div class="tab-content" data-tab="collectors">
+    @include('settings.tabs.collectors')
+</div>
 
 <script>
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -140,6 +151,10 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         this.classList.add('active');
         document.querySelector(`.tab-content[data-tab="${tab}"]`).classList.add('active');
+
+        // Ocultar botón guardar principal cuando el tab es Cobradores
+        document.getElementById('mainSaveBtn').style.display =
+            tab === 'collectors' ? 'none' : 'flex';
     });
 });
 
