@@ -22,6 +22,14 @@ class ActivityLogController extends Controller
         if ($request->filled('user')) {
             $query->where('user_id', $request->user);
         }
+        
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
 
         $logs = $query->paginate(25);
 

@@ -122,7 +122,7 @@
 
         {{-- Asesores --}}
         @php $advActive = request()->routeIs('advisors.*'); @endphp
-        <li class="nav-item">
+        <!-- <li class="nav-item">
             <a href="{{ route('advisors.index') }}"
                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
                style="{{ $advActive
@@ -137,24 +137,10 @@
                 </svg>
                 Asesores
             </a>
-        </li>
+        </li> 
+        <-- END Asesores -->
 
-        {{-- Configuración --}}
-        @php $settActive = request()->routeIs('settings.*'); @endphp
-        <li class="nav-item">
-            <a href="{{ route('settings.index') }}"
-               class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-               style="{{ $settActive
-                   ? 'background:' . $cp . '; color:white;'
-                   : 'color:#6b7280;'
-               }} font-size:14px; transition:all .15s;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-                Configuración
-            </a>
-        </li>
+        
         {{-- Usuarios --}}
         @php $usersActive = request()->routeIs('users.*'); @endphp
         <li class="nav-item">
@@ -197,6 +183,23 @@
             @endif
         </a>
     </li>
+    
+    {{-- Configuración --}}
+        @php $settActive = request()->routeIs('settings.*'); @endphp
+        <li class="nav-item">
+            <a href="{{ route('settings.index') }}"
+               class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
+               style="{{ $settActive
+                   ? 'background:' . $cp . '; color:white;'
+                   : 'color:#6b7280;'
+               }} font-size:14px; transition:all .15s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+                Configuración
+            </a>
+        </li>
 
     </ul>
 

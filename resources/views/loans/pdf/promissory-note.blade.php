@@ -21,7 +21,7 @@
     <div class="divider"></div>
 
     <div class="amount-box">
-        $ {{ number_format($loan->original_amount, 2) }} MXN
+        $ {{ number_format($loan->original_amount + $loan->accrued_interest, 2) }} MXN
     </div>
 
     <p class="meta"><strong>No. Pagaré:</strong> #{{ str_pad($loan->id, 5, '0', STR_PAD_LEFT) }}</p>
@@ -33,9 +33,9 @@
         con domicilio en <strong>{{ $loan->customer->address ?? '_______________' }}</strong>,
         me comprometo incondicionalmente a pagar a la orden de
         <strong>{{ $company['name'] }}</strong> la cantidad de
-        <strong>${{ number_format($loan->original_amount, 2) }} MXN</strong>
-        ({{ \App\Helpers\NumberHelper::toWords($loan->original_amount) ?? number_format($loan->original_amount, 2).' pesos' }}),
-        más los intereses pactados del <strong>{{ $loan->interest_rate }}%</strong>,
+        <strong>${{ number_format($loan->original_amount + $loan->accrued_interest, 2) }} MXN</strong>
+        ({{ \App\Helpers\NumberHelper::toWords($loan->original_amount + $loan->accrued_interest) ?? number_format($loan->original_amount + $loan->accrued_interest, 2).' pesos' }}),
+        cantidad que incluye capital e intereses al <strong>{{ $loan->interest_rate }}%</strong>,
         a más tardar el día <strong>{{ $loan->due_date->format('d/m/Y') }}</strong>.
     </div>
 

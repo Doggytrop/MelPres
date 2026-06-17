@@ -5,27 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Portal — MelPres</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    @php
+        $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
+        $colorSecundario = $config_sistema['color_secundario'] ?? '#e8f5e9';
+    @endphp
+    <style>
+        :root {
+            --color-primary: {{ $colorPrimario }};
+            --color-secondary: {{ $colorSecundario }};
+        }
+
+        .portal-header { background:#fff; border-bottom:1px solid #e7e9e7; padding:16px 24px; }
+        .portal-icon { width:32px; height:32px; background:var(--color-secondary); color:var(--color-primary); }
+        .portal-title,
+        .portal-user { color:#1a2e1a; }
+        .portal-logout { background:#fff; border:1px solid #d8ded8; color:#1a2e1a; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer; transition:all .15s; }
+        .portal-logout:hover { border-color:var(--color-primary); color:var(--color-primary); background:var(--color-secondary); }
+    </style>
 </head>
 <body style="background:#f5f5f5; min-height:100vh;">
 
     {{-- Header --}}
-    <div style="background:var(--color-primary); padding:16px 24px;">
+    <div class="portal-header">
         <div class="d-flex justify-content-between align-items-center" style="max-width:800px; margin:0 auto;">
             <div class="d-flex align-items-center gap-2">
-                <div class="rounded-circle d-flex align-items-center justify-content-center"
-                     style="width:32px; height:32px; background:rgba(255,255,255,0.2);">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                <div class="portal-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="12" cy="12" r="9"/>
                         <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"/>
                     </svg>
                 </div>
-                <span class="fw-medium text-white" style="font-size:15px;">MelPres</span>
+                <span class="portal-title fw-medium" style="font-size:15px;">MelPres</span>
             </div>
             <div class="d-flex align-items-center gap-3">
-                <span class="text-white" style="font-size:13px;">{{ $customer->full_name }}</span>
+                <span class="portal-user" style="font-size:13px;">{{ $customer->full_name }}</span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" style="background:rgba(255,255,255,0.15); border:none; color:white; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer;">
+                    <button type="submit" class="portal-logout">
                         Salir
                     </button>
                 </form>

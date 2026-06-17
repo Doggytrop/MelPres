@@ -5,18 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle Préstamo — MelPres</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    @php
+        $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
+        $colorSecundario = $config_sistema['color_secundario'] ?? '#e8f5e9';
+    @endphp
+    <style>
+        :root {
+            --color-primary: {{ $colorPrimario }};
+            --color-secondary: {{ $colorSecundario }};
+        }
+
+        .portal-header { background:#fff; border-bottom:1px solid #e7e9e7; padding:16px 24px; }
+        .portal-back { color:#1a2e1a; }
+        .portal-back:hover { color:var(--color-primary); }
+        .portal-logout { background:#fff; border:1px solid #d8ded8; color:#1a2e1a; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer; transition:all .15s; }
+        .portal-logout:hover { border-color:var(--color-primary); color:var(--color-primary); background:var(--color-secondary); }
+    </style>
 </head>
 <body style="background:#f5f5f5; min-height:100vh;">
 
     {{-- Header --}}
-    <div style="background:var(--color-primary); padding:16px 24px;">
+    <div class="portal-header">
         <div class="d-flex justify-content-between align-items-center" style="max-width:800px; margin:0 auto;">
-            <a href="{{ route('portal.index') }}" class="text-white text-decoration-none d-flex align-items-center gap-2" style="font-size:14px;">
+            <a href="{{ route('portal.index') }}" class="portal-back text-decoration-none d-flex align-items-center gap-2" style="font-size:14px;">
                 ← Mis préstamos
             </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" style="background:rgba(255,255,255,0.15); border:none; color:white; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer;">
+                <button type="submit" class="portal-logout">
                     Salir
                 </button>
             </form>

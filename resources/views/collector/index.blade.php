@@ -6,11 +6,27 @@
     <title>Panel de Cobros — MelPres</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    @php
+        $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
+        $colorSecundario = $config_sistema['color_secundario'] ?? '#e8f5e9';
+    @endphp
     <style>
+        :root {
+            --color-primary: {{ $colorPrimario }};
+            --color-secondary: {{ $colorSecundario }};
+        }
+
         * { box-sizing: border-box; }
         body { background: #f0f2f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
 
-        .header-bar { background: linear-gradient(135deg, #1a4a1c 0%, var(--color-primary) 100%); padding: 20px 24px; }
+        .header-bar { background:#fff; border-bottom:1px solid #e7e9e7; padding:18px 24px; }
+        .header-icon { width:38px; height:38px; background:var(--color-secondary); color:var(--color-primary); }
+        .header-title { color:#1a2e1a; font-size:16px; }
+        .header-subtitle { font-size:12px; color:#6b7280; }
+        .header-user-name { color:#1a2e1a; font-size:13px; font-weight:500; }
+        .header-user-role { font-size:11px; color:#6b7280; }
+        .btn-logout { background:#fff; border:1px solid #d8ded8; color:#1a2e1a; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; transition:all .15s; }
+        .btn-logout:hover { border-color:var(--color-primary); color:var(--color-primary); background:var(--color-secondary); }
         .metric-card { background: white; border-radius: 14px; padding: 18px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
         .loan-card { background: white; border-radius: 14px; padding: 18px; margin-bottom: 12px; border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all .2s; position: relative; overflow: hidden; }
         .loan-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); }
@@ -26,6 +42,24 @@
         .btn-collect-danger:hover { background: #a93226; }
         .btn-maps { background: #e3f2fd; color: #1565c0; border: none; border-radius: 8px; padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all .15s; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
         .btn-maps:hover { background: #bbdefb; color: #0d47a1; }
+
+        .collect-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 18px; }
+        .collect-modal.is-open { display: flex; }
+        .collect-modal-backdrop { position: absolute; inset: 0; background: rgba(17, 24, 17, .58); backdrop-filter: blur(2px); }
+        .collect-modal-card { position: relative; width: min(100%, 420px); background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.22); overflow: hidden; animation: modalIn .16s ease-out; }
+        .collect-modal-body { padding: 22px 22px 16px; display: flex; gap: 14px; }
+        .collect-modal-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--color-secondary); color: var(--color-primary); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .collect-modal-icon.is-danger { background: #fdecea; color: #c0392b; }
+        .collect-modal-title { color: #1a2e1a; font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+        .collect-modal-message { color: #6b7280; font-size: 13px; line-height: 1.5; margin: 0; }
+        .collect-modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 22px 22px; }
+        .collect-modal-btn { border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; }
+        .collect-modal-cancel { background: #f3f4f3; color: #4b5563; }
+        .collect-modal-cancel:hover { background: #e8ebe8; }
+        .collect-modal-confirm { background: var(--color-primary); color: #fff; min-width: 120px; }
+        .collect-modal-confirm:hover { filter: brightness(.95); }
+        .collect-modal-confirm.is-danger { background: #c0392b; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         .section-title { font-size: 13px; font-weight: 600; letter-spacing: 0.03em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .collected-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; }
@@ -47,27 +81,25 @@
         <div style="max-width:1200px; margin:0 auto;">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                         style="width:38px; height:38px; background:rgba(255,255,255,0.15);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+                    <div class="header-icon rounded-circle d-flex align-items-center justify-content-center">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                             <circle cx="12" cy="10" r="3"/>
                         </svg>
                     </div>
                     <div>
-                        <span class="fw-medium text-white" style="font-size:16px;">Panel de Cobros</span>
-                        <span class="d-block" style="font-size:12px; color:rgba(255,255,255,0.6);">{{ now()->locale('es')->isoFormat('dddd D [de] MMMM, YYYY') }}</span>
+                        <span class="header-title fw-medium">Panel de Cobros</span>
+                        <span class="header-subtitle d-block">{{ now()->locale('es')->isoFormat('dddd D [de] MMMM, YYYY') }}</span>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <div class="text-end d-none d-md-block">
-                        <span class="d-block text-white" style="font-size:13px; font-weight:500;">{{ auth()->user()->name }}</span>
-                        <span style="font-size:11px; color:rgba(255,255,255,0.5);">Cobrador</span>
+                        <span class="header-user-name d-block">{{ auth()->user()->name }}</span>
+                        <span class="header-user-role">Cobrador</span>
                     </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; padding:6px 14px; font-size:12px; cursor:pointer; transition:all .15s;"
-                                onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <button type="submit" class="btn-logout">
                             Salir
                         </button>
                     </form>
@@ -208,7 +240,8 @@
                                     </span>
                                     <span style="font-size:11px; color:#aaa;">Saldo: ${{ number_format($loan->remaining_balance, 2) }}</span>
                                 </div>
-                                <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2">
+                                <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2"
+                                      data-collect-confirm data-customer-name="{{ $loan->customer->full_name }}" data-confirm-tone="primary">
                                     @csrf
                                     <div>
                                         <input type="number" step="0.01" name="amount_paid"
@@ -216,8 +249,7 @@
                                                class="form-control form-control-sm" style="width:100px; border-radius:8px; font-size:13px;">
                                     </div>
                                     <input type="hidden" name="notes" value="Cobro en campo">
-                                    <button type="submit" class="btn-collect"
-                                            onclick="return confirm('¿Cobrar $' + this.form.amount_paid.value + ' a {{ $loan->customer->full_name }}?')">
+                                    <button type="submit" class="btn-collect">
                                         Cobrar
                                     </button>
                                 </form>
@@ -277,7 +309,7 @@
 
                             <div class="d-flex justify-content-between align-items-end">
                                 <div>
-                                    <span style="font-size:11px; color:#888;">Monto + mora</span>
+                                    <span style="font-size:11px; color:#888;">{{ $loan->accumulated_penalty > 0 ? 'Monto + mora' : 'Monto a cobrar' }}</span>
                                     <span class="d-block fw-medium" style="font-size:22px; color:#c0392b;">
                                         ${{ number_format($loan->suggested_payment + $loan->accumulated_penalty, 2) }}
                                     </span>
@@ -285,7 +317,8 @@
                                         <span style="font-size:11px; color:#c0392b;">Mora: ${{ number_format($loan->accumulated_penalty, 2) }}</span>
                                     @endif
                                 </div>
-                                <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2">
+                                <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2"
+                                      data-collect-confirm data-customer-name="{{ $loan->customer->full_name }}" data-confirm-tone="danger">
                                     @csrf
                                     <div>
                                         <input type="number" step="0.01" name="amount_paid"
@@ -293,8 +326,7 @@
                                                class="form-control form-control-sm" style="width:100px; border-radius:8px; font-size:13px;">
                                     </div>
                                     <input type="hidden" name="notes" value="Cobro en campo — {{ $daysLate }}d atraso">
-                                    <button type="submit" class="btn-collect btn-collect-danger"
-                                            onclick="return confirm('¿Cobrar $' + this.form.amount_paid.value + ' a {{ $loan->customer->full_name }}?')">
+                                    <button type="submit" class="btn-collect btn-collect-danger">
                                         Cobrar
                                     </button>
                                 </form>
@@ -365,8 +397,86 @@
 
     </div>
 
+    <div class="collect-modal" id="collectConfirmModal" aria-hidden="true">
+        <div class="collect-modal-backdrop" data-collect-cancel></div>
+        <div class="collect-modal-card" role="dialog" aria-modal="true" aria-labelledby="collectConfirmTitle">
+            <div class="collect-modal-body">
+                <div class="collect-modal-icon" id="collectConfirmIcon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="collect-modal-title" id="collectConfirmTitle">Confirmar cobro</h2>
+                    <p class="collect-modal-message" id="collectConfirmMessage">
+                        Revisa el monto antes de registrar el pago.
+                    </p>
+                </div>
+            </div>
+            <div class="collect-modal-footer">
+                <button type="button" class="collect-modal-btn collect-modal-cancel" data-collect-cancel>
+                    Cancelar
+                </button>
+                <button type="button" class="collect-modal-btn collect-modal-confirm" id="collectConfirmButton">
+                    Confirmar cobro
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        const collectModal = document.getElementById('collectConfirmModal');
+        const collectMessage = document.getElementById('collectConfirmMessage');
+        const collectButton = document.getElementById('collectConfirmButton');
+        const collectIcon = document.getElementById('collectConfirmIcon');
+        let collectPendingForm = null;
+
+        function closeCollectModal() {
+            collectPendingForm = null;
+            collectModal.classList.remove('is-open');
+            collectModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('submit', function(event) {
+            const form = event.target.closest('form[data-collect-confirm]');
+            if (!form) return;
+
+            event.preventDefault();
+            collectPendingForm = form;
+
+            const amount = form.querySelector('[name="amount_paid"]')?.value || '0';
+            const customer = form.dataset.customerName || 'este cliente';
+            const tone = form.dataset.confirmTone || 'primary';
+
+            collectMessage.textContent = `¿Registrar cobro de $${amount} a ${customer}?`;
+            collectIcon.classList.toggle('is-danger', tone === 'danger');
+            collectButton.classList.toggle('is-danger', tone === 'danger');
+            collectModal.classList.add('is-open');
+            collectModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        });
+
+        collectButton.addEventListener('click', function() {
+            if (!collectPendingForm) return;
+            const form = collectPendingForm;
+            collectPendingForm = null;
+            collectModal.classList.remove('is-open');
+            document.body.style.overflow = '';
+            HTMLFormElement.prototype.submit.call(form);
+        });
+
+        document.querySelectorAll('[data-collect-cancel]').forEach(function(button) {
+            button.addEventListener('click', closeCollectModal);
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && collectModal.classList.contains('is-open')) {
+                closeCollectModal();
+            }
+        });
+
         // Tabs
         function showTab(tab) {
             document.getElementById('tab_pending').style.display = tab === 'pending' ? 'block' : 'none';

@@ -1,10 +1,7 @@
 <x-guest-layout>
-    <div class="min-h-screen flex bg-[#f0f2f0]">
-            <div class="w-full h-screen flex overflow-hidden">
-            {{-- Panel izquierdo verde --}}
-            <div class="hidden md:flex w-5/12 bg-[#1a4a1c] flex-col justify-between p-10">
-
-                {{-- Branding --}}
+    <div class="min-h-screen bg-[#f4f6f4] md:bg-white">
+        <div class="min-h-screen w-full flex flex-col md:flex-row overflow-hidden">
+            <div class="hidden bg-[#1a4a1c] text-[#d4f5d4] md:w-5/12 md:min-h-screen md:flex flex-col justify-between p-10">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 bg-[#5fcf61] rounded-lg flex items-center justify-center flex-shrink-0">
                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -13,87 +10,91 @@
                                   stroke="white" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
                     </div>
-                    <span class="text-[#d4f5d4] font-medium text-base">{{ config('app.name') }}</span>
+                    <span class="font-medium text-base">{{ config('app.name') }}</span>
                 </div>
 
-                {{-- Tagline --}}
-                <div>
-                    <h2 class="text-[#d4f5d4] text-3xl font-medium leading-snug mb-4">
+                <div class="mt-10 md:mt-0">
+                    <h2 class="text-2xl sm:text-3xl font-medium leading-snug mb-3 md:mb-4">
                         Tu dinero,<br>bajo control.
                     </h2>
-                    <p class="text-[#6ab96c] text-sm leading-relaxed">
+                    <p class="text-[#8ed28f] text-sm leading-relaxed max-w-sm">
                         Gestiona tus finanzas de forma segura y eficiente desde un solo lugar.
                     </p>
                 </div>
 
-                {{-- Indicadores --}}
-                <div class="flex gap-1.5 items-center">
+                <div class="hidden md:flex gap-1.5 items-center">
                     <div class="w-5 h-1.5 bg-[#5fcf61] rounded-full"></div>
                     <div class="w-1.5 h-1.5 bg-[#2d6b2f] rounded-full"></div>
                     <div class="w-1.5 h-1.5 bg-[#2d6b2f] rounded-full"></div>
                 </div>
             </div>
 
-            {{-- Panel derecho blanco --}}
-            <div class="flex-1 bg-white flex flex-col justify-center px-10 py-12">
-
-                <h1 class="text-xl font-medium text-[#1a2e1a] mb-1">Iniciar sesión</h1>
-                <p class="text-sm text-gray-400 mb-8">Ingresa tus credenciales para continuar</p>
-
-                <x-auth-session-status class="mb-4" :status="session('status')" />
-
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
-
-                    {{-- Login (email o teléfono) --}}
-                    <div class="mb-4">
-                        <label for="login" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
-                            Correo electrónico o teléfono
-                        </label>
-                        <input id="login" type="text" name="login" value="{{ old('login') }}"
-                               required autofocus autocomplete="username"
-                               placeholder="correo@ejemplo.com o 6621234567"
-                               class="w-full bg-[#fafafa] border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-[#1a2e1a]
-                                      placeholder-gray-300 focus:outline-none focus:border-[#3a9a3b] focus:bg-white transition-colors duration-200" />
-                        <x-input-error :messages="$errors->get('login')" class="mt-2 text-red-500 text-xs" />
+            <div class="flex-1 flex items-center justify-center px-5 py-8 sm:px-8 md:bg-white md:px-10">
+                <div class="w-full max-w-md bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 md:border-0 md:shadow-none md:rounded-none md:p-0">
+                    <div class="md:hidden flex items-center gap-3 mb-8">
+                        <div class="w-9 h-9 bg-[#1f6b21] rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
+                                <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"
+                                      stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <span class="text-[#1a2e1a] font-medium text-base">{{ config('app.name') }}</span>
                     </div>
 
-                    {{-- Password --}}
-                    <div class="mb-5">
-                        <label for="password" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
-                            Contraseña
-                        </label>
-                        <input id="password" type="password" name="password"
-                               required autocomplete="current-password"
-                               placeholder="••••••••"
-                               class="w-full bg-[#fafafa] border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-[#1a2e1a]
-                                      placeholder-gray-300 focus:outline-none focus:border-[#3a9a3b] focus:bg-white transition-colors duration-200" />
-                        <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-500 text-xs" />
-                    </div>
+                    <h1 class="text-xl font-medium text-[#1a2e1a] mb-1">Iniciar sesión</h1>
+                    <p class="text-sm text-gray-400 mb-7">Ingresa tus credenciales para continuar</p>
 
-                    {{-- Remember Me + Forgot --}}
-                    <div class="flex items-center justify-between mb-6">
-                        <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
-                            <input id="remember_me" type="checkbox" name="remember"
-                                   class="w-3.5 h-3.5 rounded border-gray-300 accent-[#3a9a3b]">
-                            Recordarme
-                        </label>
-                        @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}"
-                               class="text-sm text-[#3a9a3b] hover:text-[#1f6b21] transition-colors duration-200">
-                                ¿Olvidaste tu contraseña?
-                            </a>
-                        @endif
-                    </div>
+                    <x-auth-session-status class="mb-5 rounded-lg border border-[#bfe8c0] bg-[#effaf0] px-4 py-3 text-sm font-medium text-[#1f6b21]" :status="session('status')" />
 
-                    {{-- Submit --}}
-                    <button type="submit"
-                            class="w-full bg-[#1f6b21] hover:bg-[#256e27] text-white rounded-lg py-3
-                                   text-sm font-medium tracking-wide transition-colors duration-200">
-                        Iniciar sesión
-                    </button>
+                    <form method="POST" action="{{ route('login') }}" class="space-y-5">
+                        @csrf
 
-                </form>
+                        <div>
+                            <label for="login" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
+                                Correo electrónico o teléfono
+                            </label>
+                            <input id="login" type="text" name="login" value="{{ old('login') }}"
+                                   required autofocus autocomplete="username"
+                                   placeholder="correo@ejemplo.com o 6621234567"
+                                   class="w-full bg-[#fafafa] border border-gray-200 rounded-lg px-4 py-3 text-sm text-[#1a2e1a]
+                                          placeholder-gray-300 focus:outline-none focus:border-[#3a9a3b] focus:bg-white transition-colors duration-200" />
+                            <x-input-error :messages="$errors->get('login')" class="mt-2 text-red-500 text-xs" />
+                        </div>
+
+                        <div>
+                            <label for="password" class="block text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-1.5">
+                                Contraseña
+                            </label>
+                            <input id="password" type="password" name="password"
+                                   required autocomplete="current-password"
+                                   placeholder="••••••••"
+                                   class="w-full bg-[#fafafa] border border-gray-200 rounded-lg px-4 py-3 text-sm text-[#1a2e1a]
+                                          placeholder-gray-300 focus:outline-none focus:border-[#3a9a3b] focus:bg-white transition-colors duration-200" />
+                            <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-500 text-xs" />
+                        </div>
+
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
+                                <input id="remember_me" type="checkbox" name="remember"
+                                       class="w-3.5 h-3.5 rounded border-gray-300 accent-[#3a9a3b]">
+                                Recordarme
+                            </label>
+                            @if (Route::has('password.request'))
+                                <a href="{{ route('password.request') }}"
+                                   class="text-sm text-[#3a9a3b] hover:text-[#1f6b21] transition-colors duration-200">
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            @endif
+                        </div>
+
+                        <button type="submit"
+                                class="w-full bg-[#1f6b21] hover:bg-[#256e27] text-white rounded-lg px-5 py-3
+                                       text-sm font-medium tracking-wide transition-colors duration-200">
+                            Iniciar sesión
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
