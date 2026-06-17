@@ -290,27 +290,43 @@
             @endif
         </div>
     </div>
+@php
+    $paymentAmount = floatval($loan->daily_payment ?: $loan->suggested_payment);
+
+    if ($loan->type === 'daily' && $paymentAmount > 0) {
+        $totalPagado = ($loan->original_amount + $loan->accrued_interest) - $loan->remaining_balance;
+        $paidCount   = (int) floor($totalPagado / $paymentAmount);
+        $sobrante    = round($totalPagado - ($paidCount * $paymentAmount), 2);
+        $nextAmount  = round($paymentAmount - $sobrante, 2);
+
+    } elseif ($loan->type === 'term' && $paymentAmount > 0) {
+        $paidCount  = $loan->payments->count();
+        $sobrante   = round($loan->payments->sum('carry_over'), 2);
+        $nextAmount = round($paymentAmount - $sobrante, 2);
+
+    } else {
+        // interest
+        $paidCount  = $loan->payments->count();
+        $sobrante   = 0;
+        $nextAmount = $paymentAmount;
+    }
+@endphp
 
     {{-- Calendario de pagos --}}
-    <div class="col-md-7">
-        <div class="bg-white border rounded-3 p-4 h-100" style="border-color:#e8e8e8 !important;">
-            @if($loan->type !== 'interest')
-                <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Calendario de pagos</p>
+<div class="col-md-7"
+     x-data="{ nextPeriod: {{ $paidCount + 1 }} }"
+     @select-period.window="nextPeriod = $event.detail.number">
+    <div class="bg-white border rounded-3 p-4 h-100" style="border-color:#e8e8e8 !important;">
+        @if($loan->type !== 'interest')
+            <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Calendario de pagos</p>
 
-                            @php
+            @php
                 $paymentSchedule = [];
                 $periods       = $loan->number_of_periods ?? 0;
                 $paymentAmount = $loan->suggested_payment;
                 $startDate     = $loan->start_date->copy();
 
-                // Para diario: calcular cuántos periodos cubre el capital pagado
-                // Para otros: cada pago = 1 periodo
-                if ($loan->type === 'daily' && $paymentAmount > 0) {
-                    $totalCapitalPaid = $loan->payments->sum('capital_payment');
-                    $paidCount = (int) floor($totalCapitalPaid / $paymentAmount);
-                } else {
-                    $paidCount = $loan->payments->count();
-                }
+                
 
                 for ($i = 1; $i <= $periods; $i++) {
                     if ($loan->type === 'daily') {
@@ -337,73 +353,100 @@
                         'isOverdue' => $isOverdue,
                     ];
                 }
-@endphp
+            @endphp
 
-                <div style="max-height:320px; overflow-y:auto;">
-                    @foreach($paymentSchedule as $p)
-                        <div class="d-flex align-items-center justify-content-between py-2 px-2 rounded-2 mb-1"
-                             style="font-size:12px; {{ $p['isNext'] ? 'background:' . $tc['bg'] . ';' : '' }}">
-                            <div class="d-flex align-items-center gap-2">
-                                @if($p['isPaid'])
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
-                                @elseif($p['isOverdue'])
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-                                @elseif($p['isNext'])
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ $tc['color'] }}" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-                                @else
-                                    <div class="rounded-circle" style="width:14px; height:14px; border:1.5px solid #ccc;"></div>
-                                @endif
-                                <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : ($p['isOverdue'] ? '#c0392b' : ($p['isNext'] ? $tc['color'] : '#888')) }};
-                                             font-weight:{{ $p['isNext'] ? '500' : '400' }};">
-                                    #{{ $p['number'] }} — {{ $p['date']->format('d/m/Y') }}
-                                </span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : '#888' }};">
-                                    ${{ number_format($p['amount'], 2) }}
-                                </span>
-                                @if($p['isPaid'])
-                                    <span class="px-2 rounded-pill" style="background:var(--color-secondary); color:var(--color-primary); font-size:10px;">Pagado</span>
-                                @elseif($p['isOverdue'])
-                                    <span class="px-2 rounded-pill" style="background:#fdecea; color:#c0392b; font-size:10px;">Atrasado</span>
-                                @elseif($p['isNext'])
-                                    <span class="px-2 rounded-pill" style="background:{{ $tc['color'] }}; color:white; font-size:10px;">Siguiente</span>
-                                @else
-                                    <span class="px-2 rounded-pill" style="background:#f5f5f5; color:#888; font-size:10px;">Pendiente</span>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+            <div style="max-height:320px; overflow-y:auto;">
+                @foreach($paymentSchedule as $p)
+    <div class="d-flex align-items-center justify-content-between py-2 px-2 rounded-2 mb-1"
+         style="font-size:12px;
+                {{ $p['isPaid'] ? '' : 'cursor:pointer;' }}
+                {{ $p['isNext'] ? 'background:' . $tc['bg'] . ';' : '' }}"
+         @if(!$p['isPaid'])
+             @click="$dispatch('select-period', { number: {{ $p['number'] }} })"
+         @endif>
 
-                <div class="mt-3 pt-2 d-flex justify-content-between" style="border-top:0.5px solid #f0f0f0; font-size:11px;">
-                    <span class="text-muted">{{ collect($paymentSchedule)->where('isPaid', true)->count() }} pagados de {{ $periods }}</span>
-                    <span style="color:{{ $tc['color'] }}; font-weight:500;">{{ collect($paymentSchedule)->where('isPaid', false)->count() }} pendientes</span>
-                </div>
+        <div class="d-flex align-items-center gap-2">
+            @if($p['isPaid'])
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+            @elseif($p['isOverdue'])
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+            @elseif($p['isNext'])
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ $tc['color'] }}" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+                </svg>
             @else
-                <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cobros de interés</p>
-                <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
-                    <span class="text-muted">Interés mensual</span>
-                    <span class="fw-medium" style="color:#e65100;">${{ number_format($loan->monthly_interest, 2) }}</span>
+                <div class="rounded-circle"
+                     :style="{{ $p['number'] }} <= nextPeriod
+                         ? 'width:14px; height:14px; background:{{ $tc['color'] }}; border:1.5px solid {{ $tc['color'] }};'
+                         : 'width:14px; height:14px; border:1.5px solid #ccc;'">
                 </div>
-                <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
-                    <span class="text-muted">Cobros realizados</span>
-                    <span class="fw-medium">{{ $loan->payments->count() }}</span>
-                </div>
-                <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
-                    <span class="text-muted">Interés cobrado</span>
-                    <span class="fw-medium" style="color:var(--color-primary);">${{ number_format($totalInteres, 2) }}</span>
-                </div>
-                <div class="d-flex justify-content-between py-2" style="font-size:13px;">
-                    <span class="text-muted">Capital abonado</span>
-                    <span class="fw-medium">${{ number_format($totalCapital, 2) }}</span>
-                </div>
-                <div class="mt-3 p-2 rounded-2 text-center" style="background:#fff3e0; font-size:11px; color:#e65100;">
-                    El capital no disminuye hasta que el cliente liquide
-                </div>
+            @endif
+
+            <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : ($p['isOverdue'] ? '#c0392b' : ($p['isNext'] ? $tc['color'] : '#888')) }};
+                         font-weight:{{ $p['isNext'] ? '500' : '400' }};">
+                #{{ $p['number'] }} — {{ $p['date']->format('d/m/Y') }}
+            </span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : '#888' }};">
+                ${{ number_format($p['isNext'] ? $nextAmount : $p['amount'], 2) }}
+            </span>
+            @if($p['isPaid'])
+                <span class="px-2 rounded-pill" style="background:var(--color-secondary); color:var(--color-primary); font-size:10px;">Pagado</span>
+            @elseif($p['isOverdue'])
+                <span class="px-2 rounded-pill" style="background:#fdecea; color:#c0392b; font-size:10px;">Atrasado</span>
+            @elseif($p['isNext'])
+                <span class="px-2 rounded-pill" style="background:{{ $tc['color'] }}; color:white; font-size:10px;">
+                    Siguiente{{ $sobrante > 0 ? ' (-$' . number_format($sobrante, 2) . ')' : '' }}
+                </span>
+            @else
+                <span class="px-2 rounded-pill"
+                      :style="{{ $p['number'] }} <= nextPeriod
+                          ? 'background:{{ $tc['color'] }}; color:white; font-size:10px;'
+                          : 'background:#f5f5f5; color:#888; font-size:10px;'">
+                    <span x-text="{{ $p['number'] }} <= nextPeriod ? 'Seleccionado' : 'Pendiente'"></span>
+                </span>
             @endif
         </div>
     </div>
+@endforeach
+            </div>
+
+            <div class="mt-3 pt-2 d-flex justify-content-between" style="border-top:0.5px solid #f0f0f0; font-size:11px;">
+                <span class="text-muted">{{ collect($paymentSchedule)->where('isPaid', true)->count() }} pagados de {{ $periods }}</span>
+                <span style="color:{{ $tc['color'] }}; font-weight:500;">{{ collect($paymentSchedule)->where('isPaid', false)->count() }} pendientes</span>
+            </div>
+
+        @else
+            {{-- Bloque interés — sin cambios --}}
+            <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cobros de interés</p>
+            <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
+                <span class="text-muted">Interés mensual</span>
+                <span class="fw-medium" style="color:#e65100;">${{ number_format($loan->monthly_interest, 2) }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
+                <span class="text-muted">Cobros realizados</span>
+                <span class="fw-medium">{{ $loan->payments->count() }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2" style="border-bottom:0.5px solid #f5f5f5; font-size:13px;">
+                <span class="text-muted">Interés cobrado</span>
+                <span class="fw-medium" style="color:var(--color-primary);">${{ number_format($totalInteres, 2) }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2" style="font-size:13px;">
+                <span class="text-muted">Capital abonado</span>
+                <span class="fw-medium">${{ number_format($totalCapital, 2) }}</span>
+            </div>
+            <div class="mt-3 p-2 rounded-2 text-center" style="background:#fff3e0; font-size:11px; color:#e65100;">
+                El capital no disminuye hasta que el cliente liquide
+            </div>
+        @endif
+    </div>
+</div>
 
 </div>
 

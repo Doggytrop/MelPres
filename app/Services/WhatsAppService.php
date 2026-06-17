@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
-    private string $token;
-    private string $phoneNumberId;
+    private ?string $token = null;
+    private ?string $phoneNumberId = null;
     private string $apiUrl;
     private bool   $enabled;
 

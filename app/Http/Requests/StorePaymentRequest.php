@@ -11,10 +11,11 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount_paid'   => ['required', 'numeric', 'min:0.01'],
-            'payment_date'  => ['required', 'date'],
-            'expected_date' => ['nullable', 'date'],
-            'notes'         => ['nullable', 'string'],
+        'amount_paid'   => 'required|numeric|min:0.01',
+        'payment_date'  => 'required|date',
+        'expected_date' => 'nullable|date',
+        'notes'         => 'nullable|string|max:500',
+        'periods'       => 'nullable|integer|min:1|max:52',
         ];
     }
 

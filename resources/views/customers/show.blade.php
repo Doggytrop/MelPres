@@ -160,7 +160,11 @@
                     </span>
                 </div>
                 <form method="POST" action="{{ route('customers.reset-password', $customer) }}"
-                      onsubmit="return confirm('¿Generar una nueva contraseña? La actual dejará de funcionar.')">
+                      data-confirm-submit
+                      data-confirm-title="Resetear contraseña"
+                      data-confirm-message="¿Generar una nueva contraseña? La actual dejará de funcionar."
+                      data-confirm-button="Sí, resetear"
+                      data-confirm-tone="primary">
                     @csrf
                     <button type="submit" class="btn btn-sm w-100"
                             style="background:#e3f2fd; color:#1565c0; border:0.5px solid #90caf9; border-radius:8px; font-size:12px; padding:6px;">

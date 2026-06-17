@@ -20,6 +20,8 @@ class Payment extends Model
         'payment_type',
         'notes',
         'recorded_by',
+        'periods_covered',
+        'carry_over',
     ];
 
     protected $casts = [

@@ -110,4 +110,5 @@ Route::middleware(['auth'])->prefix('collector')->group(function () {
     Route::post('/collect/{loan}', [App\Http\Controllers\CollectorController::class, 'collect'])->name('collector.collect');
 });
 
+
 require __DIR__.'/auth.php';

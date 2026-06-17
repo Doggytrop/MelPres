@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <title>@yield('title', 'MelPres') — {{ $config_sistema['negocio_nombre'] ?? 'MelPres' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @php
         $colorPrimario   = $config_sistema['color_primario'] ?? '#1f6b21';
@@ -203,6 +206,21 @@
             justify-content: center;
             flex-shrink: 0;
         }
+
+        .confirm-icon.is-primary {
+            background: {{ $colorSecundario }};
+            color: {{ $colorPrimario }};
+        }
+
+        .confirm-icon.is-danger {
+            background: #fdecea;
+            color: #c0392b;
+        }
+
+        #userMenuDropdown.show {
+            display: block;
+            position: absolute;
+        }
     </style>
 </head>
 <body>
@@ -218,7 +236,7 @@
         </div>
 
         {{-- Zona derecha --}}
-        <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+        <div class="d-flex flex-column flex-grow-1" style="min-width:0;">
 
             {{-- Navbar superior --}}
             @include('partials.navbar')
@@ -236,7 +254,7 @@
             <div class="modal-content border-0 rounded-3 shadow-sm">
                 <div class="modal-body p-4">
                     <div class="d-flex gap-3">
-                        <div class="confirm-icon">
+                        <div class="confirm-icon is-danger" id="confirmActionIcon">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                                 <path d="M12 9v4M12 17h.01"/>
@@ -268,6 +286,36 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const userMenu = document.getElementById('userMenu');
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userMenuDropdown = document.getElementById('userMenuDropdown');
+
+            if (userMenu && userMenuButton && userMenuDropdown) {
+                const closeUserMenu = () => {
+                    userMenuDropdown.classList.remove('show');
+                    userMenuButton.setAttribute('aria-expanded', 'false');
+                };
+
+                userMenuButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const isOpen = userMenuDropdown.classList.toggle('show');
+                    userMenuButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (!userMenu.contains(event.target)) {
+                        closeUserMenu();
+                    }
+                });
+
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape') {
+                        closeUserMenu();
+                    }
+                });
+            }
+
             const modalElement = document.getElementById('confirmActionModal');
             if (!modalElement) return;
 
@@ -275,6 +323,7 @@
             const title = document.getElementById('confirmActionTitle');
             const message = document.getElementById('confirmActionMessage');
             const confirmButton = document.getElementById('confirmActionButton');
+            const confirmIcon = document.getElementById('confirmActionIcon');
             let pendingForm = null;
 
             document.addEventListener('submit', function(event) {
@@ -286,6 +335,10 @@
                 title.textContent = form.dataset.confirmTitle || 'Confirmar eliminación';
                 message.textContent = form.dataset.confirmMessage || 'Esta acción no se puede deshacer.';
                 confirmButton.textContent = form.dataset.confirmButton || 'Sí, eliminar';
+                const tone = form.dataset.confirmTone || 'danger';
+                confirmIcon.classList.toggle('is-primary', tone === 'primary');
+                confirmIcon.classList.toggle('is-danger', tone !== 'primary');
+                confirmButton.style.background = tone === 'primary' ? 'var(--color-primary)' : '#c0392b';
                 modal.show();
             });
 

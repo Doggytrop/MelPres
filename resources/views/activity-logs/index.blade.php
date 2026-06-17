@@ -20,7 +20,7 @@
                     <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
                 </svg>
                 Filtrar
-                @if(request('module') || request('action') || request('user'))
+                @if(request('module') || request('action') || request('user') || request('date_from') || request('date_to'))
                     <span class="rounded-circle d-inline-flex align-items-center justify-content-center"
                           style="width:18px; height:18px; background:var(--color-primary); color:white; font-size:10px;">!</span>
                 @endif
@@ -33,8 +33,22 @@
                         <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase;">Módulo</label>
                         <select name="module" class="form-control form-control-sm">
                             <option value="">Todos</option>
+                            @php
+                                $moduleNames = [
+                                    'loans'           => 'Préstamos',
+                                    'customers'       => 'Clientes',
+                                    'payments'        => 'Pagos',
+                                    'users'           => 'Usuarios',
+                                    'restructurings'  => 'Reestructuraciones',
+                                    'settings'        => 'Configuración',
+                                    'reports'         => 'Reportes',
+                                    'auth'         => 'Autenticación',
+                                ];
+                            @endphp
                             @foreach($modules as $m)
-                                <option value="{{ $m }}" {{ request('module') === $m ? 'selected' : '' }}>{{ ucfirst($m) }}</option>
+                                <option value="{{ $m }}" {{ request('module') === $m ? 'selected' : '' }}>
+                                    {{ $moduleNames[$m] ?? ucfirst($m) }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -58,6 +72,16 @@
                                 <option value="{{ $u->id }}" {{ request('user') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase;">Fecha desde</label>
+                        <input type="date" name="date_from" value="{{ request('date_from') }}"
+                            class="form-control form-control-sm">
+                    </div>
+                    <div class="mb-3">
+                        <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase;">Fecha hasta</label>
+                        <input type="date" name="date_to" value="{{ request('date_to') }}"
+                            class="form-control form-control-sm">
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-sm flex-fill"
