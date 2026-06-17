@@ -4,7 +4,8 @@
     $waEnabled = $gw?->firstWhere('key','whatsapp_enabled')?->value == '1';
 @endphp
 
-{{-- ═══ WHATSAPP: CONEXIÓN ═══ --}}
+{{-- ═══ WHATSAPP: CONEXIÓN (solo superadmin) ═══ --}}
+@if(auth()->user()->isSuperAdmin())
 <div class="setting-card">
     <div class="setting-card-header">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="1.5">
@@ -16,7 +17,6 @@
         </span>
     </div>
     <div class="setting-card-body">
-        {{-- Toggle global --}}
         <div class="d-flex align-items-center justify-content-between p-3 rounded-3 mb-4" style="background:#f8f9f8; border:1px solid #e8e8e8;">
             <div>
                 <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Activar notificaciones WhatsApp</span>
@@ -59,6 +59,7 @@
         </div>
     </div>
 </div>
+@endif
 
 {{-- ═══ WHATSAPP: RECORDATORIO DE PAGO ═══ --}}
 <div class="setting-card">
@@ -140,9 +141,9 @@
 </div>
 
 <script>
-// Toggle global habilita/deshabilita campos
+@if(auth()->user()->isSuperAdmin())
 document.getElementById('waGlobalToggle').addEventListener('change', function() {
-    document.getElementById('waFields').style.opacity      = this.checked ? '1'    : '0.4';
+    document.getElementById('waFields').style.opacity       = this.checked ? '1'    : '0.4';
     document.getElementById('waFields').style.pointerEvents = this.checked ? 'auto' : 'none';
 });
 
@@ -150,4 +151,5 @@ function toggleTokenVisibility() {
     const input = document.getElementById('waToken');
     input.type = input.type === 'password' ? 'text' : 'password';
 }
+@endif
 </script>
