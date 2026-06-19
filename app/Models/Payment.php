@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use App\Models\Loan;
 class Payment extends Model
 {
     use HasFactory;
@@ -36,7 +36,7 @@ class Payment extends Model
     // — Relaciones —
     public function loan()
     {
-        return $this->belongsTo(loan::class);
+        return $this->belongsTo(Loan::class);
     }
 
     public function registradoPor()

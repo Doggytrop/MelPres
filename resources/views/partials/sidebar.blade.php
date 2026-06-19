@@ -1,6 +1,9 @@
 @php
     $cp = $config_sistema['color_primario'] ?? 'var(--color-primary)';
     $cs = $config_sistema['color_secundario'] ?? 'var(--color-secondary)';
+    $isAdmin     = auth()->user()->isAdmin();
+    $isSuperAdmin = auth()->user()->isSuperAdmin();
+    $isAdvisor   = auth()->user()->isAdvisor();
 @endphp
 
 <div class="d-flex flex-column h-100 p-0 overflow-hidden sidebar-shell">
@@ -21,7 +24,7 @@
             </div>
         @endif
         <span class="fw-medium" style="color:#1a2e1a; font-size:15px;">
-            {{ $config_sistema['negocio_nombre'] ?? 'MelPres' }}
+            {{ $config_sistema['negocio_nombre'] ?? 'SonPres' }}
         </span>
     </a>
 
@@ -30,11 +33,11 @@
 
         @php
             $menuItems = [
-                ['route' => 'dashboard',       'icon' => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>', 'label' => 'Inicio',       'match' => 'dashboard'],
-                ['route' => 'customers.index', 'icon' => '<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>',                                                                                                                  'label' => 'Clientes',     'match' => 'customers.*'],
-                ['route' => 'loans.index',     'icon' => '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',                                                                                                                                'label' => 'Préstamos',    'match' => 'loans.*'],
-                ['route' => 'history.index',   'icon' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',                                                                                                                                               'label' => 'Historial',    'match' => 'history.*'],
-                ['route' => 'simulator.index', 'icon' => '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',                                                                                                                        'label' => 'Simulador',    'match' => 'simulator.*'],
+                ['route' => 'dashboard',       'icon' => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>', 'label' => 'Inicio',    'match' => 'dashboard'],
+                ['route' => 'customers.index', 'icon' => '<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>',                                                                                                                  'label' => 'Clientes',   'match' => 'customers.*'],
+                ['route' => 'loans.index',     'icon' => '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',                                                                                                                                'label' => 'Préstamos',  'match' => 'loans.*'],
+                ['route' => 'history.index',   'icon' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',                                                                                                                                               'label' => 'Historial',  'match' => 'history.*'],
+                ['route' => 'simulator.index', 'icon' => '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',                                                                                                                        'label' => 'Simulador',  'match' => 'simulator.*'],
             ];
         @endphp
 
@@ -43,10 +46,7 @@
             <li class="nav-item">
                 <a href="{{ route($item['route']) }}"
                    class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-                   style="{{ $isActive
-                       ? 'background:' . $cp . '; color:white;'
-                       : 'color:#6b7280;'
-                   }} font-size:14px; transition:all .15s;">
+                   style="{{ $isActive ? 'background:' . $cp . '; color:white;' : 'color:#6b7280;' }} font-size:14px; transition:all .15s;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         {!! $item['icon'] !!}
                     </svg>
@@ -58,7 +58,7 @@
             </li>
         @endforeach
 
-        {{-- Reestructuración con submenú --}}
+        {{-- Reestructuración --}}
         @php $reestActive = request()->routeIs('restructuring.*'); @endphp
         <li class="nav-item">
             <div class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
@@ -74,14 +74,13 @@
                     <path d="M6 9l6 6 6-6"/>
                 </svg>
             </div>
-
             <ul class="nav flex-column ps-4 gap-1 mt-1 sidebar-submenu" id="submenu_reest"
                 style="{{ $reestActive ? '' : 'display:none;' }}">
                 @php
                     $subItems = [
-                        ['route' => 'restructuring.overdue', 'label' => 'Vencidos',   'match' => ['restructuring.overdue', 'restructuring.create']],
-                        ['route' => 'restructuring.active',  'label' => 'Activos',    'match' => ['restructuring.active']],
-                        ['route' => 'restructuring.history', 'label' => 'Historial',  'match' => ['restructuring.history']],
+                        ['route' => 'restructuring.overdue', 'label' => 'Vencidos',  'match' => ['restructuring.overdue', 'restructuring.create']],
+                        ['route' => 'restructuring.active',  'label' => 'Activos',   'match' => ['restructuring.active']],
+                        ['route' => 'restructuring.history', 'label' => 'Historial', 'match' => ['restructuring.history']],
                     ];
                 @endphp
                 @foreach($subItems as $sub)
@@ -89,10 +88,7 @@
                     <li class="nav-item">
                         <a href="{{ route($sub['route']) }}"
                            class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-                           style="{{ $subActive
-                               ? 'background:' . $cp . '; color:white;'
-                               : 'color:#6b7280;'
-                           }} font-size:13px; transition:all .15s;">
+                           style="{{ $subActive ? 'background:' . $cp . '; color:white;' : 'color:#6b7280;' }} font-size:13px; transition:all .15s;">
                             <div class="rounded-circle" style="width:5px; height:5px; background:{{ $subActive ? 'white' : '#ccc' }};"></div>
                             <span class="sidebar-label">{{ $sub['label'] }}</span>
                         </a>
@@ -109,10 +105,7 @@
         <li class="nav-item">
             <a href="{{ route('cash-register.index') }}"
                class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-               style="{{ $cajaActive
-                   ? 'background:' . $cp . '; color:white;'
-                   : 'color:#6b7280;'
-               }} font-size:14px; transition:all .15s;">
+               style="{{ $cajaActive ? 'background:' . $cp . '; color:white;' : 'color:#6b7280;' }} font-size:14px; transition:all .15s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                 </svg>
@@ -120,86 +113,63 @@
             </a>
         </li>
 
-        {{-- Asesores --}}
-        @php $advActive = request()->routeIs('advisors.*'); @endphp
-        <!-- <li class="nav-item">
-            <a href="{{ route('advisors.index') }}"
-               class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-               style="{{ $advActive
-                   ? 'background:' . $cp . '; color:white;'
-                   : 'color:#6b7280;'
-               }} font-size:14px; transition:all .15s;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                    <path d="M21 21v-2a4 4 0 0 0-3-3.85"/>
-                </svg>
-                Asesores
-            </a>
-        </li> 
-        <-- END Asesores -->
+        {{-- Usuarios — solo admin --}}
+        @if($isAdmin)
+            @php $usersActive = request()->routeIs('users.*'); @endphp
+            <li class="nav-item">
+                <a href="{{ route('users.index') }}"
+                   class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
+                   style="{{ $usersActive ? 'background:' . $cp . '; color:white;' : 'color:#6b7280;' }} font-size:14px; transition:all .15s;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Usuarios
+                    @if($usersActive)
+                        <div class="ms-auto rounded-circle" style="width:6px; height:6px; background:rgba(255,255,255,0.5);"></div>
+                    @endif
+                </a>
+            </li>
+        @endif
 
-        
-        {{-- Usuarios --}}
-        @php $usersActive = request()->routeIs('users.*'); @endphp
-        <li class="nav-item">
-            <a href="{{ route('users.index') }}"
-            class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-            style="{{ $usersActive
-                ? 'background:' . $cp . '; color:white;'
-                : 'color:#6b7280;'
-            }} font-size:14px; transition:all .15s;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                Usuarios
-                @if($usersActive)
-                    <div class="ms-auto rounded-circle" style="width:6px; height:6px; background:rgba(255,255,255,0.5);"></div>
-                @endif
-            </a>
-    </li>
-    {{-- Bitácora --}}
-    @php $logsActive = request()->routeIs('activity-logs.*'); @endphp
-    <li class="nav-item">
-        <a href="{{ route('activity-logs.index') }}"
-        class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-        style="{{ $logsActive
-            ? 'background:' . $cp . '; color:white;'
-            : 'color:#6b7280;'
-        }} font-size:14px; transition:all .15s;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-            </svg>
-            <span class="sidebar-label">Bitácora</span>
-            @if($logsActive)
-                <div class="ms-auto rounded-circle" style="width:6px; height:6px; background:rgba(255,255,255,0.5);"></div>
-            @endif
-        </a>
-    </li>
-    
-    {{-- Configuración --}}
-        @php $settActive = request()->routeIs('settings.*'); @endphp
-        <li class="nav-item">
-            <a href="{{ route('settings.index') }}"
-               class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
-               style="{{ $settActive
-                   ? 'background:' . $cp . '; color:white;'
-                   : 'color:#6b7280;'
-               }} font-size:14px; transition:all .15s;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-                Configuración
-            </a>
-        </li>
+        {{-- Bitácora — solo admin --}}
+        @if($isAdmin)
+            @php $logsActive = request()->routeIs('activity-logs.*'); @endphp
+            <li class="nav-item">
+                <a href="{{ route('activity-logs.index') }}"
+                   class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
+                   style="{{ $logsActive ? 'background:' . $cp . '; color:white;' : 'color:#6b7280;' }} font-size:14px; transition:all .15s;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    <span class="sidebar-label">Bitácora</span>
+                    @if($logsActive)
+                        <div class="ms-auto rounded-circle" style="width:6px; height:6px; background:rgba(255,255,255,0.5);"></div>
+                    @endif
+                </a>
+            </li>
+        @endif
+
+        {{-- Configuración — solo admin --}}
+        @if($isAdmin)
+            @php $settActive = request()->routeIs('settings.*'); @endphp
+            <li class="nav-item">
+                <a href="{{ route('settings.index') }}"
+                   class="nav-link d-flex align-items-center gap-2 rounded-2 px-3 py-2"
+                   style="{{ $settActive ? 'background:' . $cp . '; color:white;' : 'color:#6b7280;' }} font-size:14px; transition:all .15s;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                    Configuración
+                </a>
+            </li>
+        @endif
 
     </ul>
 
@@ -214,9 +184,9 @@
                 <div class="flex-grow-1 overflow-hidden">
                     <p class="mb-0 fw-medium text-truncate" style="font-size:12px; color:#1a2e1a;">{{ auth()->user()->name }}</p>
                     <p class="mb-0" style="font-size:10px; color:{{ $cp }};">
-                        @if(auth()->user()->isSuperAdmin())
+                        @if($isSuperAdmin)
                             Super Admin
-                        @elseif(auth()->user()->isAdmin())
+                        @elseif($isAdmin)
                             Administrador
                         @else
                             Asesor
@@ -246,12 +216,10 @@
         height: 100dvh;
         overflow-x: hidden;
     }
-
     .sidebar-shell {
         height: 100dvh;
         max-height: 100dvh;
     }
-
     .sidebar-nav {
         display: block !important;
         flex: 1 1 auto;
@@ -264,24 +232,11 @@
         -webkit-overflow-scrolling: touch;
         touch-action: pan-y;
     }
-
-    .sidebar-nav,
-    .sidebar-nav ul {
-        box-sizing: border-box;
-    }
-
+    .sidebar-nav, .sidebar-nav ul { box-sizing: border-box; }
     .sidebar-nav .nav-item,
     .sidebar-nav .nav-link,
-    .sidebar-submenu {
-        min-width: 0;
-        max-width: 100%;
-    }
-
-    .sidebar-nav > .nav-item {
-        display: block;
-        width: 100%;
-    }
-
+    .sidebar-submenu { min-width: 0; max-width: 100%; }
+    .sidebar-nav > .nav-item { display: block; width: 100%; }
     .sidebar-nav .nav-link {
         box-sizing: border-box;
         display: flex;
@@ -289,30 +244,23 @@
         overflow: hidden;
         white-space: nowrap;
     }
-
     .sidebar-nav .nav-link > svg,
-    .sidebar-nav .nav-link > .rounded-circle {
-        flex: 0 0 auto;
-    }
-
+    .sidebar-nav .nav-link > .rounded-circle { flex: 0 0 auto; }
     .sidebar-label {
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-
     .sidebar-submenu {
         overflow-x: hidden;
         padding-left: 1rem !important;
         width: 100%;
     }
-
     .sidebar-submenu .nav-link {
         padding-left: .75rem !important;
         padding-right: .75rem !important;
     }
-
     .nav-link:hover:not(.text-white) {
         background: {{ $cs }} !important;
         color: {{ $cp }} !important;
@@ -324,7 +272,7 @@ function toggleSubmenu(id) {
     const menu  = document.getElementById(id);
     const arrow = document.getElementById('arrow_' + id.replace('submenu_', ''));
     const visible = menu.style.display !== 'none';
-    menu.style.display  = visible ? 'none' : 'block';
+    menu.style.display    = visible ? 'none' : 'block';
     arrow.style.transform = visible ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 

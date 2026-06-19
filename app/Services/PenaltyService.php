@@ -49,7 +49,13 @@ class PenaltyService
      */
     private function applyFixed(Loan $loan, int $daysOverdue): void
     {
-        $maxDays = $this->periodDays($loan->payment_frequency);
+        $periodDays = $this->periodDays($loan->payment_frequency);
+
+        // Para frecuencia diaria el tope sería 1, lo que no tiene sentido.
+        // Usamos número de periodos del préstamo como tope máximo.
+        $maxDays = $periodDays === 1
+            ? ($loan->number_of_periods ?? 30)
+            : $periodDays;
 
         if ($daysOverdue >= 1 && $daysOverdue <= $maxDays) {
             $loan->accumulated_penalty += floatval($loan->penalty_value);

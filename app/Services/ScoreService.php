@@ -2,19 +2,18 @@
 
 namespace App\Services;
 
-use App\Models\customer;
-use App\Models\loan;
-use App\Models\payment;
+use App\Models\Customer;
+use App\Models\Loan;
 
 class ScoreService
 {
-    public function calcular(customer $customer): int
+    public function calcular(Customer $customer): int
     {
         $score = 100;
 
-        $loans = loan::where('customer_id', $customer->id)
-                             ->with('payments')
-                             ->get();
+        $loans = Loan::where('customer_id', $customer->id)
+                     ->with('payments')
+                     ->get();
 
         foreach ($loans as $loan) {
 
@@ -40,12 +39,12 @@ class ScoreService
 
             foreach ($loan->payments as $payment) {
 
-                // — payment puntual (sin mora en ese payment) —
+                // — Pago puntual (sin mora) —
                 if ($payment->penalty_payment == 0) {
                     $score += 5;
                 }
 
-                // — payment con mora (se atrasó) —
+                // — Pago con mora (se atrasó) —
                 if ($payment->penalty_payment > 0) {
                     $score -= 10;
                 }
@@ -56,22 +55,22 @@ class ScoreService
         return max(0, min(1000, $score));
     }
 
-    public function actualizar(customer $customer): void
+    public function actualizar(Customer $customer): void
     {
         $score = $this->calcular($customer);
 
-        $customer->score                  = $score;
-        $customer->score_updated_at   = now();
+        $customer->score            = $score;
+        $customer->score_updated_at = now();
         $customer->save();
     }
 
     public function etiqueta(int $score): array
     {
         return match(true) {
-            $score >= 80  => ['label' => 'Excelente', 'color' => '#1f6b21', 'bg' => '#e8f5e9'],
-            $score >= 60  => ['label' => 'Bueno',     'color' => '#1565c0', 'bg' => '#e3f2fd'],
-            $score >= 40  => ['label' => 'Regular',   'color' => '#e65100', 'bg' => '#fff3e0'],
-            default       => ['label' => 'Alto riesgo','color' => '#c0392b', 'bg' => '#fdecea'],
+            $score >= 80 => ['label' => 'Excelente',   'color' => '#1f6b21', 'bg' => '#e8f5e9'],
+            $score >= 60 => ['label' => 'Bueno',        'color' => '#1565c0', 'bg' => '#e3f2fd'],
+            $score >= 40 => ['label' => 'Regular',      'color' => '#e65100', 'bg' => '#fff3e0'],
+            default      => ['label' => 'Alto riesgo',  'color' => '#c0392b', 'bg' => '#fdecea'],
         };
     }
-}// Credit score system implemented
+}

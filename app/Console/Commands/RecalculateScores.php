@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\customer;
+use App\Models\Customer;
 use App\Services\ScoreService;
 use Illuminate\Console\Command;
 
@@ -20,11 +20,11 @@ class RecalculateScores extends Command
     {
         $this->info('Recalculando scores...');
 
-        $customers = customer::all();
+        $customers = Customer::all();
 
         foreach ($customers as $customer) {
             $this->scoreService->actualizar($customer);
-            $this->line("  ✓ {$customer->first_name_complete} → {$customer->score} pts");
+            $this->line("  ✓ {$customer->full_name} → {$customer->score} pts");
         }
 
         $this->info("Completado: {$customers->count()} customers actualizados.");

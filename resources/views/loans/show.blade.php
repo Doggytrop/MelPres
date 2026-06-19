@@ -294,10 +294,9 @@
     $paymentAmount = floatval($loan->daily_payment ?: $loan->suggested_payment);
 
     if ($loan->type === 'daily' && $paymentAmount > 0) {
-        $totalPagado = ($loan->original_amount + $loan->accrued_interest) - $loan->remaining_balance;
-        $paidCount   = (int) floor($totalPagado / $paymentAmount);
-        $sobrante    = round($totalPagado - ($paidCount * $paymentAmount), 2);
-        $nextAmount  = round($paymentAmount - $sobrante, 2);
+        $paidCount  = $loan->payments->sum('periods_covered');
+        $sobrante   = round($loan->payments->sum('carry_over'), 2);
+        $nextAmount = round($paymentAmount - $sobrante, 2);
 
     } elseif ($loan->type === 'term' && $paymentAmount > 0) {
         $paidCount  = $loan->payments->count();
