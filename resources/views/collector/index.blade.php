@@ -9,6 +9,7 @@
     @php
         $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
         $colorSecundario = $config_sistema['color_secundario'] ?? '#e8f5e9';
+        $nombreEmpresa = $config_sistema['nombre_empresa'] ?? config('app.name', 'MelPres');
     @endphp
     <style>
         :root {
@@ -62,8 +63,16 @@
         @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         .section-title { font-size: 13px; font-weight: 600; letter-spacing: 0.03em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .collected-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; }
+        .collected-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; gap: 10px; }
         .collected-row:last-child { border-bottom: none; }
+
+        .btn-ticket-action {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e0e0e0;
+            background: #fff; color: #555; display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all .15s; flex-shrink: 0;
+        }
+        .btn-ticket-action:hover { background: var(--color-secondary); color: var(--color-primary); border-color: var(--color-primary); }
+        .btn-ticket-whatsapp:hover { background: #e6f7ec; color: #25D366; border-color: #25D366; }
 
         #map { height: 380px; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 
@@ -72,6 +81,31 @@
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .animate-in { animation: slideIn 0.3s ease forwards; }
+
+        /* Ticket imprimible (oculto en pantalla) */
+        #printableTicket { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #printableTicket, #printableTicket * { visibility: visible; }
+            #printableTicket {
+                display: block;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 58mm;
+                padding: 2mm 3mm;
+                font-family: 'Courier New', monospace;
+                font-size: 11px;
+                line-height: 1.4;
+                color: #000;
+            }
+            #printableTicket .ticket-center { text-align: center; }
+            #printableTicket .ticket-line { border-top: 1px dashed #000; margin: 4px 0; }
+            #printableTicket .ticket-row { display: flex; justify-content: space-between; }
+            #printableTicket .ticket-title { font-size: 13px; font-weight: bold; }
+            #printableTicket .ticket-total { font-size: 14px; font-weight: bold; margin-top: 4px; }
+            @page { margin: 0; size: 58mm auto; }
+        }
     </style>
 </head>
 <body>
@@ -179,11 +213,11 @@
 
         {{-- Tabs --}}
         <div class="d-flex gap-2 mb-4">
-            <button class="tab-btn active" onclick="showTab('pending')">
+            <button class="tab-btn active" onclick="showTab('pending', event)">
                 Pendientes ({{ $todayLoans->count() + $overdueLoans->count() }})
             </button>
             @if($collectedToday->count() > 0)
-                <button class="tab-btn" onclick="showTab('collected')">
+                <button class="tab-btn" onclick="showTab('collected', event)">
                     Cobrados hoy ({{ $collectedToday->count() }})
                 </button>
             @endif
@@ -361,7 +395,23 @@
                 </div>
 
                 @forelse($collectedToday as $payment)
-                    <div class="collected-row">
+                    @php
+                        $custPhone = $payment->loan->customer->phone ?? '';
+                        $custName  = $payment->loan->customer->full_name ?? 'Cliente';
+                        $loanType  = $payment->loan->type_label ?? '';
+                        $balanceAfter = $payment->loan->remaining_balance ?? null;
+                    @endphp
+                    <div class="collected-row"
+                         data-ticket-empresa="{{ $nombreEmpresa }}"
+                         data-ticket-customer="{{ $custName }}"
+                         data-ticket-phone="{{ $custPhone }}"
+                         data-ticket-loan="{{ $payment->loan_id }}"
+                         data-ticket-type="{{ $loanType }}"
+                         data-ticket-amount="{{ number_format($payment->amount_paid, 2) }}"
+                         data-ticket-balance="{{ $balanceAfter !== null ? number_format($balanceAfter, 2) : '' }}"
+                         data-ticket-date="{{ $payment->created_at->format('d/m/Y H:i') }}"
+                         data-ticket-collector="{{ auth()->user()->name }}"
+                         data-ticket-payment-id="{{ $payment->id }}">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center"
                                  style="width:32px; height:32px; background:var(--color-secondary); flex-shrink:0;">
@@ -371,20 +421,37 @@
                             </div>
                             <div>
                                 <span class="fw-medium" style="font-size:14px; color:#1a2e1a;">
-                                    {{ $payment->loan->customer->full_name ?? 'Cliente' }}
+                                    {{ $custName }}
                                 </span>
                                 <span class="d-block" style="font-size:12px; color:#888;">
-                                    Préstamo #{{ $payment->loan_id }} · {{ $payment->loan->type_label ?? '' }}
+                                    Préstamo #{{ $payment->loan_id }} · {{ $loanType }}
                                 </span>
                             </div>
                         </div>
-                        <div class="text-end">
-                            <span class="fw-medium" style="font-size:16px; color:var(--color-primary);">
-                                ${{ number_format($payment->amount_paid, 2) }}
-                            </span>
-                            <span class="d-block" style="font-size:11px; color:#888;">
-                                {{ $payment->created_at->format('H:i') }}
-                            </span>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="text-end">
+                                <span class="fw-medium" style="font-size:16px; color:var(--color-primary);">
+                                    ${{ number_format($payment->amount_paid, 2) }}
+                                </span>
+                                <span class="d-block" style="font-size:11px; color:#888;">
+                                    {{ $payment->created_at->format('H:i') }}
+                                </span>
+                            </div>
+
+                            <button type="button" class="btn-ticket-action" onclick="printTicket(this.closest('.collected-row'))" title="Imprimir ticket">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <polyline points="6 9 6 2 18 2 18 9"/>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                    <rect x="6" y="14" width="12" height="8"/>
+                                </svg>
+                            </button>
+
+                            <button type="button" class="btn-ticket-action btn-ticket-whatsapp" onclick="sendWhatsappTicket(this.closest('.collected-row'))" title="Enviar por WhatsApp">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.9 11.9L4 20l4.2-1.1a7.9 7.9 0 0 0 3.85 1h.01a7.94 7.94 0 0 0 5.54-13.6zm-5.55 12.2a6.57 6.57 0 0 1-3.36-.92l-.24-.14-2.5.65.67-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.1zm3.6-4.95c-.2-.1-1.16-.57-1.34-.64s-.31-.1-.44.1-.5.63-.62.76-.23.15-.43.05a5.4 5.4 0 0 1-1.6-.98 5.9 5.9 0 0 1-1.1-1.36c-.11-.2 0-.3.09-.4.09-.1.2-.24.3-.36a1.3 1.3 0 0 0 .2-.33.36.36 0 0 0 0-.35c-.05-.1-.44-1.05-.6-1.44-.16-.38-.32-.33-.44-.33h-.37a.72.72 0 0 0-.52.24 2.2 2.2 0 0 0-.68 1.63 3.8 3.8 0 0 0 .8 2.02 8.7 8.7 0 0 0 3.34 2.95c.47.2.83.32 1.11.41.47.15.9.13 1.24.08.38-.06 1.16-.47 1.32-.93.16-.46.16-.85.11-.93s-.18-.13-.38-.23z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 @empty
@@ -395,6 +462,16 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- Plantilla de ticket imprimible (58mm), oculta en pantalla --}}
+    <div id="printableTicket">
+        <div class="ticket-center ticket-title" id="ticketEmpresa"></div>
+        <div class="ticket-center">Comprobante de pago</div>
+        <div class="ticket-line"></div>
+        <div id="ticketBody"></div>
+        <div class="ticket-line"></div>
+        <div class="ticket-center">¡Gracias por su pago!</div>
     </div>
 
     <div class="collect-modal" id="collectConfirmModal" aria-hidden="true">
@@ -478,12 +555,62 @@
         });
 
         // Tabs
-        function showTab(tab) {
+        function showTab(tab, event) {
             document.getElementById('tab_pending').style.display = tab === 'pending' ? 'block' : 'none';
             document.getElementById('tab_collected').style.display = tab === 'collected' ? 'block' : 'none';
 
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
+        }
+
+        // ---- Ticket: imprimir y WhatsApp ----
+
+        function ticketRowText(row) {
+            const d = row.dataset;
+            const lines = [
+                `Cliente: ${d.ticketCustomer}`,
+                `Préstamo: #${d.ticketLoan}${d.ticketType ? ' (' + d.ticketType + ')' : ''}`,
+                `Monto pagado: $${d.ticketAmount}`,
+            ];
+            if (d.ticketBalance) {
+                lines.push(`Saldo restante: $${d.ticketBalance}`);
+            }
+            lines.push(`Fecha: ${d.ticketDate}`);
+            lines.push(`Cobrador: ${d.ticketCollector}`);
+            return lines;
+        }
+
+        function printTicket(row) {
+            const d = row.dataset;
+            document.getElementById('ticketEmpresa').textContent = d.ticketEmpresa;
+
+            const lines = ticketRowText(row);
+            document.getElementById('ticketBody').innerHTML = lines
+                .map(l => `<div>${l}</div>`)
+                .join('') + `<div class="ticket-total">TOTAL: $${d.ticketAmount}</div>`;
+
+            window.print();
+        }
+
+        function sendWhatsappTicket(row) {
+            const d = row.dataset;
+            let phone = (d.ticketPhone || '').replace(/\D/g, '');
+
+            if (!phone) {
+                alert('Este cliente no tiene teléfono registrado.');
+                return;
+            }
+            // Ajusta el código de país según tu operación (aquí México, lada 52, a 10 dígitos)
+            if (phone.length === 10) {
+                phone = '52' + phone;
+            }
+
+            const lines = ticketRowText(row);
+            const text = `*${d.ticketEmpresa}*\nComprobante de pago\n\n` +
+                lines.join('\n') +
+                `\n\n¡Gracias por su pago!`;
+
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
         }
 
         // Mapa
