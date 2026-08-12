@@ -2,43 +2,83 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Loan;
-use Illuminate\Http\Request;
+use App\Services\CompanyContext;
 
 class PortalController extends Controller
 {
-    public function index()
+    public function index(CompanyContext $companyContext)
     {
-        $customer = auth()->user()->customer;
+        $user = auth()->user();
+        $company = $companyContext->getCompany();
 
-        if (!$customer) {
+        if (! $user || $user->role !== 'customer' || ! $company || $company->status !== 'active'
+            || ! $user->company_id || (int) $user->company_id !== (int) $company->id) {
+            abort(403, 'No tienes acceso al portal de esta empresa.');
+        }
+
+        $companyId = $company->id;
+
+        $customer = Customer::where('customers.id', $user->customer_id)
+            ->where('customers.company_id', $companyId)
+            ->first();
+
+        if (! $customer) {
             abort(403, 'No tienes un perfil de cliente asociado.');
         }
 
-        $activeLoans = Loan::where('customer_id', $customer->id)
-                           ->whereIn('status', ['active', 'overdue'])
-                           ->with('payments')
-                           ->latest()
+        $activeLoans = Loan::where('loans.customer_id', $customer->id)
+                           ->where('loans.company_id', $companyId)
+                           ->whereIn('loans.status', ['active', 'overdue'])
+                           ->with([
+                               'payments' => fn ($query) => $query
+                                   ->where('payments.company_id', $companyId),
+                           ])
+                           ->latest('loans.created_at')
                            ->get();
 
-        $paidLoans = Loan::where('customer_id', $customer->id)
-                         ->where('status', 'paid')
-                         ->with('payments')
-                         ->latest()
+        $paidLoans = Loan::where('loans.customer_id', $customer->id)
+                         ->where('loans.company_id', $companyId)
+                         ->where('loans.status', 'paid')
+                         ->with([
+                             'payments' => fn ($query) => $query
+                                 ->where('payments.company_id', $companyId),
+                         ])
+                         ->latest('loans.created_at')
                          ->get();
 
         return view('portal.index', compact('customer', 'activeLoans', 'paidLoans'));
     }
 
-    public function show(Loan $loan)
+    public function show(Loan $loan, CompanyContext $companyContext)
     {
-        $customer = auth()->user()->customer;
+        $user = auth()->user();
+        $company = $companyContext->getCompany();
 
-        if (!$customer || $loan->customer_id !== $customer->id) {
-            abort(403, 'No tienes acceso a este préstamo.');
+        if (! $user || $user->role !== 'customer' || ! $company || $company->status !== 'active'
+            || ! $user->company_id || (int) $user->company_id !== (int) $company->id) {
+            abort(403, 'No tienes acceso al portal de esta empresa.');
         }
 
-        $loan->load('payments');
+        $companyId = $company->id;
+
+        $customer = Customer::where('customers.id', $user->customer_id)
+            ->where('customers.company_id', $companyId)
+            ->first();
+
+        if (! $customer) {
+            abort(403, 'No tienes un perfil de cliente asociado.');
+        }
+
+        $loan = Loan::where('loans.id', $loan->getKey())
+            ->where('loans.customer_id', $customer->id)
+            ->where('loans.company_id', $companyId)
+            ->with([
+                'payments' => fn ($query) => $query
+                    ->where('payments.company_id', $companyId),
+            ])
+            ->firstOrFail();
 
         return view('portal.show', compact('customer', 'loan'));
     }

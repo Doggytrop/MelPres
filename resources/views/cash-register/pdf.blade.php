@@ -153,7 +153,7 @@
         </div>
         <div class="footer-right">
             <p>Sistema desarrollado por</p>
-            <span class="dev">melSolutions</span>
+            <span class="dev">Sonoyta Software</span>
         </div>
     </div>
 

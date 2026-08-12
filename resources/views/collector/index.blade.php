@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Cobros — MelPres</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     @php
@@ -20,7 +24,7 @@
         body { background: #f0f2f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
 
         .header-bar { background:#fff; border-bottom:1px solid #e7e9e7; padding:18px 24px; }
-        .header-icon { width:38px; height:38px; background:var(--color-secondary); color:var(--color-primary); }
+        .collector-logo { width:38px; height:38px; display:block; flex:0 0 38px; object-fit:contain; }
         .header-title { color:#1a2e1a; font-size:16px; }
         .header-subtitle { font-size:12px; color:#6b7280; }
         .header-user-name { color:#1a2e1a; font-size:13px; font-weight:500; }
@@ -62,8 +66,31 @@
         @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         .section-title { font-size: 13px; font-weight: 600; letter-spacing: 0.03em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .collected-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; }
+        .collected-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 0.5px solid #f0f0f0; gap: 10px; }
         .collected-row:last-child { border-bottom: none; }
+        .collected-payment-info { min-width: 0; }
+        .btn-ticket-action {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e0e0e0;
+            background: #fff; color: #555; display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all .15s; flex-shrink: 0;
+        }
+        .btn-ticket-action:hover { background: var(--color-secondary); color: var(--color-primary); border-color: var(--color-primary); }
+        .btn-ticket-whatsapp:hover { background: #e6f7ec; color: #25D366; border-color: #25D366; }
+
+        #printableTicket { display: none; width: 58mm; padding: 4mm; color: #000; background: #fff; font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.35; }
+        #printableTicket .ticket-center { text-align: center; }
+        #printableTicket .ticket-company { font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+        #printableTicket .ticket-divider { border-top: 1px dashed #000; margin: 3mm 0; }
+        #printableTicket .ticket-line { display: flex; justify-content: space-between; gap: 3mm; margin: 1mm 0; }
+        #printableTicket .ticket-line span:last-child { text-align: right; overflow-wrap: anywhere; }
+        #printableTicket .ticket-total { font-size: 12px; font-weight: 700; }
+
+        @media print {
+            @page { size: 58mm auto; margin: 0; }
+            body.ticket-printing { margin: 0; background: #fff; }
+            body.ticket-printing > *:not(#printableTicket) { display: none !important; }
+            body.ticket-printing #printableTicket { display: block !important; }
+        }
 
         #map { height: 380px; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 
@@ -81,12 +108,7 @@
         <div style="max-width:1200px; margin:0 auto;">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="header-icon rounded-circle d-flex align-items-center justify-content-center">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                            <circle cx="12" cy="10" r="3"/>
-                        </svg>
-                    </div>
+                    <x-application-logo class="collector-logo" />
                     <div>
                         <span class="header-title fw-medium">Panel de Cobros</span>
                         <span class="header-subtitle d-block">{{ now()->locale('es')->isoFormat('dddd D [de] MMMM, YYYY') }}</span>
@@ -361,8 +383,18 @@
                 </div>
 
                 @forelse($collectedToday as $payment)
-                    <div class="collected-row">
-                        <div class="d-flex align-items-center gap-3">
+                    <div class="collected-row"
+                         data-ticket-empresa="{{ $config_sistema['negocio_nombre'] ?? '' }}"
+                         data-ticket-customer="{{ $payment->loan->customer->full_name ?? 'Cliente' }}"
+                         data-ticket-phone="{{ $payment->loan->customer->phone ?? '' }}"
+                         data-ticket-loan="{{ $payment->loan_id }}"
+                         data-ticket-type="{{ $payment->loan->type_label ?? '' }}"
+                         data-ticket-amount="{{ number_format((float) $payment->amount_paid, 2, '.', '') }}"
+                         data-ticket-balance="{{ number_format((float) ($payment->loan->remaining_balance ?? 0), 2, '.', '') }}"
+                         data-ticket-date="{{ $payment->payment_date?->format('d/m/Y') }} {{ $payment->created_at->format('H:i') }}"
+                         data-ticket-collector="{{ auth()->user()->name }}"
+                         data-ticket-payment-id="{{ $payment->id }}">
+                        <div class="collected-payment-info d-flex align-items-center gap-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center"
                                  style="width:32px; height:32px; background:var(--color-secondary); flex-shrink:0;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2">
@@ -378,13 +410,29 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="text-end">
-                            <span class="fw-medium" style="font-size:16px; color:var(--color-primary);">
-                                ${{ number_format($payment->amount_paid, 2) }}
-                            </span>
-                            <span class="d-block" style="font-size:11px; color:#888;">
-                                {{ $payment->created_at->format('H:i') }}
-                            </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="text-end">
+                                <span class="fw-medium" style="font-size:16px; color:var(--color-primary);">
+                                    ${{ number_format($payment->amount_paid, 2) }}
+                                </span>
+                                <span class="d-block" style="font-size:11px; color:#888;">
+                                    {{ $payment->created_at->format('H:i') }}
+                                </span>
+                            </div>
+
+                            <button type="button" class="btn-ticket-action" onclick="printTicket(this.closest('.collected-row'))" title="Imprimir ticket" aria-label="Imprimir ticket">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                    <polyline points="6 9 6 2 18 2 18 9"/>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                    <rect x="6" y="14" width="12" height="8"/>
+                                </svg>
+                            </button>
+
+                            <button type="button" class="btn-ticket-action btn-ticket-whatsapp" onclick="sendWhatsappTicket(this.closest('.collected-row'))" title="Enviar por WhatsApp" aria-label="Enviar por WhatsApp">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.9 11.9L4 20l4.2-1.1a7.9 7.9 0 0 0 3.85 1h.01a7.94 7.94 0 0 0 5.54-13.6zm-5.55 12.2a6.57 6.57 0 0 1-3.36-.92l-.24-.14-2.5.65.67-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.1zm3.6-4.95c-.2-.1-1.16-.57-1.34-.64s-.31-.1-.44.1-.5.63-.62.76-.23.15-.43.05a5.4 5.4 0 0 1-1.6-.98 5.9 5.9 0 0 1-1.1-1.36c-.11-.2 0-.3.09-.4.09-.1.2-.24.3-.36a1.3 1.3 0 0 0 .2-.33.36.36 0 0 0 0-.35c-.05-.1-.44-1.05-.6-1.44-.16-.38-.32-.33-.44-.33h-.37a.72.72 0 0 0-.52.24 2.2 2.2 0 0 0-.68 1.63 3.8 3.8 0 0 0 .8 2.02 8.7 8.7 0 0 0 3.34 2.95c.47.2.83.32 1.11.41.47.15.9.13 1.24.08.38-.06 1.16-.47 1.32-.93.16-.46.16-.85.11-.93s-.18-.13-.38-.23z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 @empty
@@ -396,6 +444,25 @@
         </div>
 
     </div>
+
+    <section id="printableTicket" aria-hidden="true">
+        <div class="ticket-center">
+            <div class="ticket-company" data-ticket-field="empresa"></div>
+            <div>Comprobante de pago</div>
+        </div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-line"><span>Folio:</span><span data-ticket-field="payment-id"></span></div>
+        <div class="ticket-line"><span>Fecha:</span><span data-ticket-field="date"></span></div>
+        <div class="ticket-line"><span>Cliente:</span><span data-ticket-field="customer"></span></div>
+        <div class="ticket-line"><span>Préstamo:</span><span data-ticket-field="loan"></span></div>
+        <div class="ticket-line"><span>Tipo:</span><span data-ticket-field="type"></span></div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-line ticket-total"><span>Pago:</span><span data-ticket-field="amount"></span></div>
+        <div class="ticket-line"><span>Saldo restante:</span><span data-ticket-field="balance"></span></div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-line"><span>Cobrador:</span><span data-ticket-field="collector"></span></div>
+        <div class="ticket-center" style="margin-top:3mm;">Gracias por su pago</div>
+    </section>
 
     <div class="collect-modal" id="collectConfirmModal" aria-hidden="true">
         <div class="collect-modal-backdrop" data-collect-cancel></div>
@@ -426,6 +493,74 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        function ticketRowText(row) {
+            const ticket = row.dataset;
+
+            return [
+                ticket.ticketEmpresa,
+                'COMPROBANTE DE PAGO',
+                '',
+                `Folio: ${ticket.ticketPaymentId}`,
+                `Fecha: ${ticket.ticketDate}`,
+                `Cliente: ${ticket.ticketCustomer}`,
+                `Préstamo: #${ticket.ticketLoan}`,
+                `Tipo: ${ticket.ticketType}`,
+                `Pago: $${ticket.ticketAmount}`,
+                `Saldo restante: $${ticket.ticketBalance}`,
+                `Cobrador: ${ticket.ticketCollector}`,
+                '',
+                'Gracias por su pago',
+            ].join('\n');
+        }
+
+        function printTicket(row) {
+            if (!row) return;
+
+            const printableTicket = document.getElementById('printableTicket');
+            const ticket = row.dataset;
+            const values = {
+                empresa: ticket.ticketEmpresa,
+                'payment-id': ticket.ticketPaymentId,
+                date: ticket.ticketDate,
+                customer: ticket.ticketCustomer,
+                loan: `#${ticket.ticketLoan}`,
+                type: ticket.ticketType,
+                amount: `$${ticket.ticketAmount}`,
+                balance: `$${ticket.ticketBalance}`,
+                collector: ticket.ticketCollector,
+            };
+
+            Object.entries(values).forEach(([field, value]) => {
+                const target = printableTicket.querySelector(`[data-ticket-field="${field}"]`);
+                if (target) target.textContent = value || '—';
+            });
+
+            document.body.classList.add('ticket-printing');
+            printableTicket.setAttribute('aria-hidden', 'false');
+
+            window.requestAnimationFrame(() => {
+                window.print();
+                document.body.classList.remove('ticket-printing');
+                printableTicket.setAttribute('aria-hidden', 'true');
+            });
+        }
+
+        function sendWhatsappTicket(row) {
+            if (!row) return;
+
+            let phone = (row.dataset.ticketPhone || '').replace(/\D/g, '');
+            if (phone.startsWith('00')) phone = phone.slice(2);
+            if (phone.length === 10) phone = `52${phone}`;
+
+            if (!phone) {
+                window.alert('El cliente no tiene un teléfono válido para WhatsApp.');
+                return;
+            }
+
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(ticketRowText(row))}`;
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
         const collectModal = document.getElementById('collectConfirmModal');
         const collectMessage = document.getElementById('collectConfirmMessage');
         const collectButton = document.getElementById('collectConfirmButton');

@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Setting;
+use App\Models\User;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SettingController extends Controller
 {
@@ -74,56 +78,96 @@ class SettingController extends Controller
         'documents_include_logo', 'advanced_enable_audit_log',
     ];
 
-    public function index()
+    public function index(CompanyContext $companyContext)
     {
-        $groups = Setting::all()->groupBy('group');
-        return view('settings.index', compact('groups'));
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
+        $groups = Setting::where('settings.company_id', $companyId)
+            ->get()
+            ->groupBy('group');
+
+        $collectors = User::where('users.company_id', $companyId)
+            ->where('users.role', 'collector')
+            ->get();
+
+        return view('settings.index', compact('company', 'groups', 'collectors'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request, CompanyContext $companyContext)
     {
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $validated = $request->validate([
+            'company_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $companyId = $company->id;
         $data = $request->except(['_token', '_method', 'company_logo_file']);
+        $data['company_name'] = $validated['company_name'];
+        $oldName = $company->name;
 
-        // Logo
-        if ($request->hasFile('company_logo_file')) {
-            $path = $request->file('company_logo_file')->store('logos', 'public');
-            $this->saveSetting('company_logo', $path);
-        }
+        DB::transaction(function () use ($request, $company, $companyId, $data, $oldName): void {
+            if ($request->hasFile('company_logo_file')) {
+                $path = $request->file('company_logo_file')->store('logos', 'public');
+                $this->saveSetting('company_logo', $path, $companyId);
+            }
 
-        // Booleanos no enviados = false
-        foreach ($this->booleanKeys as $boolKey) {
-            $data[$boolKey] = isset($data[$boolKey]) ? '1' : '0';
-        }
+            foreach ($this->booleanKeys as $boolKey) {
+                $data[$boolKey] = isset($data[$boolKey]) ? '1' : '0';
+            }
 
-        // Guardar todo
-        foreach ($data as $key => $value) {
-            if (!array_key_exists($key, $this->keyGroups)) continue;
-            $this->saveSetting($key, $value);
-        }
+            $company->update(['name' => $data['company_name']]);
 
-        // Sincronizar WhatsApp al config en tiempo de ejecución
+            foreach ($data as $key => $value) {
+                if (! array_key_exists($key, $this->keyGroups)) {
+                    continue;
+                }
+
+                $this->saveSetting($key, $value, $companyId);
+            }
+
+            ActivityLog::log(
+                'update',
+                'settings',
+                'Actualizo la configuracion y el nombre oficial de la empresa',
+                $company,
+                ['name' => $oldName],
+                ['name' => $company->name]
+            );
+        });
+
         $this->syncWhatsAppConfig();
 
         return redirect()->route('settings.index')
                          ->with('success', 'Configuración guardada correctamente.');
     }
 
-    private function saveSetting(string $key, mixed $value): void
+    private function saveSetting(string $key, mixed $value, int $companyId): void
     {
         $group = $this->keyGroups[$key] ?? 'general';
         $type  = in_array($key, $this->booleanKeys) ? 'boolean' : 'string';
 
         Setting::updateOrCreate(
-            ['key'   => $key],
+            ['company_id' => $companyId, 'key' => $key],
             ['value' => $value, 'group' => $group, 'type' => $type]
         );
     }
 
     private function syncWhatsAppConfig(): void
     {
-        $token   = Setting::where('key', 'whatsapp_token')->value('value');
-        $phoneId = Setting::where('key', 'whatsapp_phone_number_id')->value('value');
-        $enabled = Setting::where('key', 'whatsapp_enabled')->value('value');
+        $token   = Setting::get('whatsapp_token');
+        $phoneId = Setting::get('whatsapp_phone_number_id');
+        $enabled = Setting::get('whatsapp_enabled', false);
 
         config([
             'whatsapp.token'           => $token,

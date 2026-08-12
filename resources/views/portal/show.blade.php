@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle Préstamo — MelPres</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     @php
         $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
@@ -16,6 +20,7 @@
         }
 
         .portal-header { background:#fff; border-bottom:1px solid #e7e9e7; padding:16px 24px; }
+        .portal-logo { width:32px; height:32px; display:block; flex:0 0 32px; object-fit:contain; }
         .portal-back { color:#1a2e1a; }
         .portal-back:hover { color:var(--color-primary); }
         .portal-logout { background:#fff; border:1px solid #d8ded8; color:#1a2e1a; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer; transition:all .15s; }
@@ -27,9 +32,12 @@
     {{-- Header --}}
     <div class="portal-header">
         <div class="d-flex justify-content-between align-items-center" style="max-width:800px; margin:0 auto;">
-            <a href="{{ route('portal.index') }}" class="portal-back text-decoration-none d-flex align-items-center gap-2" style="font-size:14px;">
-                ← Mis préstamos
-            </a>
+            <div class="d-flex align-items-center gap-3">
+                <x-application-logo class="portal-logo" />
+                <a href="{{ route('portal.index') }}" class="portal-back text-decoration-none d-flex align-items-center gap-2" style="font-size:14px;">
+                    ← Mis préstamos
+                </a>
+            </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="portal-logout">

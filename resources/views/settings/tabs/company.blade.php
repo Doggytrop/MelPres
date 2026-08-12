@@ -12,7 +12,7 @@
             <div class="col-md-6">
                 <div class="setting-item">
                     <label class="setting-label">Nombre de la Empresa</label>
-                    <input type="text" name="company_name" value="{{ $g?->firstWhere('key','company_name')?->value ?? 'MelPres' }}" class="form-control" placeholder="Ej: MiFinanciera">
+                    <input type="text" name="company_name" value="{{ $company->name }}" class="form-control" placeholder="Ej: MiFinanciera" required>
                     <p class="setting-description">Aparece en todos los documentos y el sistema</p>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                 <img src="{{ asset('storage/'.$currentLogo) }}" alt="Logo" style="max-width:200px; max-height:80px; object-fit:contain; margin-bottom:16px;">
             @endif
             <h6 class="fw-medium mb-2" id="previewCompanyName" style="font-size:24px;">
-                {{ $g?->firstWhere('key','company_name')?->value ?? 'MelPres' }}
+                {{ $company->name }}
             </h6>
             <p class="text-muted mb-0" id="previewCompanySlogan" style="font-size:14px;">
                 {{ $g?->firstWhere('key','company_slogan')?->value ?? 'Tu socio financiero de confianza' }}

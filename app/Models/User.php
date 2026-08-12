@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, BelongsToCompany;
 
     protected $fillable = [
+        'company_id',
         'name',
         'email',
         'phone',
@@ -36,11 +38,6 @@ class User extends Authenticatable
     }
 
     // — Relationships —
-    public function customers()
-    {
-        return $this->hasMany(Customer::class, 'advisor_id');
-    }
-
     public function payments()
     {
         return $this->hasMany(Payment::class, 'recorded_by');

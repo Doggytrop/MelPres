@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Portal — MelPres</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=2">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     @php
         $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
@@ -16,8 +20,7 @@
         }
 
         .portal-header { background:#fff; border-bottom:1px solid #e7e9e7; padding:16px 24px; }
-        .portal-icon { width:32px; height:32px; background:var(--color-secondary); color:var(--color-primary); }
-        .portal-title,
+        .portal-logo { width:32px; height:32px; border-radius:7px; object-fit:contain; }
         .portal-user { color:#1a2e1a; }
         .portal-logout { background:#fff; border:1px solid #d8ded8; color:#1a2e1a; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer; transition:all .15s; }
         .portal-logout:hover { border-color:var(--color-primary); color:var(--color-primary); background:var(--color-secondary); }
@@ -28,14 +31,8 @@
     {{-- Header --}}
     <div class="portal-header">
         <div class="d-flex justify-content-between align-items-center" style="max-width:800px; margin:0 auto;">
-            <div class="d-flex align-items-center gap-2">
-                <div class="portal-icon rounded-circle d-flex align-items-center justify-content-center">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <circle cx="12" cy="12" r="9"/>
-                        <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"/>
-                    </svg>
-                </div>
-                <span class="portal-title fw-medium" style="font-size:15px;">MelPres</span>
+            <div class="d-flex align-items-center">
+                <x-application-logo class="portal-logo" />
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="portal-user" style="font-size:13px;">{{ $customer->full_name }}</span>

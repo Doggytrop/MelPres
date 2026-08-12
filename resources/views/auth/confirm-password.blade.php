@@ -1,4 +1,9 @@
 <x-guest-layout>
+    <div class="flex items-center gap-3 mb-6">
+        <x-application-logo class="w-9 h-9 rounded-lg flex-shrink-0 object-contain" />
+        <span class="font-medium text-base text-[#1a2e1a]">{{ config('app.name') }}</span>
+    </div>
+
     <div class="mb-4 text-sm text-gray-600">
         {{ __('Esta es una área segura de la aplicación. Por favor confirma tu contraseña antes de continuar.') }}
     </div>

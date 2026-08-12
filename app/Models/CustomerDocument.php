@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CustomerDocument extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToCompany;
 
     protected $table = 'customer_documents';
 
     protected $fillable = [
+        'company_id',
         'customer_id',
         'type',
         'original_name',
@@ -44,6 +46,16 @@ class CustomerDocument extends Model
     public function isImage(): bool
     {
         return str_contains($this->mime_type, 'image');
+    }
+
+    public function getViewUrlAttribute(): string
+    {
+        return route('customer-documents.view', $this);
+    }
+
+    public function getDownloadUrlAttribute(): string
+    {
+        return route('customer-documents.download', $this);
     }
 
     public function getFormattedSizeAttribute(): string

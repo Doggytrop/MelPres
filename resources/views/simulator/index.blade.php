@@ -66,7 +66,7 @@
                     <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Cliente (para incluir préstamos activos)</label>
                     <select id="customer_id" class="form-control form-control-sm">
                         <option value="">Sin cliente seleccionado</option>
-                        @foreach(\App\Models\Customer::where('status', 'active')->orderBy('first_name')->get() as $c)
+                        @foreach($customers as $c)
                             <option value="{{ $c->id }}">{{ $c->full_name }}</option>
                         @endforeach
                     </select>

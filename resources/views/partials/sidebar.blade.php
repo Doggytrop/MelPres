@@ -14,14 +14,7 @@
             <img src="{{ asset('storage/' . $config_sistema['negocio_logo']) }}" alt="Logo"
                  style="height:34px; max-width:120px; object-fit:contain;">
         @else
-            <div class="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
-                 style="width:34px; height:34px; background:{{ $cp }};">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
-                    <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"
-                          stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </div>
+            <x-application-logo class="rounded-2 flex-shrink-0" style="width:34px; height:34px; object-fit:contain;" />
         @endif
         <span class="fw-medium" style="color:#1a2e1a; font-size:15px;">
             {{ $config_sistema['negocio_nombre'] ?? 'SonPres' }}

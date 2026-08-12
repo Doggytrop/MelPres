@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Loan;
 class Payment extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToCompany;
 
     protected $fillable = [
+        'company_id',
         'loan_id',
         'amount_paid',
         'penalty_payment',
@@ -39,10 +41,6 @@ class Payment extends Model
         return $this->belongsTo(Loan::class);
     }
 
-    public function registradoPor()
-    {
-        return $this->belongsTo(User::class, 'recorded_by');
-    }
     public function recordedBy()
     {
         return $this->belongsTo(User::class, 'recorded_by');

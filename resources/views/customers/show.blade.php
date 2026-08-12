@@ -159,18 +159,20 @@
                         <span class="ms-1 text-muted" style="font-size:10px;">(3 dígitos variables)</span>
                     </span>
                 </div>
-                <form method="POST" action="{{ route('customers.reset-password', $customer) }}"
-                      data-confirm-submit
-                      data-confirm-title="Resetear contraseña"
-                      data-confirm-message="¿Generar una nueva contraseña? La actual dejará de funcionar."
-                      data-confirm-button="Sí, resetear"
-                      data-confirm-tone="primary">
-                    @csrf
-                    <button type="submit" class="btn btn-sm w-100"
-                            style="background:#e3f2fd; color:#1565c0; border:0.5px solid #90caf9; border-radius:8px; font-size:12px; padding:6px;">
-                        🔑 Resetear contraseña
-                    </button>
-                </form>
+                @if(auth()->user()->isAdmin())
+                    <form method="POST" action="{{ route('customers.reset-password', $customer) }}"
+                          data-confirm-submit
+                          data-confirm-title="Resetear contraseña"
+                          data-confirm-message="¿Generar una nueva contraseña? La actual dejará de funcionar."
+                          data-confirm-button="Sí, resetear"
+                          data-confirm-tone="primary">
+                        @csrf
+                        <button type="submit" class="btn btn-sm w-100"
+                                style="background:#e3f2fd; color:#1565c0; border:0.5px solid #90caf9; border-radius:8px; font-size:12px; padding:6px;">
+                            🔑 Resetear contraseña
+                        </button>
+                    </form>
+                @endif
             @else
                 <p class="text-muted mb-0" style="font-size:12px;">Este cliente no tiene acceso registrado.</p>
             @endif
@@ -305,9 +307,13 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ asset('storage/' . $doc->path) }}" target="_blank"
+                        <a href="{{ $doc->view_url }}" target="_blank"
                            style="font-size:12px; color:var(--color-primary); text-decoration:none; border:0.5px solid var(--color-secondary); border-radius:6px; padding:4px 10px;">
                             Ver
+                        </a>
+                        <a href="{{ $doc->download_url }}"
+                           style="font-size:12px; color:#555; text-decoration:none; border:0.5px solid #ddd; border-radius:6px; padding:4px 10px;">
+                            Descargar
                         </a>
                         <form method="POST"
                               action="{{ route('customers.documents.destroy', [$customer, $doc]) }}"

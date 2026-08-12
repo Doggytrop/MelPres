@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Restructuring extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToCompany;
 
     protected $table = 'restructurings';
 
     protected $fillable = [
+        'company_id',
         'original_loan_id',
         'new_loan_id',
         'recorded_by',
@@ -40,7 +42,7 @@ class Restructuring extends Model
 
     public function newLoan()
     {
-        return $this->belongsTo(Loan::class, 'new_loan_id');
+        return $this->belongsTo(Loan::class, 'new_loan_id')->withTrashed();
     }
 
     public function recordedBy()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Loan;
 use App\Http\Requests\StoreLoanRequest;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\Setting;
@@ -14,15 +15,25 @@ class LoanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Loan::with('customer')
-                    ->whereIn('status', ['active', 'overdue', 'refinanced']);
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $query = Loan::with([
+            'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+        ])
+            ->where('loans.company_id', $companyId)
+            ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
+            ->whereIn('loans.status', ['active', 'overdue', 'refinanced']);
 
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('loans.type', $request->type);
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('loans.status', $request->status);
         }
 
         $loans = $query->latest()->paginate(15);
@@ -32,7 +43,16 @@ class LoanController extends Controller
 
     public function create()
     {
-        $customers = Customer::where('status', 'active')->orderBy('first_name')->get();
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $customers = Customer::where('status', 'active')
+            ->where('company_id', $companyId)
+            ->orderBy('first_name')
+            ->get();
         $loan      = new Loan();
 
         return view('loans.create', compact('customers', 'loan'));
@@ -96,6 +116,10 @@ class LoanController extends Controller
             $data['payment_frequency']
         );
 
+        if ($companyId = app(CompanyContext::class)->getCompanyId()) {
+            $data['company_id'] = $companyId;
+        }
+
         $loan = Loan::create($data);
         \App\Models\ActivityLog::log('create', 'loans', 'Creó préstamo #' . $loan->id, $loan);
 
@@ -105,16 +129,52 @@ class LoanController extends Controller
 
     public function show(Loan $loan)
     {
-        $loan->load(['customer', 'payments']);
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $loan = Loan::where('loans.id', $loan->getKey())
+            ->where('loans.company_id', $companyId)
+            ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
+            ->with([
+                'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                'customer.profilePhoto' => fn ($query) => $query->where('customer_documents.company_id', $companyId),
+                'payments' => fn ($query) => $query->where('payments.company_id', $companyId),
+                'payments.recordedBy' => fn ($query) => $query->where('users.company_id', $companyId),
+                'restructurings' => fn ($query) => $query->where('restructurings.company_id', $companyId),
+            ])
+            ->firstOrFail();
 
         return view('loans.show', compact('loan'));
     }
 
     public function edit(Loan $loan)
     {
-        $customers = Customer::where('status', 'active')->orderBy('first_name')->get();
+        $companyId = app(CompanyContext::class)->getCompanyId();
 
-        return view('loans.edit', compact('loan', 'customers'));
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $loan = Loan::query()
+            ->where('loans.id', $loan->getKey())
+            ->where('loans.company_id', $companyId)
+            ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
+            ->with([
+                'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+            ])
+            ->firstOrFail();
+
+        $loanCustomer = $loan->customer;
+
+        $customers = Customer::where('customers.status', 'active')
+            ->where('customers.company_id', $companyId)
+            ->orderBy('first_name')
+            ->get();
+
+        return view('loans.edit', compact('loan', 'loanCustomer', 'customers'));
     }
 
     public function update(StoreLoanRequest $request, Loan $loan)
@@ -136,14 +196,22 @@ class LoanController extends Controller
     public function searchCustomer(Request $request)
     {
         $search = $request->get('q');
+        $companyId = app(CompanyContext::class)->getCompanyId();
 
-        $customers = Customer::where('status', 'active')
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $customers = Customer::where('customers.status', 'active')
+            ->where('customers.company_id', $companyId)
             ->where(function ($query) use ($search) {
                 $query->where('first_name', 'like', "%{$search}%")
                       ->orWhere('last_name', 'like', "%{$search}%")
                       ->orWhere('phone', 'like', "%{$search}%");
             })
-            ->with(['activeLoans'])
+            ->with([
+                'activeLoans' => fn ($query) => $query->where('loans.company_id', $companyId),
+            ])
             ->limit(5)
             ->get()
             ->map(function ($customer) {
@@ -193,7 +261,7 @@ class LoanController extends Controller
 
     public function contract(Loan $loan)
     {
-        $loan->load('customer');
+        $loan = $this->resolvePdfLoan($loan);
         $company = [
             'name'    => Setting::get('company_name', 'Mi Empresa'),
             'phone'   => Setting::get('company_phone'),
@@ -206,7 +274,7 @@ class LoanController extends Controller
 
     public function promissoryNote(Loan $loan)
     {
-        $loan->load('customer');
+        $loan = $this->resolvePdfLoan($loan);
         $company = [
             'name'    => Setting::get('company_name', 'Mi Empresa'),
             'phone'   => Setting::get('company_phone'),
@@ -215,6 +283,23 @@ class LoanController extends Controller
         ];
         $pdf = Pdf::loadView('loans.pdf.promissory-note', compact('loan', 'company'));
         return $pdf->download("pagaré-{$loan->id}.pdf");
+    }
+
+    private function resolvePdfLoan(Loan $loan): Loan
+    {
+        $company = app(CompanyContext::class)->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        return Loan::where('loans.id', $loan->getKey())
+            ->where('loans.company_id', $company->id)
+            ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $company->id))
+            ->with([
+                'customer' => fn ($query) => $query->where('customers.company_id', $company->id),
+            ])
+            ->firstOrFail();
     }
 
 }

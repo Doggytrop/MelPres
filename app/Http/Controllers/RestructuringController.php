@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Loan;
 use App\Models\Restructuring;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -11,34 +12,71 @@ use Carbon\Carbon;
 
 class RestructuringController extends Controller
 {
-    public function overdue()
+    public function overdue(CompanyContext $companyContext)
     {
-        $loans = Loan::with('customer')
-                     ->where('status', 'overdue')
-                     ->where('restructured', false)
-                     ->latest()
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
+        $loans = Loan::with([
+                         'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                     ])
+                     ->where('loans.company_id', $companyId)
+                     ->where('loans.status', 'overdue')
+                     ->where('loans.restructured', false)
+                     ->latest('loans.created_at')
                      ->paginate(15);
 
         return view('restructuring.overdue', compact('loans'));
     }
 
-    public function active()
+    public function active(CompanyContext $companyContext)
     {
-        $loans = Loan::with(['customer', 'restructurings'])
-                     ->where('restructured', true)
-                     ->whereIn('status', ['active', 'overdue'])
-                     ->latest()
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
+        $loans = Loan::with([
+                         'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                         'restructurings' => fn ($query) => $query->where('restructurings.company_id', $companyId),
+                     ])
+                     ->where('loans.company_id', $companyId)
+                     ->where('loans.restructured', true)
+                     ->whereIn('loans.status', ['active', 'overdue'])
+                     ->latest('loans.created_at')
                      ->paginate(15);
 
         return view('restructuring.active', compact('loans'));
     }
 
-    public function history()
+    public function history(CompanyContext $companyContext)
     {
-        $loans = Loan::with(['customer', 'restructurings'])
-                     ->where('restructured', true)
-                     ->where('status', 'paid')
-                     ->latest('updated_at')
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
+        $loans = Loan::with([
+                         'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                         'restructurings' => fn ($query) => $query->where('restructurings.company_id', $companyId),
+                         'payments' => fn ($query) => $query->where('payments.company_id', $companyId),
+                     ])
+                     ->where('loans.company_id', $companyId)
+                     ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
+                     ->where('loans.restructured', true)
+                     ->where('loans.status', 'paid')
+                     ->latest('loans.updated_at')
                      ->paginate(15);
 
         return view('restructuring.history', compact('loans'));
@@ -46,12 +84,30 @@ class RestructuringController extends Controller
 
     public function create(Loan $loan)
     {
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $loan = Loan::where('loans.id', $loan->getKey())
+            ->where('loans.company_id', $companyId)
+            ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
+            ->with([
+                'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                'restructurings' => fn ($query) => $query->where('restructurings.company_id', $companyId),
+                'restructurings.originalLoan' => fn ($query) => $query->where('loans.company_id', $companyId),
+                'restructurings.originalLoan.customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                'restructurings.newLoan' => fn ($query) => $query->where('loans.company_id', $companyId),
+                'restructurings.recordedBy' => fn ($query) => $query->where('users.company_id', $companyId),
+            ])
+            ->firstOrFail();
+
         if ($loan->status === 'paid') {
             return redirect()->route('restructuring.overdue')
                              ->with('error', 'Este préstamo ya está pagado.');
         }
 
-        $loan->load(['customer', 'restructurings']);
         $daysOverdue = $this->calculateDaysOverdue($loan);
 
         return view('restructuring.create', compact('loan', 'daysOverdue'));
@@ -75,6 +131,7 @@ class RestructuringController extends Controller
             $type = $request->type;
 
             $restructuringData = [
+                'company_id'                => $loan->company_id,
                 'original_loan_id'         => $loan->id,
                 'recorded_by'              => auth()->id(),
                 'type'                     => $type,
@@ -149,6 +206,7 @@ class RestructuringController extends Controller
                 }
 
                 $newLoan = Loan::create([
+                    'company_id'         => $loan->company_id,
                     'customer_id'        => $loan->customer_id,
                     'type'               => $newType,
                     'payment_frequency'  => $newFrequency,
@@ -184,13 +242,28 @@ class RestructuringController extends Controller
                          ->with('success', 'Préstamo reestructurado correctamente.');
     }
 
-    public function pdf(Restructuring $restructuring)
+    public function pdf(Restructuring $restructuring, CompanyContext $companyContext)
     {
-        $restructuring->load([
-            'originalLoan.customer',
-            'newLoan',
-            'recordedBy',
-        ]);
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
+        $restructuring = Restructuring::where('restructurings.id', $restructuring->getKey())
+            ->where('restructurings.company_id', $companyId)
+            ->whereHas('originalLoan', fn ($query) => $query->where('loans.company_id', $companyId))
+            ->whereHas('originalLoan.customer', fn ($query) => $query->where('customers.company_id', $companyId))
+            ->whereHas('recordedBy', fn ($query) => $query->where('users.company_id', $companyId))
+            ->with([
+                'originalLoan' => fn ($query) => $query->where('loans.company_id', $companyId),
+                'originalLoan.customer' => fn ($query) => $query->where('customers.company_id', $companyId),
+                'newLoan' => fn ($query) => $query->where('loans.company_id', $companyId),
+                'recordedBy' => fn ($query) => $query->where('users.company_id', $companyId),
+            ])
+            ->firstOrFail();
 
         $pdf = Pdf::loadView('restructuring.pdf', compact('restructuring'))
                   ->setPaper('a4', 'portrait');

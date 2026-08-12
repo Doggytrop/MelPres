@@ -1,5 +1,4 @@
 @php
-    $collectors = \App\Models\User::where('role', 'collector')->get();
     $freqOptions = [
         'daily'    => ['label' => 'Diario',    'desc' => 'Cada día'],
         'weekly'   => ['label' => 'Semanal',   'desc' => 'Cada 7 días'],

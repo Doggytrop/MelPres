@@ -13,7 +13,7 @@
 <div class="bg-white border rounded-3 p-3 p-md-4" style="max-width:720px; border-color:#e8e8e8 !important;">
 
     <h6 class="fw-medium mb-4" style="color:#1a2e1a;">
-        Editar préstamo #{{ $loan->id }} — {{ $loan->customer->first_name_complete }}
+        Editar préstamo #{{ $loan->id }} — {{ $loanCustomer->first_name_complete }}
     </h6>
 
     <form method="POST" action="{{ route('loans.update', $loan) }}">

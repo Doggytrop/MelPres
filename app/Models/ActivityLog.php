@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCompany;
+use App\Services\CompanyContext;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use LogicException;
 
 class ActivityLog extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
+        'company_id',
         'user_id',
         'user_name',
         'action',
@@ -58,9 +65,43 @@ class ActivityLog extends Model
 
     public static function log(string $action, string $module, string $description, $model = null, ?array $oldValues = null, ?array $newValues = null): self
     {
+        $contextCompanyId = app(CompanyContext::class)->getCompanyId();
+        $modelCompanyId = $model instanceof Model ? $model->getAttribute('company_id') : null;
+        $user = auth()->user();
+        $userCompanyId = $user?->company_id;
+
+        $companyIds = array_values(array_unique(array_map(
+            'intval',
+            array_filter([$contextCompanyId, $modelCompanyId, $userCompanyId], fn ($id) => $id !== null)
+        )));
+
+        $companyId = $contextCompanyId ?? $modelCompanyId ?? $userCompanyId;
+        $userIsConsistent = ! $userCompanyId || ! $companyId || (int) $userCompanyId === (int) $companyId;
+
+        if (count($companyIds) > 1) {
+            $companyId = $modelCompanyId ?? $contextCompanyId ?? $userCompanyId;
+            $userIsConsistent = ! $userCompanyId || (int) $userCompanyId === (int) $companyId;
+
+            Log::warning('Se detectó una atribución empresarial inconsistente al crear ActivityLog.', [
+                'context_company_id' => $contextCompanyId,
+                'model_company_id' => $modelCompanyId,
+                'user_company_id' => $userCompanyId,
+                'selected_company_id' => $companyId,
+                'module' => $module,
+                'action' => $action,
+                'model_type' => $model ? get_class($model) : null,
+                'model_id' => $model?->id,
+            ]);
+        }
+
+        if (! $companyId && $module !== 'auth') {
+            throw new LogicException('No se puede crear un log empresarial sin una empresa atribuible.');
+        }
+
         return self::create([
-            'user_id'     => auth()->id(),
-            'user_name'   => auth()->user()?->name ?? 'Sistema',
+            'company_id'  => $companyId,
+            'user_id'     => $userIsConsistent ? $user?->id : null,
+            'user_name'   => $userIsConsistent ? ($user?->name ?? 'Sistema') : 'Sistema',
             'action'      => $action,
             'module'      => $module,
             'description' => $description,

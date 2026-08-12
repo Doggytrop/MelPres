@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Services\CompanyContext;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreLoanRequest extends FormRequest
 {
@@ -10,8 +12,22 @@ class StoreLoanRequest extends FormRequest
 
     public function rules(): array
     {
+        $company = app(CompanyContext::class)->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
         return [
-            'customer_id'       => ['required', 'exists:customers,id'],
+            'customer_id'       => [
+                'required',
+                Rule::exists('customers', 'id')
+                    ->where(fn ($query) => $query
+                        ->where('customers.company_id', $companyId)
+                        ->whereNull('customers.deleted_at')),
+            ],
             'type'              => ['required', 'in:interest,term,daily'],
             'payment_frequency' => ['nullable', 'in:weekly,biweekly,monthly,daily'],
             'original_amount'   => ['required', 'numeric', 'min:1', 'max:9999999'],

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Loan;
 use Illuminate\Support\Facades\DB;
@@ -10,7 +11,20 @@ class PaymentService
 {
     public function applyPayment(Loan $loan, array $data): Payment
 {
-    return DB::transaction(function () use ($loan, $data) {
+    $companyId = app(CompanyContext::class)->getCompanyId();
+
+    if (! $companyId || ! $loan->company_id || (int) $loan->company_id !== (int) $companyId) {
+        abort(403, 'El préstamo no pertenece a la empresa activa.');
+    }
+
+    return DB::transaction(function () use ($loan, $data, $companyId) {
+        $loan = Loan::where('loans.id', $loan->getKey())
+            ->where('loans.company_id', $companyId)
+            ->firstOrFail();
+
+        $customer = Customer::where('customers.id', $loan->customer_id)
+            ->where('customers.company_id', $companyId)
+            ->firstOrFail();
 
         $periodsRequested = max(1, intval($data['periods'] ?? 1));
         $dailyPayment     = floatval($loan->daily_payment ?: $loan->suggested_payment);
@@ -67,8 +81,6 @@ class PaymentService
 
         $loan->save();
 
-        app(\App\Services\ScoreService::class)->actualizar($loan->customer);
-
         \App\Models\ActivityLog::log(
             'payment', 'payments',
             'Registró pago por $' . number_format($amountPaid, 2) . ' en préstamo #' . $loan->id,
@@ -77,6 +89,7 @@ class PaymentService
 
         // 8 — Crear pago
         $payment = Payment::create([
+            'company_id'       => $companyId,
             'loan_id'          => $loan->id,
             'amount_paid'      => $amountPaid,
             'penalty_payment'  => $penaltyPay,
@@ -91,7 +104,12 @@ class PaymentService
             'carry_over'       => $carryOver,
         ]);
 
-        $customer = $loan->customer;
+        if ((int) $payment->company_id !== (int) $companyId) {
+            abort(409, 'El pago no pertenece a la empresa activa.');
+        }
+
+        app(\App\Services\ScoreService::class)->actualizar($customer);
+
         if ($customer?->phone) {
             app(\App\Services\WhatsAppService::class)
                 ->sendPaymentConfirmation($customer, $loan, $payment);

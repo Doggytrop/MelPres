@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use App\Services\CompanyContext;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -10,7 +11,10 @@ use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->singleton(CompanyContext::class);
+    }
 
     public function boot(): void
     {
@@ -19,24 +23,42 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         View::composer('*', function ($view) {
-            try {
-                $view->with('config_sistema', [
-                    'negocio_nombre'    => Setting::get('company_name', 'MelPres'),
-                    'negocio_moneda'    => Setting::get('advanced_currency_symbol', '$'),
-                    'negocio_logo'      => Setting::get('company_logo'),
-                    'color_primario'    => Setting::get('company_primary_color', '#1f6b21'),
-                    'color_secundario'  => Setting::get('company_secondary_color', '#e8f5e9'),
-                    'negocio_telefono'  => Setting::get('company_phone'),
-                    'negocio_email'     => Setting::get('company_email'),
-                    'negocio_whatsapp'  => Setting::get('company_whatsapp'),
-                    'negocio_direccion' => Setting::get('company_address'),
-                    'negocio_slogan'    => Setting::get('company_slogan'),
-                    'modulo_asesores'   => Setting::get('modulo_asesores', false),
-                    'modulo_corte_caja' => Setting::get('modulo_corte_caja', false),
-                ]);
-            } catch (\Exception $e) {
-                //
-            }
-        });
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            $view->with('config_sistema', [
+                'negocio_nombre'    => 'MelPres',
+                'negocio_moneda'    => '$',
+                'negocio_logo'      => null,
+                'color_primario'    => '#1f6b21',
+                'color_secundario'  => '#e8f5e9',
+                'negocio_telefono'  => null,
+                'negocio_email'     => null,
+                'negocio_whatsapp'  => null,
+                'negocio_direccion' => null,
+                'negocio_slogan'    => null,
+                'modulo_asesores'   => false,
+                'modulo_corte_caja' => false,
+            ]);
+            return;
+        }
+        $view->with('config_sistema', [
+            'negocio_nombre'    => app(CompanyContext::class)->getCompany()?->name
+                ?? Setting::get('company_name', 'MelPres'),
+            'negocio_moneda'    => Setting::get('advanced_currency_symbol', '$'),
+            'negocio_logo'      => Setting::get('company_logo'),
+            'color_primario'    => Setting::get('company_primary_color', '#1f6b21'),
+            'color_secundario'  => Setting::get('company_secondary_color', '#e8f5e9'),
+            'negocio_telefono'  => Setting::get('company_phone'),
+            'negocio_email'     => Setting::get('company_email'),
+            'negocio_whatsapp'  => Setting::get('company_whatsapp'),
+            'negocio_direccion' => Setting::get('company_address'),
+            'negocio_slogan'    => Setting::get('company_slogan'),
+            'modulo_asesores'   => Setting::get('modulo_asesores', false),
+            'modulo_corte_caja' => Setting::get('modulo_corte_caja', false),
+        ]);
+    } catch (\Exception $e) {
+        //
+    }
+});
     }
 }// Backend fully refactored from Spanish to English

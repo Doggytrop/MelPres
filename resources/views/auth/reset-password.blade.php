@@ -3,13 +3,7 @@
         <div class="min-h-screen w-full flex flex-col md:flex-row overflow-hidden">
             <div class="hidden bg-[#1a4a1c] text-[#d4f5d4] md:w-5/12 md:min-h-screen md:flex flex-col justify-between p-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-[#5fcf61] rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
-                            <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"
-                                  stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                        </svg>
-                    </div>
+                    <x-application-logo class="w-9 h-9 rounded-lg flex-shrink-0 object-contain" />
                     <span class="font-medium text-base">{{ config('app.name') }}</span>
                 </div>
 
@@ -32,13 +26,7 @@
             <div class="flex-1 flex items-center justify-center px-5 py-8 sm:px-8 md:bg-white md:px-10">
                 <div class="w-full max-w-md bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 md:border-0 md:shadow-none md:rounded-none md:p-0">
                     <div class="md:hidden flex items-center gap-3 mb-8">
-                        <div class="w-9 h-9 bg-[#1f6b21] rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1.5"/>
-                                <path d="M12 7v1M12 16v1M9.5 10c0-.8.7-1.5 1.5-1.5h2a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3h2.5"
-                                      stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-                            </svg>
-                        </div>
+                        <x-application-logo class="w-9 h-9 rounded-lg flex-shrink-0 object-contain" />
                         <span class="text-[#1a2e1a] font-medium text-base">{{ config('app.name') }}</span>
                     </div>
 

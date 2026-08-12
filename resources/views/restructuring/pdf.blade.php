@@ -115,7 +115,7 @@
             <p>
                 En la fecha señalada, comparecen por una parte <strong>EL ACREEDOR</strong>,
                 en adelante denominado <em>"El Prestamista"</em>, y por la otra
-                <strong>{{ $restructuring->originalLoan->cliente->first_name_complete }}</strong>,
+                <strong>{{ $restructuring->originalLoan->customer->first_name_complete }}</strong>,
                 en adelante denominado <em>"El Cliente"</em>, quienes manifiestan lo siguiente:
             </p>
             <ul class="lista">
@@ -131,18 +131,18 @@
         <div class="section">
             <p class="section-title">II. Datos del cliente</p>
             <ul class="lista">
-                <li><strong>Nombre:</strong> {{ $restructuring->originalLoan->cliente->first_name_complete }}</li>
-                <li><strong>Teléfono:</strong> {{ $restructuring->originalLoan->cliente->phone ?? 'No especificado' }}</li>
+                <li><strong>Nombre:</strong> {{ $restructuring->originalLoan->customer->first_name_complete }}</li>
+                <li><strong>Teléfono:</strong> {{ $restructuring->originalLoan->customer->phone ?? 'No especificado' }}</li>
                 <li>
                     <strong>Documento:</strong>
-                    @if($restructuring->originalLoan->cliente->document_type)
-                        {{ strtoupper($restructuring->originalLoan->cliente->document_type) }}
-                        — {{ $restructuring->originalLoan->cliente->document_number ?? 'Sin número' }}
+                    @if($restructuring->originalLoan->customer->document_type)
+                        {{ strtoupper($restructuring->originalLoan->customer->document_type) }}
+                        — {{ $restructuring->originalLoan->customer->document_number ?? 'Sin número' }}
                     @else
                         No especificado
                     @endif
                 </li>
-                <li><strong>Domicilio:</strong> {{ $restructuring->originalLoan->cliente->address ?? 'No especificado' }}</li>
+                <li><strong>Domicilio:</strong> {{ $restructuring->originalLoan->customer->address ?? 'No especificado' }}</li>
             </ul>
         </div>
 
@@ -279,12 +279,12 @@
             <div class="firma-sep"></div>
             <div class="firma-col">
                 <div class="firma-linea">
-                    <div class="firma-nombre">{{ $restructuring->originalLoan->cliente->first_name_complete }}</div>
+                    <div class="firma-nombre">{{ $restructuring->originalLoan->customer->first_name_complete }}</div>
                     <div class="firma-cargo">El cliente — Firma</div>
-                    @if($restructuring->originalLoan->cliente->document_type)
+                    @if($restructuring->originalLoan->customer->document_type)
                         <div class="firma-doc">
-                            {{ strtoupper($restructuring->originalLoan->cliente->document_type) }}:
-                            {{ $restructuring->originalLoan->cliente->document_number ?? '—' }}
+                            {{ strtoupper($restructuring->originalLoan->customer->document_type) }}:
+                            {{ $restructuring->originalLoan->customer->document_number ?? '—' }}
                         </div>
                     @endif
                 </div>

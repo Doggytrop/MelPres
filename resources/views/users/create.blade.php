@@ -47,35 +47,54 @@
                             <span style="font-size:11px; color:#888;">Acceso completo al sistema, puede gestionar asesores y configuración</span>
                         </div>
                     </label>
-                    <label class="d-flex align-items-start gap-2 p-3 rounded-3 flex-fill"
+                   <!-- <label class="d-flex align-items-start gap-2 p-3 rounded-3 flex-fill"
                            style="border:0.5px solid {{ old('role') === 'advisor' ? 'var(--color-primary)' : '#ddd' }}; cursor:pointer; background:{{ old('role') === 'advisor' ? 'var(--color-secondary)' : '#fff' }};">
                         <input type="radio" name="role" value="advisor" {{ old('role', 'advisor') === 'advisor' ? 'checked' : '' }} style="margin-top:2px;">
                         <div>
                             <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Asesor</span>
                             <span style="font-size:11px; color:#888;">Solo registra pagos y consulta información de clientes</span>
                         </div>
-                    </label>
+                        </label> -->
+
                     <label class="d-flex align-items-start gap-2 p-3 rounded-3 flex-fill"
                             style="border:0.5px solid {{ old('role') === 'collector' ? '#e65100' : '#ddd' }}; cursor:pointer; background:{{ old('role') === 'collector' ? '#fff3e0' : '#fff' }};">
-                    <input type="radio" name="role" value="collector" {{ old('role') === 'collector' ? 'checked' : '' }} style="margin-top:2px;">
-                    <div>
-                        <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Cobrador</span>
-                        <span style="font-size:11px; color:#888;">Panel de cobros con mapa, registra cobros en campo</span>
-                    </div>
-                </label>
+                        <input type="radio" name="role" value="collector" {{ old('role') === 'collector' ? 'checked' : '' }} style="margin-top:2px;">
+                        <div>
+                            <span class="fw-medium d-block" style="font-size:13px; color:#1a2e1a;">Cobrador</span>
+                            <span style="font-size:11px; color:#888;">Panel de cobros con mapa, registra cobros en campo</span>
+                        </div>
+                    </label>
                 </div>
                 @error('role') <div class="text-danger mt-1" style="font-size:12px;">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-6">
                 <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Contraseña *</label>
-                <input type="password" name="password"
-                       class="form-control form-control-sm @error('password') is-invalid @enderror" placeholder="Mínimo 8 caracteres">
-                @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <div class="position-relative">
+                    <input type="password" id="password" name="password"
+                           class="form-control form-control-sm @error('password') is-invalid @enderror"
+                           placeholder="Mínimo 8 caracteres" style="padding-right:36px;">
+                    <button type="button" onclick="togglePassword('password', this)"
+                            style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#9ca3af; padding:0; display:flex;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+                @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-6">
                 <label class="d-block mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Confirmar contraseña *</label>
-                <input type="password" name="password_confirmation"
-                       class="form-control form-control-sm" placeholder="Repetir contraseña">
+                <div class="position-relative">
+                    <input type="password" id="password_confirmation" name="password_confirmation"
+                           class="form-control form-control-sm"
+                           placeholder="Repetir contraseña" style="padding-right:36px;">
+                    <button type="button" onclick="togglePassword('password_confirmation', this)"
+                            style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#9ca3af; padding:0; display:flex;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -91,5 +110,13 @@
         </div>
     </form>
 </div>
+
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.style.color = input.type === 'text' ? 'var(--color-primary)' : '#9ca3af';
+}
+</script>
 
 @endsection

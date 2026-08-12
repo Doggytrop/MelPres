@@ -3,15 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\User;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
+use App\Services\CompanyContext;
 use App\Services\ScoreService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::latest()->paginate(15);
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $customers = Customer::query()
+            ->where('customers.company_id', $companyId)
+            ->with([
+                'profilePhoto' => fn ($query) => $query->where('customer_documents.company_id', $companyId),
+            ])
+            ->latest()
+            ->paginate(15);
+
         return view('customers.index', compact('customers'));
     }
 
@@ -23,43 +40,97 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
-        $customer = Customer::create($request->validated());
-        \App\Models\ActivityLog::log('create', 'customers', 'Creó cliente ' . $customer->full_name, $customer);
+        $company = app(CompanyContext::class)->getCompany();
 
-        $generatedPassword = null;
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
 
-        if ($customer->phone && !\App\Models\User::where('phone', $customer->phone)->exists()) {
+        [$customer, $generatedPassword, $accessEmail] = DB::transaction(function () use ($request, $company) {
+            $data = $request->validated();
+            $data['company_id'] = $company->id;
+
+            $customer = Customer::create($data);
+
+            if (! $customer->phone) {
+                throw ValidationException::withMessages([
+                    'phone' => 'El teléfono es obligatorio para crear el acceso del cliente.',
+                ]);
+            }
+
+            $accessEmail = $customer->phone . '@melpres.app';
+
+            if (User::where('phone', $customer->phone)->exists()) {
+                throw ValidationException::withMessages([
+                    'phone' => 'Este teléfono ya está asociado a un usuario del sistema.',
+                ]);
+            }
+
+            if (User::where('email', $accessEmail)->exists()) {
+                throw ValidationException::withMessages([
+                    'phone' => 'El correo de acceso generado para este teléfono ya está registrado.',
+                ]);
+            }
+
             $plainPassword = strtoupper(substr(str_replace(' ', '', $customer->first_name), 0, 3))
                            . rand(100, 999);
 
-            \App\Models\User::create([
+            $user = User::create([
+                'company_id' => $customer->company_id,
                 'name'        => $customer->full_name,
-                'email'       => $customer->phone . '@melpres.app',
+                'email'       => $accessEmail,
                 'phone'       => $customer->phone,
                 'password'    => $plainPassword,
                 'role'        => 'customer',
                 'customer_id' => $customer->id,
             ]);
 
-            $generatedPassword = $plainPassword;
-        }
+            if (! $user->exists) {
+                throw ValidationException::withMessages([
+                    'phone' => 'No fue posible crear el acceso del cliente.',
+                ]);
+            }
 
-        if ($generatedPassword) {
-            return redirect()->route('customers.show', $customer)
-                             ->with('success', 'Cliente registrado correctamente.')
-                             ->with('credentials', [
-                                 'phone'    => $customer->phone,
-                                 'password' => $generatedPassword,
-                             ]);
-        }
+            \App\Models\ActivityLog::log(
+                'create',
+                'customers',
+                'Creó cliente ' . $customer->full_name,
+                $customer
+            );
+
+            return [$customer, $plainPassword, $accessEmail];
+        });
 
         return redirect()->route('customers.show', $customer)
-                         ->with('success', 'Cliente registrado correctamente.');
+                         ->with('success', 'Cliente registrado correctamente.')
+                         ->with('credentials', [
+                             'email'    => $accessEmail,
+                             'phone'    => $customer->phone,
+                             'password' => $generatedPassword,
+                         ]);
     }
 
     public function show(Customer $customer)
     {
-        $customer->load(['activeLoans', 'user']);
+        $companyId = app(CompanyContext::class)->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $customer = Customer::where('customers.id', $customer->getKey())
+            ->where('customers.company_id', $companyId)
+            ->with([
+                'activeLoans' => fn ($query) => $query->where('loans.company_id', $companyId),
+                'activeLoans.payments' => fn ($query) => $query->where('payments.company_id', $companyId),
+                'loans' => fn ($query) => $query->where('loans.company_id', $companyId),
+                'loans.payments' => fn ($query) => $query->where('payments.company_id', $companyId),
+                'user' => fn ($query) => $query->where('users.company_id', $companyId),
+                'documents' => fn ($query) => $query->where('customer_documents.company_id', $companyId),
+                'profilePhoto' => fn ($query) => $query->where('customer_documents.company_id', $companyId),
+            ])
+            ->firstOrFail();
+
         $scoreService = app(ScoreService::class);
         $scoreData    = $scoreService->etiqueta($customer->score ?? 100);
         return view('customers.show', compact('customer', 'scoreData'));
@@ -96,11 +167,17 @@ class CustomerController extends Controller
 
     public function resetPassword(Customer $customer)
     {
-        $user = $customer->user;
+        $companyId = app(CompanyContext::class)->getCompanyId();
 
-        if (!$user) {
-            return back()->with('error', 'Este cliente no tiene acceso al sistema.');
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
         }
+
+        abort_if((int) $customer->company_id !== (int) $companyId, 404);
+
+        $user = User::where('customer_id', $customer->getKey())
+            ->where('company_id', $companyId)
+            ->firstOrFail();
 
         $plainPassword = strtoupper(substr(str_replace(' ', '', $customer->first_name), 0, 3))
                        . rand(100, 999);

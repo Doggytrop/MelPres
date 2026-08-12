@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Services\CompanyContext;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCustomerRequest extends FormRequest
 {
@@ -10,12 +12,26 @@ class StoreCustomerRequest extends FormRequest
 
     public function rules(): array
     {
+        $company = app(CompanyContext::class)->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $phoneUnique = Rule::unique('customers', 'phone')
+            ->withoutTrashed()
+            ->where(fn ($query) => $query->where('customers.company_id', $company->id));
+
+        $documentNumberUnique = Rule::unique('customers', 'document_number')
+            ->withoutTrashed()
+            ->where(fn ($query) => $query->where('customers.company_id', $company->id));
+
         return [
             'first_name'      => ['required', 'string', 'max:100'],
             'last_name'       => ['required', 'string', 'max:100'],
-            'phone'           => ['nullable', 'string', 'max:20', 'unique:customers,phone'],
+            'phone'           => ['required', 'string', 'max:20', $phoneUnique],
             'document_type'   => ['nullable', 'in:ine,passport,license,id_card,other'],
-            'document_number' => ['nullable', 'string', 'max:50', 'unique:customers,document_number'],
+            'document_number' => ['nullable', 'string', 'max:50', $documentNumberUnique],
             'address'         => ['nullable', 'string', 'max:500'],
             'references'      => ['nullable', 'string', 'max:500'],
             'status'          => ['required', 'in:active,inactive,blocked'],
@@ -32,6 +48,7 @@ class StoreCustomerRequest extends FormRequest
             'first_name.max'            => 'El nombre no puede superar 100 caracteres.',
             'last_name.required'        => 'El apellido es obligatorio.',
             'last_name.max'             => 'El apellido no puede superar 100 caracteres.',
+            'phone.required'            => 'El teléfono es obligatorio para crear el acceso del cliente.',
             'phone.unique'              => 'Este número de teléfono ya está registrado.',
             'phone.max'                 => 'El teléfono no puede superar 20 caracteres.',
             'document_type.in'          => 'El tipo de documento no es válido.',

@@ -3,14 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AdvisorController extends Controller
 {
-    public function index()
+    public function index(CompanyContext $companyContext)
     {
-        $advisors = User::where('role', 'advisor')->latest()->paginate(15);
+        $companyId = $companyContext->getCompanyId();
+
+        if (! $companyId) {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $advisorsQuery = User::where('role', 'advisor')
+            ->where('company_id', $companyId);
+
+        $advisors = $advisorsQuery->latest()->paginate(15);
+
         return view('advisors.index', compact('advisors'));
     }
 
@@ -19,8 +30,16 @@ class AdvisorController extends Controller
         return view('advisors.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CompanyContext $companyContext)
     {
+        $companyId = $companyContext->getCompanyId();
+
+        if (!$companyId || $companyContext->getCompany()?->status !== 'active') {
+            return back()
+                ->withInput()
+                ->with('error', 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
         $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'unique:users,email'],
@@ -35,6 +54,7 @@ class AdvisorController extends Controller
         ]);
 
         User::create([
+            'company_id' => $companyId,
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => $request->password,

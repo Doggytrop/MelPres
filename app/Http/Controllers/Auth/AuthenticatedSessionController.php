@@ -27,6 +27,10 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        if ($request->user()->isSuperAdmin()) {
+            return redirect()->route('superadmin.dashboard');
+        }
+
         \App\Models\ActivityLog::log('login', 'auth', 'Inició sesión');
 
         if (auth()->user()->isCustomer()) {

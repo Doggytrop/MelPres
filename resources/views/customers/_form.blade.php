@@ -52,8 +52,9 @@
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Número de documento</label>
         <input type="text" name="document_number"
                value="{{ old('document_number', $customer->document_number ?? '') }}"
-               class="{{ $inputClass }}" placeholder="Ej: GOMJ850101HDFXXX"
+               class="{{ $inputClass }} @error('document_number') is-invalid @enderror" placeholder="Ej: GOMJ850101HDFXXX"
                {{ $isEdit ? 'readonly style=background:#f0f0f0;cursor:not-allowed;' : '' }}>
+        @error('document_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
         @if($isEdit)
             <small class="text-muted" style="font-size:11px;">No se puede modificar</small>
         @else
@@ -64,7 +65,8 @@
     <div class="col-12 col-md-6">
         <label class="d-block mb-1 text-muted" style="{{ $labelStyle }}">Teléfono</label>
         <input type="text" name="phone" value="{{ old('phone', $customer->phone ?? '') }}"
-               class="{{ $inputClass }}" placeholder="Ej: 6621234567">
+               class="{{ $inputClass }} @error('phone') is-invalid @enderror" placeholder="Ej: 6621234567">
+        @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
     {{-- Dirección con autocompletado --}}

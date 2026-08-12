@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class WhatsAppService
 {
@@ -16,23 +17,13 @@ class WhatsAppService
     private string $apiUrl;
     private bool   $enabled;
 
-    public function __construct()
-    {
-        $this->token         = Setting::where('key', 'whatsapp_token')->value('value')
-                               ?: config('whatsapp.token');
-        $this->phoneNumberId = Setting::where('key', 'whatsapp_phone_number_id')->value('value')
-                               ?: config('whatsapp.phone_number_id');
-        $this->enabled       = (Setting::where('key', 'whatsapp_enabled')->value('value') ?? config('whatsapp.enabled', false)) == '1';
-        $this->apiUrl        = 'https://graph.facebook.com/' . config('whatsapp.api_version') . '/' . $this->phoneNumberId . '/messages';
-    }
-
     // ─── Notificaciones específicas ────────────────────────────────────────
 
     public function sendPaymentReminder(Customer $customer, Loan $loan): bool
     {
-        if (Setting::where('key', 'whatsapp_reminder_enabled')->value('value') == '0') return false;
+        if (Setting::get('whatsapp_reminder_enabled') == '0') return false;
 
-        $template = Setting::where('key', 'whatsapp_reminder_message')->value('value')
+        $template = Setting::get('whatsapp_reminder_message')
             ?? "Hola {nombre} 👋\n\nTe recordamos que tu pago de *\${monto}* vence *mañana*.\n\nPor favor realiza tu pago a tiempo para evitar cargos por mora.\n\n_{negocio}_";
 
         $message = $this->parseTemplate($template, $customer, $loan);
@@ -41,9 +32,9 @@ class WhatsAppService
 
     public function sendPaymentConfirmation(Customer $customer, Loan $loan, Payment $payment): bool
     {
-        if (Setting::where('key', 'whatsapp_confirmation_enabled')->value('value') == '0') return false;
+        if (Setting::get('whatsapp_confirmation_enabled') == '0') return false;
 
-        $template = Setting::where('key', 'whatsapp_confirmation_message')->value('value')
+        $template = Setting::get('whatsapp_confirmation_message')
             ?? "✅ *Pago registrado*\n\nHola {nombre}, confirmamos tu pago:\n\n• Monto: *\${monto}*\n• Fecha: *{fecha}*\n• Saldo restante: *\${saldo}*\n\n_{negocio}_";
 
         // Caso especial: préstamo liquidado
@@ -57,9 +48,9 @@ class WhatsAppService
 
     public function sendOverdueAlert(Customer $customer, Loan $loan): bool
     {
-        if (Setting::where('key', 'whatsapp_overdue_enabled')->value('value') == '0') return false;
+        if (Setting::get('whatsapp_overdue_enabled') == '0') return false;
 
-        $template = Setting::where('key', 'whatsapp_overdue_message')->value('value')
+        $template = Setting::get('whatsapp_overdue_message')
             ?? "⚠️ *Aviso de pago vencido*\n\nHola {nombre}, tu préstamo presenta un saldo vencido:\n\n• Mora acumulada: *\${mora}*\n• Saldo pendiente: *\${saldo}*\n\nPor favor comunícate con tu asesor para regularizar tu cuenta.\n\n_{negocio}_";
 
         $message = $this->parseTemplate($template, $customer, $loan);
@@ -83,6 +74,8 @@ class WhatsAppService
 
     public function sendText(string $phone, string $message): bool
     {
+        $this->refreshConfiguration();
+
         if (!$this->enabled) return false;
 
         $phone = $this->formatPhone($phone);
@@ -116,6 +109,8 @@ class WhatsAppService
 
     public function sendTemplate(string $phone, string $templateName, array $components = [], string $language = 'es_MX'): bool
     {
+        $this->refreshConfiguration();
+
         if (!$this->enabled) return false;
 
         $phone = $this->formatPhone($phone);
@@ -143,6 +138,25 @@ class WhatsAppService
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────────
+
+    private function refreshConfiguration(): void
+    {
+        if (Schema::hasTable('settings')) {
+            $this->token         = Setting::get('whatsapp_token') ?: config('whatsapp.token');
+            $this->phoneNumberId = Setting::get('whatsapp_phone_number_id') ?: config('whatsapp.phone_number_id');
+            $this->enabled       = (Setting::get('whatsapp_enabled', config('whatsapp.enabled', false))) == '1';
+        } else {
+            $this->token         = config('whatsapp.token');
+            $this->phoneNumberId = config('whatsapp.phone_number_id');
+            $this->enabled       = false;
+        }
+
+        $this->apiUrl = 'https://graph.facebook.com/'
+            . config('whatsapp.api_version')
+            . '/'
+            . $this->phoneNumberId
+            . '/messages';
+    }
 
     private function parseTemplate(string $template, Customer $customer, Loan $loan, ?Payment $payment = null): string
     {

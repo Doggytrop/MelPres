@@ -12,7 +12,10 @@ class ScoreService
         $score = 100;
 
         $loans = Loan::where('customer_id', $customer->id)
-                     ->with('payments')
+                     ->where('company_id', $customer->company_id)
+                     ->with([
+                         'payments' => fn ($query) => $query->where('company_id', $customer->company_id),
+                     ])
                      ->get();
 
         foreach ($loans as $loan) {

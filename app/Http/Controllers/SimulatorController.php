@@ -2,19 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\Loan;
 use App\Models\Setting;
+use App\Services\CompanyContext;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SimulatorController extends Controller
 {
-    public function index()
+    public function index(CompanyContext $companyContext)
     {
-        return view('simulator.index');
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $customers = Customer::where('customers.company_id', $company->id)
+            ->where('customers.status', 'active')
+            ->orderBy('customers.first_name')
+            ->get();
+
+        return view('simulator.index', compact('customers'));
     }
 
-    public function calculate(Request $request)
+    public function calculate(Request $request, CompanyContext $companyContext)
     {
+        $company = $companyContext->getCompany();
+
+        if (! $company || $company->status !== 'active') {
+            abort(403, 'No hay una empresa activa asociada al usuario autenticado.');
+        }
+
+        $companyId = $company->id;
+
         $request->validate([
             'monto'              => ['required', 'numeric', 'min:1'],
             'interest_rate'      => ['required', 'numeric', 'min:0'],
@@ -23,7 +45,11 @@ class SimulatorController extends Controller
             'number_of_periods'  => ['nullable', 'integer', 'min:1'],
             'customer_income'    => ['nullable', 'numeric', 'min:0'],
             'income_frequency'   => ['nullable', 'in:weekly,biweekly,monthly,daily'],
-            'customer_id'        => ['nullable', 'exists:customers,id'],
+            'customer_id'        => [
+                'nullable',
+                Rule::exists('customers', 'id')
+                    ->where(fn ($query) => $query->where('customers.company_id', $companyId)),
+            ],
         ]);
 
         $amount   = floatval($request->monto);
@@ -80,8 +106,9 @@ class SimulatorController extends Controller
 
             $currentCommitment = 0;
             if ($request->customer_id) {
-                $currentCommitment = Loan::where('customer_id', $request->customer_id)
-                    ->whereIn('status', ['active', 'overdue'])
+                $currentCommitment = Loan::where('loans.company_id', $companyId)
+                    ->where('loans.customer_id', $request->customer_id)
+                    ->whereIn('loans.status', ['active', 'overdue'])
                     ->get()
                     ->sum(function ($loan) {
                         if ($loan->type === 'daily') {
