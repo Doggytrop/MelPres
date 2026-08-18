@@ -127,7 +127,7 @@ class LoanController extends Controller
                          ->with('success', 'Préstamo registrado correctamente.');
     }
 
-    public function show(Loan $loan)
+    public function show(Loan $loan, \App\Services\LoanPaymentStateService $paymentStateService)
     {
         $companyId = app(CompanyContext::class)->getCompanyId();
 
@@ -147,7 +147,9 @@ class LoanController extends Controller
             ])
             ->firstOrFail();
 
-        return view('loans.show', compact('loan'));
+        $paymentState = $paymentStateService->state($loan);
+
+        return view('loans.show', compact('loan', 'paymentState'));
     }
 
     public function edit(Loan $loan)

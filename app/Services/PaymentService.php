@@ -3,158 +3,112 @@
 namespace App\Services;
 
 use App\Models\Customer;
-use App\Models\Payment;
 use App\Models\Loan;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PaymentService
 {
+    public function __construct(private readonly LoanPaymentStateService $paymentState) {}
+
     public function applyPayment(Loan $loan, array $data): Payment
-{
-    $companyId = app(CompanyContext::class)->getCompanyId();
+    {
+        $companyId = app(CompanyContext::class)->getCompanyId();
 
-    if (! $companyId || ! $loan->company_id || (int) $loan->company_id !== (int) $companyId) {
-        abort(403, 'El préstamo no pertenece a la empresa activa.');
-    }
-
-    return DB::transaction(function () use ($loan, $data, $companyId) {
-        $loan = Loan::where('loans.id', $loan->getKey())
-            ->where('loans.company_id', $companyId)
-            ->firstOrFail();
-
-        $customer = Customer::where('customers.id', $loan->customer_id)
-            ->where('customers.company_id', $companyId)
-            ->firstOrFail();
-
-        $periodsRequested = max(1, intval($data['periods'] ?? 1));
-        $dailyPayment     = floatval($loan->daily_payment ?: $loan->suggested_payment);
-        $amountPaid       = floatval($data['amount_paid']);
-        $remaining        = $amountPaid;
-        $penaltyPay       = 0;
-        $interestPay      = 0;
-        $capitalPay       = 0;
-
-        // 1 — Mora primero
-        if ($loan->accumulated_penalty > 0) {
-            $penaltyPay = min($remaining, floatval($loan->accumulated_penalty));
-            $remaining -= $penaltyPay;
-            $loan->accumulated_penalty -= $penaltyPay;
+        if (! $companyId || ! $loan->company_id || (int) $loan->company_id !== (int) $companyId) {
+            abort(403, 'El préstamo no pertenece a la empresa activa.');
         }
 
-        // 2 — Interés pendiente
-        if ($remaining > 0 && $loan->pending_interest > 0) {
-            $interestPay = min($remaining, floatval($loan->pending_interest));
-            $remaining  -= $interestPay;
-            $loan->pending_interest -= $interestPay;
-        }
+        return DB::transaction(function () use ($loan, $data, $companyId) {
+            $loan = Loan::where('loans.id', $loan->getKey())
+                ->where('loans.company_id', $companyId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        // 3 — El resto va a capital
-        if ($remaining > 0) {
-            $capitalPay = min($remaining, floatval($loan->remaining_balance));
-            $loan->remaining_balance -= $capitalPay;
-        }
+            $customer = Customer::where('customers.id', $loan->customer_id)
+                ->where('customers.company_id', $companyId)
+                ->firstOrFail();
 
-        // 4 — Calcular sobrante (lo que pagó de más sobre los períodos seleccionados)
-        $baseEsperado = round($dailyPayment * $periodsRequested, 2);
-        $carryOver    = max(0, round($amountPaid - $baseEsperado, 2));
+            $amountPaid = round((float) $data['amount_paid'], 2);
+            $stateBefore = $this->paymentState->state($loan, $data['payment_date']);
 
-        // 5 — Tipo de pago
-        $paymentType = $this->determinePaymentType($penaltyPay, $interestPay, $capitalPay);
+            if ($amountPaid <= 0 && ($stateBefore->paymentCredit <= 0 || $stateBefore->dueAmount <= 0)) {
+                throw ValidationException::withMessages([
+                    'amount_paid' => 'El monto debe ser mayor a cero salvo que exista crédito aplicable.',
+                ]);
+            }
 
-        // 6 — Status
-        if ($loan->remaining_balance <= 0 && $loan->pending_interest <= 0) {
-            $loan->status            = 'paid';
-            $loan->remaining_balance = 0;
-            $loan->next_payment_date = null;
-        } elseif ($loan->status === 'overdue' && $loan->accumulated_penalty <= 0) {
-            $loan->status = 'active';
-        }
+            $allocation = $this->paymentState->simulate($loan, $amountPaid, $data['payment_date']);
 
-        // 7 — Próxima fecha: avanza según períodos pagados
-        if ($loan->status !== 'paid') {
-            $loan->next_payment_date = $this->calculateNextPaymentMultiple(
-                $data['payment_date'],
-                $loan->payment_frequency,
-                $periodsRequested
+            $loan->accumulated_penalty = max(0, round((float) $loan->accumulated_penalty - $allocation->penaltyPayment, 2));
+            $loan->pending_interest = max(0, round((float) $loan->pending_interest - $allocation->interestPayment, 2));
+            $loan->remaining_balance = max(0, round((float) $loan->remaining_balance - $allocation->capitalPayment, 2));
+            $loan->current_period_balance = $allocation->currentPeriodBalance;
+            $loan->payment_credit = $allocation->paymentCredit;
+            $loan->next_payment_date = $allocation->nextPaymentDate;
+
+            if ($loan->remaining_balance <= 0 && $loan->pending_interest <= 0) {
+                $loan->status = 'paid';
+                $loan->remaining_balance = 0;
+                $loan->next_payment_date = null;
+                $loan->current_period_balance = 0;
+            } else {
+                $stateAfter = $this->paymentState->state($loan, $data['payment_date']);
+                $loan->status = $stateAfter->overduePeriods > 0 || $loan->accumulated_penalty > 0
+                    ? 'overdue'
+                    : 'active';
+            }
+
+            $loan->save();
+
+            $payment = Payment::create([
+                'company_id' => $companyId,
+                'loan_id' => $loan->id,
+                'amount_paid' => $amountPaid,
+                'penalty_payment' => $allocation->penaltyPayment,
+                'interest_payment' => $allocation->interestPayment,
+                'capital_payment' => $allocation->capitalPayment,
+                'periodic_amount_applied' => $allocation->periodicAmountApplied,
+                'payment_date' => $data['payment_date'],
+                'expected_date' => $data['expected_date'] ?? null,
+                'payment_type' => $this->determinePaymentType($allocation->penaltyPayment, $allocation->interestPayment, $allocation->capitalPayment),
+                'notes' => $data['notes'] ?? null,
+                'recorded_by' => auth()->id(),
+                'periods_covered' => $allocation->periodsCovered,
+                'carry_over' => $allocation->creditGenerated,
+                'credit_generated' => $allocation->creditGenerated,
+                'credit_consumed' => $allocation->creditConsumed,
+            ]);
+
+            \App\Models\ActivityLog::log(
+                'payment',
+                'payments',
+                'Registró pago por $'.number_format($amountPaid, 2).' en préstamo #'.$loan->id,
+                $loan
             );
-        }
 
-        $loan->save();
+            if ((int) $payment->company_id !== (int) $companyId) {
+                abort(409, 'El pago no pertenece a la empresa activa.');
+            }
 
-        \App\Models\ActivityLog::log(
-            'payment', 'payments',
-            'Registró pago por $' . number_format($amountPaid, 2) . ' en préstamo #' . $loan->id,
-            $loan
-        );
+            app(ScoreService::class)->actualizar($customer);
 
-        // 8 — Crear pago
-        $payment = Payment::create([
-            'company_id'       => $companyId,
-            'loan_id'          => $loan->id,
-            'amount_paid'      => $amountPaid,
-            'penalty_payment'  => $penaltyPay,
-            'interest_payment' => $interestPay,
-            'capital_payment'  => $capitalPay,
-            'payment_date'     => $data['payment_date'],
-            'expected_date'    => $data['expected_date'] ?? null,
-            'payment_type'     => $paymentType,
-            'notes'            => $data['notes'] ?? null,
-            'recorded_by'      => auth()->id(),
-            'periods_covered'  => $periodsRequested,
-            'carry_over'       => $carryOver,
-        ]);
+            if ($customer->phone) {
+                app(WhatsAppService::class)->sendPaymentConfirmation($customer, $loan, $payment);
+            }
 
-        if ((int) $payment->company_id !== (int) $companyId) {
-            abort(409, 'El pago no pertenece a la empresa activa.');
-        }
-
-        app(\App\Services\ScoreService::class)->actualizar($customer);
-
-        if ($customer?->phone) {
-            app(\App\Services\WhatsAppService::class)
-                ->sendPaymentConfirmation($customer, $loan, $payment);
-        }
-
-        return $payment;
-    });
-}
-
-private function calculateNextPaymentMultiple(string $date, string $frequency, int $periods): string
-{
-    $carbon = \Carbon\Carbon::parse($date);
-
-    for ($i = 0; $i < $periods; $i++) {
-        $carbon = match ($frequency) {
-            'daily'    => $carbon->addDay(),
-            'weekly'   => $carbon->addWeek(),
-            'biweekly' => $carbon->addDays(15),
-            'monthly'  => $carbon->addMonth(),
-            default    => $carbon->addMonth(),
-        };
+            return $payment;
+        });
     }
-
-    return $carbon->toDateString();
-}
 
     private function determinePaymentType(float $penalty, float $interest, float $capital): string
     {
         if ($penalty > 0 && $capital == 0 && $interest == 0) return 'penalty';
-        if ($interest > 0 && $capital == 0)                  return 'interest_only';
+        if ($interest > 0 && $capital == 0) return 'interest_only';
         if ($capital > 0 && $interest == 0 && $penalty == 0) return 'capital';
-        if ($capital > 0 && $interest > 0)                   return 'mixed';
+        if ($capital > 0 && ($interest > 0 || $penalty > 0)) return 'mixed';
+
         return 'partial';
-    }
-
-    private function calculateNextPayment(string $date, string $frequency): string
-    {
-        $carbon = \Carbon\Carbon::parse($date);
-
-        return match ($frequency) {
-            'daily'    => $carbon->addDay()->toDateString(),
-            'weekly'   => $carbon->addWeek()->toDateString(),
-            'biweekly' => $carbon->addDays(15)->toDateString(),
-            'monthly'  => $carbon->addMonth()->toDateString(),
-            default    => $carbon->addMonth()->toDateString(),
-        };
     }
 }

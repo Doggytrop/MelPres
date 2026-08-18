@@ -1,41 +1,38 @@
 {{-- Registrar pago --}}
 @if($loan->status !== 'paid' && $loan->status !== 'refinanced')
+@php
+    $recommendedAmount = $paymentState->installmentSchedule
+        ? $paymentState->amountToCurrent + (float) $loan->accumulated_penalty + (float) $loan->pending_interest
+        : $paymentState->nextEffectiveAmount;
+@endphp
 <div class="bg-white border rounded-3 p-4 mb-3" style="border-color:#e8e8e8 !important;"
      x-data="{
     paidCount: {{ $paidCount ?? 0 }},
-    periods: 1,
     dailyPayment: {{ floatval($loan->daily_payment ?: $loan->suggested_payment) }},
-    nextAmount: {{ $nextAmount ?? floatval($loan->daily_payment ?: $loan->suggested_payment) }},
-    amountPaid: {{ $nextAmount ?? floatval($loan->daily_payment ?: $loan->suggested_payment) }},
+    nextAmount: {{ $recommendedAmount }},
+    amountPaid: {{ $recommendedAmount }},
     get base() {
-        if (this.periods === 1) {
-            return Math.round(this.nextAmount * 100) / 100;
-        }
-        return Math.round((this.nextAmount + (this.periods - 1) * this.dailyPayment) * 100) / 100;
+        return Math.round(this.nextAmount * 100) / 100;
     },
     get carryOver() { return Math.max(0, Math.round((this.amountPaid - this.base) * 100) / 100); },
     updateAmount() { this.amountPaid = this.base; }
 }"
-@select-period.window="
-    periods = Math.max(1, $event.detail.number - paidCount);
-    updateAmount();
-">
+>
 
     <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Registrar pago</p>
+    <div class="d-flex flex-wrap gap-3 mb-3" style="font-size:11px; color:#666;">
+        <span>Exigible: <strong>${{ number_format($paymentState->dueAmount, 2) }}</strong></span>
+        <span>Vencido: <strong>${{ number_format($paymentState->overdueAmount, 2) }}</strong></span>
+        <span>Crédito: <strong>${{ number_format($paymentState->paymentCredit, 2) }}</strong></span>
+        @if($paymentState->currentPeriodBalance < $paymentState->baseAmount)
+            <span>Parcial pendiente: <strong>${{ number_format($paymentState->currentPeriodBalance, 2) }}</strong></span>
+        @endif
+    </div>
 
     <form method="POST" action="{{ route('loans.payments.store', $loan) }}">
         @csrf
 
         <div class="row g-2 align-items-end">
-
-            {{-- Períodos --}}
-            <div class="col-6 col-md-2">
-                <label class="d-block mb-1 text-muted" style="font-size:11px;">Períodos *</label>
-                <input type="number" name="periods" min="1" max="52"
-                       x-model.number="periods"
-                       @input="updateAmount()"
-                       class="form-control form-control-sm text-center">
-            </div>
 
             {{-- Esperado --}}
             <div class="col-6 col-md-2">

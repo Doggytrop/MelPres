@@ -17,6 +17,7 @@ class Payment extends Model
         'penalty_payment',
         'interest_payment',
         'capital_payment',
+        'periodic_amount_applied',
         'payment_date',
         'expected_date',
         'payment_type',
@@ -24,6 +25,8 @@ class Payment extends Model
         'recorded_by',
         'periods_covered',
         'carry_over',
+        'credit_generated',
+        'credit_consumed',
     ];
 
     protected $casts = [
@@ -33,6 +36,10 @@ class Payment extends Model
         'penalty_payment'     => 'decimal:2',
         'interest_payment'  => 'decimal:2',
         'capital_payment'  => 'decimal:2',
+        'periodic_amount_applied' => 'decimal:2',
+        'carry_over' => 'decimal:2',
+        'credit_generated' => 'decimal:2',
+        'credit_consumed' => 'decimal:2',
     ];
 
     // — Relaciones —

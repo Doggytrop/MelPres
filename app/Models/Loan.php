@@ -23,6 +23,8 @@ class Loan extends Model
         'accrued_interest',
         'pending_interest',
         'daily_payment',
+        'current_period_balance',
+        'payment_credit',
         'penalty_type',
         'penalty_value',
         'grace_days',
@@ -46,6 +48,8 @@ class Loan extends Model
         'accrued_interest'    => 'decimal:2',
         'pending_interest'    => 'decimal:2',
         'daily_payment'       => 'decimal:2',
+        'current_period_balance' => 'decimal:2',
+        'payment_credit'      => 'decimal:2',
         'accumulated_penalty' => 'decimal:2',
         'penalty_last_applied_date' => 'date',
     ];

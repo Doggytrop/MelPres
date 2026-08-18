@@ -7,12 +7,13 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Services\CompanyContext;
 use App\Services\PaymentService;
+use App\Services\LoanPaymentStateService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class CollectorController extends Controller
 {
-    public function index(CompanyContext $companyContext)
+    public function index(CompanyContext $companyContext, LoanPaymentStateService $paymentStateService)
     {
         $today     = Carbon::today();
         $collector = auth()->user();
@@ -21,40 +22,15 @@ class CollectorController extends Controller
         $frequencies = $collector->collector_frequencies
             ?? ['daily', 'weekly', 'biweekly', 'monthly'];
 
-        $overdueDays = $collector->collector_overdue_days ?? 15;
-
-        $todayLoans = Loan::with([
+        $pendingLoans = Loan::with([
                 'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
             ])
             ->where('company_id', $companyId)
             ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
             ->whereIn('status', ['active', 'overdue'])
             ->whereIn('payment_frequency', $frequencies)
-            ->whereDate('next_payment_date', $today)
-            ->whereDoesntHave('payments', function ($q) use ($today, $companyId) {
-                $q->where('payments.company_id', $companyId)
-                    ->whereDate('payment_date', $today);
-            })
+            ->whereDate('next_payment_date', '<=', $today)
             ->get();
-
-        $overdueLoans = collect();
-        if ($overdueDays > 0) {
-            $limitDate = $today->copy()->subDays($overdueDays);
-            $overdueLoans = Loan::with([
-                    'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
-                ])
-                ->where('company_id', $companyId)
-                ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
-                ->whereIn('status', ['active', 'overdue'])
-                ->whereIn('payment_frequency', $frequencies)
-                ->whereDate('next_payment_date', '<', $today)
-                ->whereDate('next_payment_date', '>=', $limitDate)
-                ->whereDoesntHave('payments', function ($q) use ($today, $companyId) {
-                    $q->where('payments.company_id', $companyId)
-                        ->whereDate('payment_date', $today);
-                })
-                ->get();
-        }
 
         $collectedToday = Payment::where('recorded_by', auth()->id())
             ->where('company_id', $companyId)
@@ -69,20 +45,29 @@ class CollectorController extends Controller
             ->latest()
             ->get();
 
-        $allLoans = $todayLoans->merge($overdueLoans)->unique('id');
+        $pendingLoans = $pendingLoans->each(function (Loan $loan) use ($paymentStateService, $today) {
+            $state = $paymentStateService->state($loan, $today);
+            $visualStatus = $state->oldestPendingDate
+                && Carbon::parse($state->oldestPendingDate)->lt($today)
+                    ? 'overdue'
+                    : 'today';
 
-        $mapLoans = $allLoans->filter(function ($loan) {
+            $loan->setAttribute('payment_state', $state);
+            $loan->setAttribute('collector_visual_status', $visualStatus);
+        })->filter(fn (Loan $loan) => $loan->payment_state->dueAmount > 0)->values();
+
+        $mapLoans = $pendingLoans->filter(function ($loan) {
             return $loan->customer && $loan->customer->latitude && $loan->customer->longitude;
         });
 
-        $totalToday     = $todayLoans->count();
-        $totalOverdue   = $overdueLoans->count();
-        $totalPending   = $allLoans->sum('suggested_payment');
+        $totalToday     = $pendingLoans->where('collector_visual_status', 'today')->count();
+        $totalOverdue   = $pendingLoans->where('collector_visual_status', 'overdue')->count();
+        $totalPending   = $pendingLoans->sum(fn (Loan $loan) => $loan->payment_state->amountToCurrent);
         $totalCollected = $collectedToday->sum('amount_paid');
         $collectCount   = $collectedToday->count();
 
         return view('collector.index', compact(
-            'todayLoans', 'overdueLoans', 'allLoans', 'mapLoans',
+            'pendingLoans', 'mapLoans',
             'collectedToday', 'totalToday', 'totalOverdue',
             'totalPending', 'totalCollected', 'collectCount'
         ));
@@ -100,7 +85,7 @@ class CollectorController extends Controller
         $loan = $this->resolveCollectibleLoan($loan, $collector, $companyId);
 
         $request->validate([
-            'amount_paid' => ['required', 'numeric', 'min:0.01'],
+            'amount_paid' => ['required', 'numeric', 'min:0'],
             'notes'       => ['nullable', 'string'],
         ]);
 
@@ -188,27 +173,12 @@ class CollectorController extends Controller
         $today = Carbon::today();
         $frequencies = $collector->collector_frequencies
             ?? ['daily', 'weekly', 'biweekly', 'monthly'];
-        $overdueDays = $collector->collector_overdue_days ?? 15;
-
         return Loan::where('loans.id', $loan->getKey())
             ->where('loans.company_id', $companyId)
             ->whereIn('loans.status', ['active', 'overdue'])
             ->whereIn('loans.payment_frequency', $frequencies)
             ->whereHas('customer', fn ($query) => $query->where('customers.company_id', $companyId))
-            ->where(function ($query) use ($today, $overdueDays) {
-                $query->whereDate('loans.next_payment_date', $today);
-
-                if ($overdueDays > 0) {
-                    $query->orWhere(function ($query) use ($today, $overdueDays) {
-                        $query->whereDate('loans.next_payment_date', '<', $today)
-                            ->whereDate('loans.next_payment_date', '>=', $today->copy()->subDays($overdueDays));
-                    });
-                }
-            })
-            ->whereDoesntHave('payments', function ($query) use ($today, $companyId) {
-                $query->where('payments.company_id', $companyId)
-                    ->whereDate('payments.payment_date', $today);
-            })
+            ->whereDate('loans.next_payment_date', '<=', $today)
             ->with([
                 'customer' => fn ($query) => $query->where('customers.company_id', $companyId),
             ])

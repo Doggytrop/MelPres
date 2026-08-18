@@ -217,6 +217,252 @@ class CollectorAuthorizationTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_pending_list_uses_today_and_overdue_badges_by_open_obligation_date(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-badges', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Hoy');
+        $graceLoan = $this->dailyLoan($company, now()->subDay()->toDateString(), 3, 'Gracia Visual');
+        $this->dailyLoan($company, now()->subDays(3)->toDateString(), 1, 'Atrasado');
+
+        $response = $this->actingAs($collector)->get(route('collector.index'));
+
+        $response->assertOk()
+            ->assertSee('Pendientes (3)')
+            ->assertSee('HOY')
+            ->assertSee('ATRASADO')
+            ->assertDontSee('EN GRACIA');
+
+        $this->assertSame('0.00', $graceLoan->fresh()->accumulated_penalty);
+    }
+
+    public function test_collected_today_keeps_local_midnight_payments_and_tenant_isolation(): void
+    {
+        \Carbon\Carbon::setTestNow(
+            \Carbon\Carbon::parse('2026-08-16 00:15:00', config('app.timezone'))
+        );
+
+        try {
+            [$company, $collector] = $this->tenant('Empresa Uno', 'collector-local-midnight', 'collector');
+            $loan = $this->dailyLoan($company, now()->toDateString(), 0, 'Parciales Medianoche');
+            $otherCollector = $this->user($company, 'collector');
+            [$otherCompany, $otherTenantCollector] = $this->tenant('Empresa Dos', 'collector-local-midnight-other', 'collector');
+            $otherLoan = $this->dailyLoan($otherCompany, now()->toDateString(), 0, 'Ajeno Medianoche');
+
+            Payment::create([
+                'company_id' => $company->id,
+                'loan_id' => $loan->id,
+                'amount_paid' => 60,
+                'payment_date' => now()->toDateString(),
+                'payment_type' => 'capital',
+                'recorded_by' => $collector->id,
+            ]);
+            Payment::create([
+                'company_id' => $company->id,
+                'loan_id' => $loan->id,
+                'amount_paid' => 40,
+                'payment_date' => now()->toDateString(),
+                'payment_type' => 'capital',
+                'recorded_by' => $collector->id,
+            ]);
+            Payment::create([
+                'company_id' => $company->id,
+                'loan_id' => $loan->id,
+                'amount_paid' => 70,
+                'payment_date' => now()->toDateString(),
+                'payment_type' => 'capital',
+                'recorded_by' => $otherCollector->id,
+            ]);
+            Payment::create([
+                'company_id' => $otherCompany->id,
+                'loan_id' => $otherLoan->id,
+                'amount_paid' => 99,
+                'payment_date' => now()->toDateString(),
+                'payment_type' => 'capital',
+                'recorded_by' => $otherTenantCollector->id,
+            ]);
+
+            $this->actingAs($collector)->get(route('collector.index'))
+                ->assertOk()
+                ->assertSee('Cobrados hoy (2)')
+                ->assertSee('60.00')
+                ->assertSee('40.00')
+                ->assertDontSee('70.00')
+                ->assertDontSee('99.00');
+        } finally {
+            \Carbon\Carbon::setTestNow();
+        }
+    }
+
+    public function test_partial_payment_remains_pending_and_second_payment_completes_it(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-partials', 'collector');
+        $loan = $this->dailyLoan($company, now()->toDateString(), 0, 'Parcial');
+
+        $this->actingAs($collector)
+            ->post(route('collector.collect', $loan), ['amount_paid' => 60])
+            ->assertRedirect();
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('Pendientes (1)')
+            ->assertSee('Pendiente de cuota: $40.00')
+            ->assertSee('Cobrados hoy (1)');
+
+        $this->actingAs($collector)
+            ->post(route('collector.collect', $loan->fresh()), ['amount_paid' => 40])
+            ->assertRedirect();
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('Pendientes (0)')
+            ->assertSee('Cobrados hoy (2)');
+
+        $this->assertSame(2, Payment::where('loan_id', $loan->id)->count());
+    }
+
+    public function test_partial_payment_from_previous_date_remains_visually_overdue_without_creating_penalty(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-overdue-partial', 'collector');
+        $loan = $this->dailyLoan($company, now()->subDay()->toDateString(), 3, 'Parcial Atrasado');
+
+        $this->actingAs($collector)
+            ->post(route('collector.collect', $loan), ['amount_paid' => 60])
+            ->assertRedirect();
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('ATRASADO')
+            ->assertSee('Pendiente de cuota: $40.00');
+
+        $this->assertSame('0.00', $loan->fresh()->accumulated_penalty);
+    }
+
+    public function test_map_uses_today_and_overdue_markers_and_keeps_google_directions_link(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-map-statuses', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Mapa Hoy', 29.0729673, -110.9559192);
+        $this->dailyLoan($company, now()->subDay()->toDateString(), 3, 'Mapa Atrasado', 29.0829673, -110.9659192);
+
+        $response = $this->actingAs($collector)->get(route('collector.index'));
+
+        $response->assertOk()
+            ->assertSee('Mapa de cobros')
+            ->assertSee('Hoy')
+            ->assertSee('Atrasado')
+            ->assertDontSee('En gracia')
+            ->assertSee('{ icon: greenIcon }', false)
+            ->assertSee('{ icon: redIcon }', false)
+            ->assertSee('https://www.google.com/maps/dir/?api=1&amp;destination=29.0729673,-110.9559192', false)
+            ->assertSee('rel="noopener noreferrer"', false)
+            ->assertSee('Ir →');
+    }
+
+    public function test_customer_address_is_visible_in_pending_card_and_map_popup(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-address', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Con Direccion', 29.0729673, -110.9559192, 'Calle Sonora 303, Centro');
+
+        $response = $this->actingAs($collector)->get(route('collector.index'));
+
+        $response->assertOk()
+            ->assertSee('collector-customer-address', false)
+            ->assertSee('Calle Sonora 303, Centro')
+            ->assertSee('collector-popup-address', false)
+            ->assertSee('collector-card-directions', false)
+            ->assertSee('Ir →');
+
+        $directionsUrl = 'https://www.google.com/maps/dir/?api=1&amp;destination=29.0729673,-110.9559192';
+        $this->assertSame(2, substr_count($response->getContent(), $directionsUrl));
+    }
+
+    public function test_customer_without_address_keeps_card_and_map_working_without_empty_address_line(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-no-address', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Sin Direccion', 29.0729673, -110.9559192);
+
+        $response = $this->actingAs($collector)->get(route('collector.index'));
+
+        $response->assertOk()
+            ->assertSee('Cliente Sin Direccion')
+            ->assertDontSee('collector-customer-address', false)
+            ->assertSee('collector-customer-location', false)
+            ->assertSee('collector-card-directions', false)
+            ->assertSee(".address\n                    ?", false)
+            ->assertSee('Ir →');
+    }
+
+    public function test_customer_with_address_without_coordinates_has_no_card_directions_button(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-address-only', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Solo Direccion', null, null, 'Calle Sin Coordenadas 20');
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('collector-customer-location', false)
+            ->assertSee('collector-customer-address', false)
+            ->assertSee('Calle Sin Coordenadas 20')
+            ->assertDontSee('collector-card-directions', false);
+    }
+
+    public function test_customer_without_address_or_coordinates_has_no_location_block(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-no-location', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Sin Ubicacion');
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('Cliente Sin Ubicacion')
+            ->assertDontSee('collector-customer-location', false)
+            ->assertDontSee('collector-card-directions', false);
+    }
+
+    public function test_collector_never_sees_customer_address_from_another_tenant(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-own-address', 'collector');
+        $this->dailyLoan($company, now()->toDateString(), 0, 'Propio', null, null, 'Calle Propia 10');
+        [$otherCompany] = $this->tenant('Empresa Dos', 'collector-other-address', 'admin');
+        $this->dailyLoan($otherCompany, now()->toDateString(), 0, 'Ajeno', 29.0829673, -110.9659192, 'Direccion Secreta Ajena 999');
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('Calle Propia 10')
+            ->assertDontSee('Direccion Secreta Ajena 999')
+            ->assertDontSee('29.0829673')
+            ->assertDontSee('-110.9659192');
+    }
+
+    public function test_three_overdue_periods_render_as_one_loan_card(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-three-overdue', 'collector');
+        $loan = $this->dailyLoan($company, now()->subDays(2)->toDateString(), 0, 'Tres Vencidas');
+
+        $response = $this->actingAs($collector)->get(route('collector.index'));
+
+        $response->assertOk()
+            ->assertSee('Pendientes (1)')
+            ->assertSee('3 cuotas vencidas')
+            ->assertSee('Pendiente vencido: $300.00');
+        $this->assertSame(1, substr_count($response->getContent(), 'Préstamo #'.$loan->id.' ·'));
+    }
+
+    public function test_debt_older_than_collector_overdue_days_remains_visible_and_collectible(): void
+    {
+        [$company, $collector] = $this->tenant('Empresa Uno', 'collector-old-debt', 'collector');
+        $collector->update(['collector_overdue_days' => 1]);
+        $loan = $this->dailyLoan($company, now()->subDays(60)->toDateString(), 0, 'Deuda Antigua');
+
+        $this->actingAs($collector)->get(route('collector.index'))
+            ->assertOk()
+            ->assertSee('Deuda Antigua')
+            ->assertSee('ATRASADO');
+
+        $this->actingAs($collector)
+            ->post(route('collector.collect', $loan), ['amount_paid' => 100])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('payments', ['loan_id' => $loan->id, 'amount_paid' => 100]);
+    }
+
     private function tenant(string $name, string $slug, string $role): array
     {
         $company = Company::create([
@@ -264,6 +510,47 @@ class CollectorAuthorizationTest extends TestCase
             'interest_rate' => 10,
             'start_date' => now()->subDay()->toDateString(),
             'next_payment_date' => now()->toDateString(),
+            'status' => 'active',
+        ]);
+    }
+
+    private function dailyLoan(
+        Company $company,
+        string $nextDate,
+        int $graceDays,
+        string $lastName,
+        ?float $latitude = null,
+        ?float $longitude = null,
+        ?string $address = null
+    ): Loan
+    {
+        $customer = Customer::create([
+            'company_id' => $company->id,
+            'first_name' => 'Cliente',
+            'last_name' => $lastName,
+            'status' => 'active',
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'address' => $address,
+        ]);
+
+        return Loan::create([
+            'company_id' => $company->id,
+            'customer_id' => $customer->id,
+            'type' => 'daily',
+            'payment_frequency' => 'daily',
+            'number_of_periods' => 100,
+            'original_amount' => 10000,
+            'remaining_balance' => 10000,
+            'interest_rate' => 0,
+            'accrued_interest' => 0,
+            'pending_interest' => 0,
+            'daily_payment' => 100,
+            'accumulated_penalty' => 0,
+            'grace_days' => $graceDays,
+            'start_date' => now()->subDays(70)->toDateString(),
+            'due_date' => now()->addDays(100)->toDateString(),
+            'next_payment_date' => $nextDate,
             'status' => 'active',
         ]);
     }

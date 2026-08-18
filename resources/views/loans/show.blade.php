@@ -291,17 +291,17 @@
         </div>
     </div>
 @php
-    $paymentAmount = floatval($loan->daily_payment ?: $loan->suggested_payment);
+    $paymentAmount = $paymentState->baseAmount;
 
     if ($loan->type === 'daily' && $paymentAmount > 0) {
         $paidCount  = $loan->payments->sum('periods_covered');
-        $sobrante   = round($loan->payments->sum('carry_over'), 2);
-        $nextAmount = round($paymentAmount - $sobrante, 2);
+        $sobrante   = $paymentState->paymentCredit;
+        $nextAmount = $paymentState->nextEffectiveAmount;
 
     } elseif ($loan->type === 'term' && $paymentAmount > 0) {
         $paidCount  = $loan->payments->count();
-        $sobrante   = round($loan->payments->sum('carry_over'), 2);
-        $nextAmount = round($paymentAmount - $sobrante, 2);
+        $sobrante   = $paymentState->paymentCredit;
+        $nextAmount = $paymentState->nextEffectiveAmount;
 
     } else {
         // interest

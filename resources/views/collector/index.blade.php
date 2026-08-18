@@ -13,6 +13,15 @@
     @php
         $colorPrimario = $config_sistema['color_primario'] ?? '#1f6b21';
         $colorSecundario = $config_sistema['color_secundario'] ?? '#e8f5e9';
+        $mapsDirectionsUrl = static function ($customer): ?string {
+            if ($customer->latitude === null || $customer->longitude === null
+                || ! is_numeric($customer->latitude) || ! is_numeric($customer->longitude)) {
+                return null;
+            }
+
+            return 'https://www.google.com/maps/dir/?api=1&destination='
+                . $customer->latitude . ',' . $customer->longitude;
+        };
     @endphp
     <style>
         :root {
@@ -96,6 +105,22 @@
 
         .tab-btn { padding: 8px 16px; border: none; background: #e8e8e8; color: #555; border-radius: 10px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
         .tab-btn.active { background: var(--color-primary); color: white; }
+
+        .pending-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+        .pending-search { position: relative; flex: 1 1 260px; min-width: 0; }
+        .pending-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; pointer-events: none; }
+        .pending-search input { width: 100%; min-height: 42px; border: 1px solid #d8ded8; border-radius: 10px; padding: 9px 12px 9px 36px; font-size: 13px; color: #1a2e1a; outline: none; }
+        .pending-search input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-secondary) 78%, transparent); }
+        .pending-filter-list { display: flex; flex: 0 1 auto; flex-wrap: wrap; gap: 6px; padding: 2px; max-width: 100%; }
+        .pending-filter { white-space: nowrap; border: 1px solid #d8ded8; background: #fff; color: #555; border-radius: 9px; min-height: 38px; padding: 7px 10px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; }
+        .pending-filter:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .pending-filter.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+        .pending-filter-empty { display: none; }
+        @media (max-width: 575.98px) {
+            .pending-tools { align-items: stretch; }
+            .pending-search { flex-basis: 100%; }
+            .pending-filter-list { width: 100%; }
+        }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .animate-in { animation: slideIn 0.3s ease forwards; }
@@ -202,168 +227,140 @@
         {{-- Tabs --}}
         <div class="d-flex gap-2 mb-4">
             <button class="tab-btn active" onclick="showTab('pending')">
-                Pendientes ({{ $todayLoans->count() + $overdueLoans->count() }})
+                Pendientes ({{ $pendingLoans->count() }})
             </button>
-            @if($collectedToday->count() > 0)
-                <button class="tab-btn" onclick="showTab('collected')">
-                    Cobrados hoy ({{ $collectedToday->count() }})
-                </button>
-            @endif
+            <button class="tab-btn" onclick="showTab('collected')">
+                Cobrados hoy ({{ $collectedToday->count() }})
+            </button>
         </div>
 
         {{-- Tab: Pendientes --}}
         <div id="tab_pending">
-            <div class="row g-4">
+            <div class="section-title" style="color:var(--color-primary);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+                </svg>
+                Pendientes ({{ $pendingLoans->count() }})
+            </div>
 
-                {{-- Cobros de hoy --}}
-                <div class="col-md-6">
-                    <div class="section-title" style="color:var(--color-primary);">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5">
-                            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
-                        </svg>
-                        Cobros de hoy ({{ $todayLoans->count() }})
-                    </div>
+            <div class="pending-tools" data-pending-tools>
+                <label class="pending-search" for="pendingSearch">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/>
+                    </svg>
+                    <input id="pendingSearch" type="search" placeholder="Buscar cliente, teléfono o dirección..." autocomplete="off">
+                </label>
+                <div class="pending-filter-list" role="group" aria-label="Filtrar cobros pendientes">
+                    <button type="button" class="pending-filter active" data-pending-filter="all" aria-pressed="true">TODOS ({{ $pendingLoans->count() }})</button>
+                    <button type="button" class="pending-filter" data-pending-filter="today" aria-pressed="false">HOY ({{ $totalToday }})</button>
+                    <button type="button" class="pending-filter" data-pending-filter="overdue" aria-pressed="false">ATRASADOS ({{ $totalOverdue }})</button>
+                </div>
+            </div>
 
-                    @forelse($todayLoans as $loan)
-                        <div class="loan-card today animate-in" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+            <div class="row g-3">
+                @forelse($pendingLoans as $loan)
+                    @php
+                        $state = $loan->payment_state;
+                        $visual = $loan->collector_visual_status;
+                        $isOverdue = $visual === 'overdue';
+                        $badge = $isOverdue ? 'ATRASADO' : 'HOY';
+                        $badgeStyle = match($visual) {
+                            'overdue' => 'background:#fdecea; color:#c0392b;',
+                            default => 'background:var(--color-secondary); color:var(--color-primary);',
+                        };
+                        $recommendedAmount = $state->amountToCurrent + (float) $loan->accumulated_penalty + (float) $loan->pending_interest;
+                        $cardMapsUrl = $mapsDirectionsUrl($loan->customer);
+                        $hasAddress = trim((string) $loan->customer->address) !== '';
+                        $searchTerms = implode(' ', [
+                            $loan->customer->full_name,
+                            $loan->customer->phone,
+                            $loan->customer->address,
+                            $loan->id,
+                            '#' . $loan->id,
+                            'prestamo ' . $loan->id,
+                        ]);
+                    @endphp
+                    <div class="col-12 col-md-6" data-pending-card data-pending-status="{{ $visual }}" data-pending-search="{{ $searchTerms }}">
+                        <div class="loan-card {{ $isOverdue ? 'overdue' : 'today' }} animate-in" style="animation-delay: {{ $loop->index * 0.04 }}s;">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div>
                                     <span class="fw-medium" style="font-size:15px; color:#1a2e1a;">{{ $loan->customer->full_name }}</span>
-                                    <span class="d-block" style="font-size:12px; color:#888;">{{ $loan->customer->phone ?? '—' }}</span>
+                                    <span class="d-block" style="font-size:12px; color:#888;">Préstamo #{{ $loan->id }} · {{ $loan->type_label }}</span>
                                 </div>
-                                <span class="pill" style="background:var(--color-secondary); color:var(--color-primary);">{{ $loan->type_label }}</span>
+                                <span class="pill" style="{{ $badgeStyle }}">{{ $badge }}</span>
                             </div>
 
-                            @if($loan->customer->address)
-                                <div class="d-flex align-items-start gap-2 mb-3" style="font-size:12px; color:#888;">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" style="flex-shrink:0; margin-top:2px;">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                                    </svg>
-                                    <span>{{ Str::limit($loan->customer->address, 60) }}</span>
-                                    @if($loan->customer->latitude && $loan->customer->longitude)
-                                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ $loan->customer->latitude }},{{ $loan->customer->longitude }}"
-                                           target="_blank" class="btn-maps ms-auto flex-shrink-0">
+                            @if($hasAddress || $cardMapsUrl)
+                                <div class="collector-customer-location d-flex align-items-start gap-2 mb-3" style="font-size:12px; color:#888;">
+                                    @if($hasAddress)
+                                        <div class="collector-customer-address d-flex align-items-start gap-2 flex-grow-1 min-w-0">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" style="flex-shrink:0; margin-top:2px;">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                                            </svg>
+                                            <span>{{ \Illuminate\Support\Str::limit($loan->customer->address, 60) }}</span>
+                                        </div>
+                                    @endif
+                                    @if($cardMapsUrl)
+                                        <a href="{{ $cardMapsUrl }}" target="_blank" rel="noopener noreferrer"
+                                           class="btn-maps collector-card-directions ms-auto flex-shrink-0">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                                                 <polyline points="15 3 21 3 21 9"/>
                                                 <line x1="10" y1="14" x2="21" y2="3"/>
                                             </svg>
-                                            Maps
+                                            Ir →
                                         </a>
                                     @endif
                                 </div>
                             @endif
 
-                            <div class="d-flex justify-content-between align-items-end">
-                                <div>
-                                    <span style="font-size:11px; color:#888;">Monto a cobrar</span>
-                                    <span class="d-block fw-medium" style="font-size:22px; color:var(--color-primary);">
-                                        ${{ number_format($loan->suggested_payment, 2) }}
-                                    </span>
-                                    <span style="font-size:11px; color:#aaa;">Saldo: ${{ number_format($loan->remaining_balance, 2) }}</span>
-                                </div>
-                                <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2"
-                                      data-collect-confirm data-customer-name="{{ $loan->customer->full_name }}" data-confirm-tone="primary">
-                                    @csrf
-                                    <div>
-                                        <input type="number" step="0.01" name="amount_paid"
-                                               value="{{ $loan->suggested_payment }}"
-                                               class="form-control form-control-sm" style="width:100px; border-radius:8px; font-size:13px;">
-                                    </div>
-                                    <input type="hidden" name="notes" value="Cobro en campo">
-                                    <button type="submit" class="btn-collect">
-                                        Cobrar
-                                    </button>
-                                </form>
+                            <div class="d-flex flex-wrap gap-3 mb-3" style="font-size:11px; color:#777;">
+                                <span>Cuota: ${{ number_format($state->baseAmount, 2) }}</span>
+                                <span>Fecha pendiente: {{ $state->oldestPendingDate ? \Carbon\Carbon::parse($state->oldestPendingDate)->format('d/m/Y') : '—' }}</span>
                             </div>
-                        </div>
-                    @empty
-                        <div class="metric-card text-center py-4">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" class="mb-2">
-                                <path d="M20 6 9 17l-5-5"/>
-                            </svg>
-                            <p class="mb-0" style="font-size:13px; color:#888;">No hay cobros pendientes para hoy</p>
-                        </div>
-                    @endforelse
-                </div>
 
-                {{-- Atrasados --}}
-                <div class="col-md-6">
-                    <div class="section-title" style="color:#c0392b;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.5">
-                            <circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>
-                        </svg>
-                        Atrasados ({{ $overdueLoans->count() }})
+                            <div class="mb-3" style="font-size:12px;">
+                                @if($state->currentPeriodBalance < $state->baseAmount)
+                                    <span class="d-block" style="color:#e65100;">Pendiente de cuota: ${{ number_format($state->currentPeriodBalance, 2) }}</span>
+                                @endif
+                                @if($state->overduePeriods > 0)
+                                    <span class="d-block" style="color:#c0392b;">{{ $state->overduePeriods }} {{ $state->overduePeriods === 1 ? 'cuota vencida' : 'cuotas vencidas' }}</span>
+                                    <span class="d-block" style="color:#c0392b;">Pendiente vencido: ${{ number_format($state->overdueAmount, 2) }}</span>
+                                @endif
+                                <span class="d-block" style="color:#555;">Total exigible: ${{ number_format($state->dueAmount, 2) }}</span>
+                                @if($state->paymentCredit > 0)
+                                    <span class="d-block" style="color:#2d6a2d;">Crédito disponible: ${{ number_format($state->paymentCredit, 2) }}</span>
+                                @endif
+                                @if($loan->accumulated_penalty > 0)
+                                    <span class="d-block" style="color:#c0392b;">Mora: ${{ number_format($loan->accumulated_penalty, 2) }}</span>
+                                @endif
+                            </div>
+
+                            <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2"
+                                  data-collect-confirm data-customer-name="{{ $loan->customer->full_name }}" data-confirm-tone="{{ $isOverdue ? 'danger' : 'primary' }}">
+                                @csrf
+                                <div class="flex-grow-1">
+                                    <label class="d-block mb-1" style="font-size:11px; color:#888;">Monto recibido</label>
+                                    <input type="number" step="0.01" name="amount_paid" value="{{ $recommendedAmount }}"
+                                           class="form-control form-control-sm" style="min-width:0; border-radius:8px; font-size:13px;">
+                                </div>
+                                <input type="hidden" name="notes" value="Cobro en campo · {{ $badge }}">
+                                <button type="submit" class="btn-collect {{ $isOverdue ? 'btn-collect-danger' : '' }}">Cobrar</button>
+                            </form>
+                        </div>
                     </div>
-
-                    @forelse($overdueLoans as $loan)
-                        @php
-                            $daysLate = (int) \Carbon\Carbon::parse($loan->next_payment_date)->diffInDays(now());
-                        @endphp
-                        <div class="loan-card overdue animate-in" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="fw-medium" style="font-size:15px; color:#1a2e1a;">{{ $loan->customer->full_name }}</span>
-                                    <span class="d-block" style="font-size:12px; color:#888;">{{ $loan->customer->phone ?? '—' }}</span>
-                                </div>
-                                <span class="pill" style="background:#fdecea; color:#c0392b;">{{ $daysLate }}d atraso</span>
-                            </div>
-
-                            @if($loan->customer->address)
-                                <div class="d-flex align-items-start gap-2 mb-3" style="font-size:12px; color:#888;">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" style="flex-shrink:0; margin-top:2px;">
-                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                                    </svg>
-                                    <span>{{ Str::limit($loan->customer->address, 60) }}</span>
-                                    @if($loan->customer->latitude && $loan->customer->longitude)
-                                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ $loan->customer->latitude }},{{ $loan->customer->longitude }}"
-                                           target="_blank" class="btn-maps ms-auto flex-shrink-0">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                                                <polyline points="15 3 21 3 21 9"/>
-                                                <line x1="10" y1="14" x2="21" y2="3"/>
-                                            </svg>
-                                            Maps
-                                        </a>
-                                    @endif
-                                </div>
-                            @endif
-
-                            <div class="d-flex justify-content-between align-items-end">
-                                <div>
-                                    <span style="font-size:11px; color:#888;">{{ $loan->accumulated_penalty > 0 ? 'Monto + mora' : 'Monto a cobrar' }}</span>
-                                    <span class="d-block fw-medium" style="font-size:22px; color:#c0392b;">
-                                        ${{ number_format($loan->suggested_payment + $loan->accumulated_penalty, 2) }}
-                                    </span>
-                                    @if($loan->accumulated_penalty > 0)
-                                        <span style="font-size:11px; color:#c0392b;">Mora: ${{ number_format($loan->accumulated_penalty, 2) }}</span>
-                                    @endif
-                                </div>
-                                <form method="POST" action="{{ route('collector.collect', $loan) }}" class="d-flex align-items-end gap-2"
-                                      data-collect-confirm data-customer-name="{{ $loan->customer->full_name }}" data-confirm-tone="danger">
-                                    @csrf
-                                    <div>
-                                        <input type="number" step="0.01" name="amount_paid"
-                                               value="{{ $loan->suggested_payment }}"
-                                               class="form-control form-control-sm" style="width:100px; border-radius:8px; font-size:13px;">
-                                    </div>
-                                    <input type="hidden" name="notes" value="Cobro en campo — {{ $daysLate }}d atraso">
-                                    <button type="submit" class="btn-collect btn-collect-danger">
-                                        Cobrar
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @empty
+                @empty
+                    <div class="col-12">
                         <div class="metric-card text-center py-4">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" class="mb-2">
-                                <path d="M20 6 9 17l-5-5"/>
-                            </svg>
-                            <p class="mb-0" style="font-size:13px; color:#888;">Sin cobros atrasados</p>
+                            <p class="mb-0" style="font-size:13px; color:#888;">No hay cobros pendientes</p>
                         </div>
-                    @endforelse
+                    </div>
+                @endforelse
+                <div class="col-12 pending-filter-empty" id="pendingFilterEmpty" role="status">
+                    <div class="metric-card text-center py-4">
+                        <p class="mb-0" style="font-size:13px; color:#888;">No hay cobros que coincidan con esta búsqueda.</p>
+                    </div>
                 </div>
-
             </div>
         </div>
 
@@ -391,6 +388,8 @@
                          data-ticket-type="{{ $payment->loan->type_label ?? '' }}"
                          data-ticket-amount="{{ number_format((float) $payment->amount_paid, 2, '.', '') }}"
                          data-ticket-balance="{{ number_format((float) ($payment->loan->remaining_balance ?? 0), 2, '.', '') }}"
+                         data-ticket-periods="{{ (int) $payment->periods_covered }}"
+                         data-ticket-credit="{{ number_format((float) $payment->credit_generated, 2, '.', '') }}"
                          data-ticket-date="{{ $payment->payment_date?->format('d/m/Y') }} {{ $payment->created_at->format('H:i') }}"
                          data-ticket-collector="{{ auth()->user()->name }}"
                          data-ticket-payment-id="{{ $payment->id }}">
@@ -458,6 +457,8 @@
         <div class="ticket-line"><span>Tipo:</span><span data-ticket-field="type"></span></div>
         <div class="ticket-divider"></div>
         <div class="ticket-line ticket-total"><span>Pago:</span><span data-ticket-field="amount"></span></div>
+        <div class="ticket-line"><span>Períodos cubiertos:</span><span data-ticket-field="periods"></span></div>
+        <div class="ticket-line"><span>Crédito generado:</span><span data-ticket-field="credit"></span></div>
         <div class="ticket-line"><span>Saldo restante:</span><span data-ticket-field="balance"></span></div>
         <div class="ticket-divider"></div>
         <div class="ticket-line"><span>Cobrador:</span><span data-ticket-field="collector"></span></div>
@@ -506,6 +507,8 @@
                 `Préstamo: #${ticket.ticketLoan}`,
                 `Tipo: ${ticket.ticketType}`,
                 `Pago: $${ticket.ticketAmount}`,
+                `Períodos cubiertos: ${ticket.ticketPeriods}`,
+                `Crédito generado: $${ticket.ticketCredit}`,
                 `Saldo restante: $${ticket.ticketBalance}`,
                 `Cobrador: ${ticket.ticketCollector}`,
                 '',
@@ -526,6 +529,8 @@
                 loan: `#${ticket.ticketLoan}`,
                 type: ticket.ticketType,
                 amount: `$${ticket.ticketAmount}`,
+                periods: ticket.ticketPeriods,
+                credit: `$${ticket.ticketCredit}`,
                 balance: `$${ticket.ticketBalance}`,
                 collector: ticket.ticketCollector,
             };
@@ -621,6 +626,57 @@
             event.target.classList.add('active');
         }
 
+        // Búsqueda y filtros de pendientes (solo sobre tarjetas ya renderizadas).
+        const pendingSearch = document.getElementById('pendingSearch');
+        const pendingCards = Array.from(document.querySelectorAll('[data-pending-card]'));
+        const pendingFilters = Array.from(document.querySelectorAll('[data-pending-filter]'));
+        const pendingFilterEmpty = document.getElementById('pendingFilterEmpty');
+        let activePendingFilter = 'all';
+
+        const normalizePendingText = value => String(value ?? '')
+            .toLocaleLowerCase('es-MX')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim();
+
+        function updatePendingCards() {
+            if (!pendingCards.length) return;
+
+            const query = normalizePendingText(pendingSearch?.value);
+            const terms = query.split(/\s+/).filter(Boolean);
+            let visibleCount = 0;
+
+            pendingCards.forEach(card => {
+                const statusMatches = activePendingFilter === 'all'
+                    || card.dataset.pendingStatus === activePendingFilter;
+                const searchableText = normalizePendingText(card.dataset.pendingSearch);
+                const compactSearchableText = searchableText.replace(/\s+/g, '');
+                const searchMatches = terms.every(term => searchableText.includes(term)
+                    || compactSearchableText.includes(term.replace(/\s+/g, '')));
+                const isVisible = statusMatches && searchMatches;
+
+                card.hidden = !isVisible;
+                visibleCount += isVisible ? 1 : 0;
+            });
+
+            pendingFilterEmpty.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        pendingSearch?.addEventListener('input', updatePendingCards);
+        pendingFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                activePendingFilter = filter.dataset.pendingFilter;
+
+                pendingFilters.forEach(button => {
+                    const isActive = button === filter;
+                    button.classList.toggle('active', isActive);
+                    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                });
+
+                updatePendingCards();
+            });
+        });
+
         // Mapa
         @if($mapLoans->count() > 0)
             const map = L.map('map').setView([29.0729, -110.9559], 13);
@@ -644,32 +700,54 @@
             });
 
             const bounds = [];
+            const escapePopupHtml = value => String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
 
             @foreach($mapLoans as $loan)
                 @php
-                    $isOverdue = $loan->next_payment_date && $loan->next_payment_date->isPast();
-                    $mapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=' . $loan->customer->latitude . ',' . $loan->customer->longitude;
+                    $visualStatus = $loan->collector_visual_status;
+                    $isOverdue = $visualStatus === 'overdue';
+                    $markerIcon = $isOverdue ? 'redIcon' : 'greenIcon';
+                    $statusLabel = $isOverdue ? 'ATRASADO' : 'HOY';
+                    $mapsUrl = $mapsDirectionsUrl($loan->customer);
+                    $popupCustomer = [
+                        'name' => $loan->customer->full_name,
+                        'phone' => $loan->customer->phone,
+                        'address' => trim((string) $loan->customer->address) !== ''
+                            ? \Illuminate\Support\Str::limit($loan->customer->address, 50)
+                            : null,
+                    ];
                 @endphp
+
+                const customer{{ $loan->id }} = {{ \Illuminate\Support\Js::from($popupCustomer) }};
+                const customerAddress{{ $loan->id }} = customer{{ $loan->id }}.address
+                    ? `<span class="collector-popup-address" style="font-size:11px; color:#888;">${escapePopupHtml(customer{{ $loan->id }}.address)}</span><br>`
+                    : '';
 
                 const m{{ $loan->id }} = L.marker(
                     [{{ $loan->customer->latitude }}, {{ $loan->customer->longitude }}],
-                    { icon: {{ $isOverdue ? 'redIcon' : 'greenIcon' }} }
+                    { icon: {{ $markerIcon }} }
                 ).addTo(map);
 
                 m{{ $loan->id }}.bindPopup(`
                     <div style="font-family:system-ui; min-width:220px; padding:4px;">
-                        <strong style="font-size:14px; color:#1a2e1a;">{{ $loan->customer->full_name }}</strong><br>
-                        <span style="font-size:12px; color:#888;">{{ $loan->customer->phone ?? '' }}</span><br>
-                        <span style="font-size:11px; color:#888;">{{ Str::limit($loan->customer->address ?? '', 50) }}</span>
+                        <strong style="font-size:14px; color:#1a2e1a;">${escapePopupHtml(customer{{ $loan->id }}.name)}</strong><br>
+                        <span style="font-size:12px; color:#888;">${escapePopupHtml(customer{{ $loan->id }}.phone)}</span><br>
+                        ${customerAddress{{ $loan->id }}}
+                        <span style="font-size:11px; color:{{ $isOverdue ? '#c0392b' : 'var(--color-primary)' }}; font-weight:600;">{{ $statusLabel }}</span><br>
                         <hr style="margin:8px 0; border-color:#eee;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <span style="font-size:11px; color:#888;">A cobrar</span><br>
                                 <strong style="font-size:16px; color:{{ $isOverdue ? '#c0392b' : 'var(--color-primary)' }};">
-                                    ${{ number_format($loan->suggested_payment, 2) }}
+                                    ${{ number_format($loan->payment_state->amountToCurrent, 2) }}
                                 </strong>
                             </div>
-                            <a href="{{ $mapsUrl }}" target="_blank"
+                            <a href="{{ $mapsUrl }}" target="_blank" rel="noopener noreferrer"
                                style="background:#1565c0; color:white; padding:6px 12px; border-radius:6px; font-size:11px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
                                 Ir →
                             </a>

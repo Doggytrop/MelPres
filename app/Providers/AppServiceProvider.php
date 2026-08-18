@@ -14,6 +14,15 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(CompanyContext::class);
+
+        $timezone = new \DateTimeZone(config('app.timezone'));
+        $offset = (new \DateTimeImmutable('now', $timezone))->format('P');
+
+        foreach (config('database.connections', []) as $name => $connection) {
+            if (in_array($connection['driver'] ?? null, ['mysql', 'mariadb'], true)) {
+                config(["database.connections.{$name}.timezone" => $offset]);
+            }
+        }
     }
 
     public function boot(): void
