@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}?v=2">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
+    @include('partials.pwa')
     @vite(['resources/css/superadmin.css', 'resources/js/superadmin.js'])
 </head>
 <div id="confirm-modal" class="confirm-modal-overlay" style="display:none;">
