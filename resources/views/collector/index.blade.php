@@ -343,6 +343,7 @@
                                 <div class="flex-grow-1">
                                     <label class="d-block mb-1" style="font-size:11px; color:#888;">Monto recibido</label>
                                     <input type="number" step="0.01" name="amount_paid" value="{{ $recommendedAmount }}"
+                                           data-select-amount-once
                                            class="form-control form-control-sm" style="min-width:0; border-radius:8px; font-size:13px;">
                                 </div>
                                 <input type="hidden" name="notes" value="Cobro en campo · {{ $badge }}">
@@ -579,6 +580,16 @@
             collectModal.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
         }
+
+        document.addEventListener('focusin', function(event) {
+            const input = event.target.closest('[data-select-amount-once]');
+            if (!input || input.dataset.initialSelectionDone === 'true') return;
+
+            input.dataset.initialSelectionDone = 'true';
+            window.setTimeout(function() {
+                try { input.select(); } catch (error) { /* Algunos móviles no seleccionan type=number. */ }
+            }, 0);
+        });
 
         document.addEventListener('submit', function(event) {
             const form = event.target.closest('form[data-collect-confirm]');

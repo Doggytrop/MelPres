@@ -11,12 +11,26 @@
     dailyPayment: {{ floatval($loan->daily_payment ?: $loan->suggested_payment) }},
     nextAmount: {{ $recommendedAmount }},
     amountPaid: {{ $recommendedAmount }},
+    selectedAmount: {{ $recommendedAmount }},
+    selectAmountOnce(event) {
+        const input = event.target;
+        if (input.dataset.initialSelectionDone === 'true') return;
+
+        input.dataset.initialSelectionDone = 'true';
+        window.setTimeout(() => {
+            try { input.select(); } catch (error) { /* Algunos móviles no seleccionan type=number. */ }
+        }, 0);
+    },
     get base() {
-        return Math.round(this.nextAmount * 100) / 100;
+        return Math.round(this.selectedAmount * 100) / 100;
     },
     get carryOver() { return Math.max(0, Math.round((this.amountPaid - this.base) * 100) / 100); },
     updateAmount() { this.amountPaid = this.base; }
 }"
+     @select-period.window="
+        selectedAmount = Number($event.detail.amount || nextAmount);
+        amountPaid = selectedAmount;
+     "
 >
 
     <p class="text-muted mb-3" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Registrar pago</p>
@@ -51,6 +65,7 @@
                     <span class="input-group-text">$</span>
                     <input type="number" step="0.01" name="amount_paid"
                            x-model.number="amountPaid"
+                           @focus="selectAmountOnce($event)"
                            class="form-control form-control-sm @error('amount_paid') is-invalid @enderror">
                 </div>
                 @error('amount_paid') <div class="invalid-feedback">{{ $message }}</div> @enderror

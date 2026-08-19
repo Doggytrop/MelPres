@@ -324,6 +324,7 @@
                 $periods       = $loan->number_of_periods ?? 0;
                 $paymentAmount = $loan->suggested_payment;
                 $startDate     = $loan->start_date->copy();
+                $today         = \Carbon\Carbon::today()->startOfDay();
 
                 
 
@@ -339,9 +340,12 @@
                         };
                     }
 
-                    $isPaid    = $i <= $paidCount;
-                    $isNext    = !$isPaid && ($i === $paidCount + 1);
-                    $isOverdue = !$isPaid && $date->isPast();
+                    $isPaid          = $i <= $paidCount;
+                    $isEffectiveNext = !$isPaid && ($i === $paidCount + 1);
+                    $isToday         = !$isPaid && $date->isSameDay($today);
+                    $isNext          = $isToday || ($isEffectiveNext && $date->gt($today));
+                    $isOverdue       = !$isPaid && $date->lt($today);
+                    $selectionAmount = round($nextAmount + max(0, $i - ($paidCount + 1)) * $paymentAmount, 2);
 
                     $paymentSchedule[] = [
                         'number'    => $i,
@@ -349,7 +353,9 @@
                         'amount'    => $paymentAmount,
                         'isPaid'    => $isPaid,
                         'isNext'    => $isNext,
+                        'isEffectiveNext' => $isEffectiveNext,
                         'isOverdue' => $isOverdue,
+                        'selectionAmount' => $selectionAmount,
                     ];
                 }
             @endphp
@@ -361,7 +367,7 @@
                 {{ $p['isPaid'] ? '' : 'cursor:pointer;' }}
                 {{ $p['isNext'] ? 'background:' . $tc['bg'] . ';' : '' }}"
          @if(!$p['isPaid'])
-             @click="$dispatch('select-period', { number: {{ $p['number'] }} })"
+             @click="$dispatch('select-period', { number: {{ $p['number'] }}, amount: {{ $p['selectionAmount'] }} })"
          @endif>
 
         <div class="d-flex align-items-center gap-2">
@@ -393,7 +399,7 @@
 
         <div class="d-flex align-items-center gap-2">
             <span style="color:{{ $p['isPaid'] ? 'var(--color-primary)' : '#888' }};">
-                ${{ number_format($p['isNext'] ? $nextAmount : $p['amount'], 2) }}
+                ${{ number_format($p['isEffectiveNext'] ? $nextAmount : $p['amount'], 2) }}
             </span>
             @if($p['isPaid'])
                 <span class="px-2 rounded-pill" style="background:var(--color-secondary); color:var(--color-primary); font-size:10px;">Pagado</span>
