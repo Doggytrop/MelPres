@@ -39,11 +39,23 @@ class PaymentService
                 ]);
             }
 
-            $allocation = $this->paymentState->simulate($loan, $amountPaid, $data['payment_date']);
+            $allocation = $this->paymentState->simulate(
+                $loan,
+                $amountPaid,
+                $data['payment_date'],
+                $data['selected_through_date'] ?? null,
+            );
 
             $loan->accumulated_penalty = max(0, round((float) $loan->accumulated_penalty - $allocation->penaltyPayment, 2));
             $loan->pending_interest = max(0, round((float) $loan->pending_interest - $allocation->interestPayment, 2));
-            $loan->remaining_balance = max(0, round((float) $loan->remaining_balance - $allocation->capitalPayment, 2));
+            $contractReduction = $loan->type === 'interest'
+                ? $allocation->capitalPayment
+                : $allocation->capitalPayment + $allocation->interestPayment;
+
+            $loan->remaining_balance = max(0, round(
+                (float) $loan->remaining_balance - $contractReduction,
+                2
+            ));
             $loan->current_period_balance = $allocation->currentPeriodBalance;
             $loan->payment_credit = $allocation->paymentCredit;
             $loan->next_payment_date = $allocation->nextPaymentDate;

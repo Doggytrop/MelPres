@@ -367,7 +367,7 @@
                 {{ $p['isPaid'] ? '' : 'cursor:pointer;' }}
                 {{ $p['isNext'] ? 'background:' . $tc['bg'] . ';' : '' }}"
          @if(!$p['isPaid'])
-             @click="$dispatch('select-period', { number: {{ $p['number'] }}, amount: {{ $p['selectionAmount'] }} })"
+             @click="$dispatch('select-period', { number: {{ $p['number'] }}, amount: {{ $p['selectionAmount'] }}, throughDate: '{{ $p['date']->toDateString() }}' })"
          @endif>
 
         <div class="d-flex align-items-center gap-2">

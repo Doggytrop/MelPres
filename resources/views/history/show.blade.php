@@ -142,7 +142,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <span style="font-size:14px; color:#1a2e1a; font-weight:500;">
-                                ${{ number_format($payment->amount_paid, 2) }}
+                                Monto: ${{ number_format($payment->amount_paid, 2) }}
                             </span>
                             <span class="ms-2 px-2 py-1 rounded-2"
                                   style="background:var(--color-secondary); color:var(--color-primary); font-size:11px;">

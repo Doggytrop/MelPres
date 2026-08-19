@@ -85,7 +85,7 @@
                             ${{ number_format($paymentsPoradvisor->sum('amount_paid'), 2) }}
                         </td>
                         <td class="px-4 py-3 text-muted">
-                            ${{ number_format($paymentsPoradvisor->sum('interestt_payment'), 2) }}
+                            ${{ number_format($paymentsPoradvisor->sum('interest_payment'), 2) }}
                         </td>
                         <td class="px-4 py-3 text-muted">
                             ${{ number_format($paymentsPoradvisor->sum('penalty_payment'), 2) }}
@@ -129,8 +129,8 @@
                             @if($payment->capital_payment > 0)
                                 <span>Capital: ${{ number_format($payment->capital_payment, 2) }}</span>
                             @endif
-                            @if($payment->interestt_payment > 0)
-                                <span>Interés: ${{ number_format($payment->interestt_payment, 2) }}</span>
+                            @if($payment->interest_payment > 0)
+                                <span>Interés: ${{ number_format($payment->interest_payment, 2) }}</span>
                             @endif
                             @if($payment->penalty_payment > 0)
                                 <span>Mora: ${{ number_format($payment->penalty_payment, 2) }}</span>

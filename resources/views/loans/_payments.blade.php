@@ -12,6 +12,7 @@
     nextAmount: {{ $recommendedAmount }},
     amountPaid: {{ $recommendedAmount }},
     selectedAmount: {{ $recommendedAmount }},
+    selectedThroughDate: '',
     selectAmountOnce(event) {
         const input = event.target;
         if (input.dataset.initialSelectionDone === 'true') return;
@@ -30,6 +31,7 @@
      @select-period.window="
         selectedAmount = Number($event.detail.amount || nextAmount);
         amountPaid = selectedAmount;
+        selectedThroughDate = $event.detail.throughDate || '';
      "
 >
 
@@ -45,6 +47,7 @@
 
     <form method="POST" action="{{ route('loans.payments.store', $loan) }}">
         @csrf
+        <input type="hidden" name="selected_through_date" x-model="selectedThroughDate">
 
         <div class="row g-2 align-items-end">
 
@@ -131,7 +134,7 @@
                     </div>
                     <div>
                         <span style="font-size:14px; color:var(--color-primary); font-weight:500;">
-                            ${{ number_format($payment->amount_paid, 2) }}
+                            Monto: ${{ number_format($payment->amount_paid, 2) }}
                         </span>
                         <span class="text-muted ms-2" style="font-size:12px;">
                             {{ $payment->payment_date instanceof \Carbon\Carbon ? $payment->payment_date->format('d/m/Y') : $payment->payment_date }}

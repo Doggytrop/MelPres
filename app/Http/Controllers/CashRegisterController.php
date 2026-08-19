@@ -85,7 +85,7 @@ class CashRegisterController extends Controller
         $poradvisor    = $payments->groupBy('recorded_by');
         $totalCobrado = $payments->sum('amount_paid');
         $totalCapital = $payments->sum('capital_payment');
-        $totalinterest = $payments->sum('interestt_payment');
+        $totalinterest = $payments->sum('interest_payment');
         $totalMora    = $payments->sum('penalty_payment');
 
         $pdf = Pdf::loadView('cash-register.pdf', compact(

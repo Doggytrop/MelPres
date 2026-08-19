@@ -99,7 +99,7 @@
                             <td>{{ $paymentsPoradvisor->first()->recordedBy?->name ?? 'Sin Asesor' }}</td>
                             <td>{{ $paymentsPoradvisor->count() }}</td>
                             <td>${{ number_format($paymentsPoradvisor->sum('amount_paid'), 2) }}</td>
-                            <td>${{ number_format($paymentsPoradvisor->sum('interestt_payment'), 2) }}</td>
+                            <td>${{ number_format($paymentsPoradvisor->sum('interest_payment'), 2) }}</td>
                             <td>${{ number_format($paymentsPoradvisor->sum('penalty_payment'), 2) }}</td>
                         </tr>
                     @endforeach
@@ -128,7 +128,7 @@
                         <td>{{ $payment->loan->customer?->first_name_complete ?? 'customer eliminado' }}</td>
                         <td>{{ $payment->recordedBy?->name ?? '—' }}</td>
                         <td>${{ number_format($payment->capital_payment, 2) }}</td>
-                        <td>${{ number_format($payment->interestt_payment, 2) }}</td>
+                        <td>${{ number_format($payment->interest_payment, 2) }}</td>
                         <td>${{ number_format($payment->penalty_payment, 2) }}</td>
                         <td style="font-weight:bold;">${{ number_format($payment->amount_paid, 2) }}</td>
                     </tr>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Loan;
 use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class LoanPaymentStateService
 {
@@ -13,12 +14,17 @@ class LoanPaymentStateService
         $base = $this->baseAmount($loan);
         $scheduled = $this->supportsInstallmentSchedule($loan);
         $oldest = $loan->next_payment_date?->copy()->startOfDay();
-        $current = $this->currentBalance($loan, $base);
         $credit = max(0, round((float) ($loan->payment_credit ?? 0), 2));
 
         if (! $oldest || $loan->status === 'paid' || $base <= 0) {
             return new LoanPaymentState($base, $loan->payment_frequency, null, 0, 0, 0, 0, 0, 0, $credit, 0, 0, $scheduled);
         }
+
+        if ($scheduled) {
+            $base = $this->periodAmountForDate($loan, $oldest);
+        }
+
+        $current = $this->currentBalance($loan, $base);
 
         if (! $scheduled) {
             $due = $oldest->lte($date) ? 1 : 0;
@@ -34,17 +40,21 @@ class LoanPaymentStateService
         $duePeriods = count($dates);
         $overduePeriods = 0;
         $overdueAmount = 0;
+        $dueAmount = 0;
 
         foreach ($dates as $index => $dueDate) {
+            $periodAmount = $index === 0
+                ? $current
+                : $this->periodAmountForDate($loan, $dueDate);
+
+            $dueAmount += $periodAmount;
+
             if ($date->gt($dueDate->copy()->addDays((int) ($loan->grace_days ?? 0)))) {
                 $overduePeriods++;
-                $overdueAmount += $index === 0 ? $current : $base;
+                $overdueAmount += $periodAmount;
             }
         }
 
-        $dueAmount = $duePeriods > 0
-            ? round($current + max(0, $duePeriods - 1) * $base, 2)
-            : 0;
         $dueAmount = min($dueAmount, $this->periodicCapacity($loan));
         $overdueAmount = min(round($overdueAmount, 2), $dueAmount);
         $effective = max(0, round($current - $credit, 2));
@@ -66,28 +76,45 @@ class LoanPaymentStateService
         );
     }
 
-    public function simulate(Loan $loan, float $amountReceived, Carbon|string|null $asOf = null): PaymentAllocation
+    public function simulate(
+        Loan $loan,
+        float $amountReceived,
+        Carbon|string|null $asOf = null,
+        Carbon|string|null $selectedThroughDate = null,
+    ): PaymentAllocation
     {
         $date = $this->date($asOf);
         $state = $this->state($loan, $date);
         $cash = round($amountReceived, 2);
         $penalty = min($cash, max(0, (float) $loan->accumulated_penalty));
         $cash = round($cash - $penalty, 2);
-        $interest = min($cash, max(0, (float) $loan->pending_interest));
-        $cash = round($cash - $interest, 2);
-        $capital = min($cash, max(0, (float) $loan->remaining_balance));
 
-        if (! $state->installmentSchedule) {
-            return $this->simulateLegacyInterest($loan, $state, $date, $penalty, $interest, $capital, $cash);
+        if ($loan->type === 'interest') {
+            return $this->simulateInterestLoan($loan, $state, $date, $penalty, $cash);
         }
 
-        $creditConsumed = min($state->paymentCredit, $state->dueAmount);
-        $periodicCash = min($cash, max(0, $state->dueAmount - $creditConsumed));
+        // pending_interest conserva compatibilidad con intereses no financiados que
+        // ya estuvieran explícitamente pendientes. El interés contractual de daily
+        // y term se distribuye abajo, no se copia aquí.
+        $pendingInterest = min($cash, max(0, (float) $loan->pending_interest));
+        $cashForContract = round($cash - $pendingInterest, 2);
+        [$contractInterest, $capital] = $this->allocateFinancedContract($loan, $state, $cashForContract);
+        $interest = round($pendingInterest + $contractInterest, 2);
+
+        $coverageThrough = $date;
+        $coverageAmount = $state->dueAmount;
+
+        if ($selectedThroughDate !== null) {
+            [$coverageThrough, $coverageAmount] = $this->selectedCoverageRange($loan, $state, $selectedThroughDate);
+        }
+
+        $creditConsumed = min($state->paymentCredit, $coverageAmount);
+        $periodicCash = min($cashForContract, max(0, $coverageAmount - $creditConsumed));
         $periodicApplied = round($creditConsumed + $periodicCash, 2);
-        $creditGenerated = max(0, round($cash - $periodicCash, 2));
+        $creditGenerated = max(0, round($cashForContract - $periodicCash, 2));
         $newCredit = max(0, round($state->paymentCredit - $creditConsumed + $creditGenerated, 2));
 
-        [$covered, $nextDate, $currentBalance] = $this->advanceOpenObligation($loan, $state, $periodicApplied, $date);
+        [$covered, $nextDate, $currentBalance] = $this->advanceOpenObligation($loan, $state, $periodicApplied, $coverageThrough);
 
         return new PaymentAllocation(
             $penalty,
@@ -137,9 +164,204 @@ class LoanPaymentStateService
         return new PaymentAllocation($penalty, $interest, $capital, $periodic, $periodic, 0, 0, 0, $state->baseAmount, 1, $next);
     }
 
-    private function advanceOpenObligation(Loan $loan, LoanPaymentState $state, float $applied, Carbon $asOf): array
+    private function simulateInterestLoan(Loan $loan, LoanPaymentState $state, Carbon $date, float $penalty, float $cash): PaymentAllocation
     {
-        if ($state->duePeriods === 0 || $applied <= 0) {
+        $interestDue = max(0, $state->currentPeriodBalance);
+        $remainingCapital = max(0, (float) $loan->remaining_balance);
+        $isLiquidation = $cash >= round($interestDue + $remainingCapital, 2);
+
+        if ($isLiquidation) {
+            $interest = $interestDue;
+            $capital = $remainingCapital;
+            $periodic = $interestDue;
+            $creditGenerated = max(0, round($cash - $interest - $capital, 2));
+
+            return new PaymentAllocation(
+                $penalty,
+                $interest,
+                $capital,
+                $periodic,
+                $periodic,
+                $creditGenerated,
+                0,
+                $creditGenerated,
+                0,
+                1,
+                null,
+            );
+        }
+
+        // Un préstamo renovable de interés nunca amortiza capital con un pago
+        // ordinario: cualquier efectivo recibido se registra como interés.
+        $interest = $cash;
+        $periodic = min($cash, $interestDue);
+        $currentBalance = max(0, round($interestDue - $periodic, 2));
+        $covered = $currentBalance <= 0 && $interestDue > 0 ? 1 : 0;
+        $next = $covered
+            ? $this->addPeriods($date, $loan->payment_frequency)->toDateString()
+            : $state->oldestPendingDate;
+
+        return new PaymentAllocation(
+            $penalty,
+            $interest,
+            0,
+            $periodic,
+            $periodic,
+            0,
+            0,
+            0,
+            $currentBalance,
+            $covered,
+            $next,
+        );
+    }
+
+    /**
+     * Distribuye el efectivo contractual sobre las obligaciones desde la más
+     * antigua. Los centavos sobrantes se asignan a los primeros períodos, por
+     * lo que las sumas finales siempre coinciden exactamente con el contrato.
+     * El crédito ya generado ocupa primero la siguiente obligación, pero no
+     * vuelve a reducir remaining_balance cuando después se consume.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function allocateFinancedContract(Loan $loan, LoanPaymentState $state, float $cash): array
+    {
+        if ($cash <= 0) {
+            return [0, 0];
+        }
+
+        $periods = max(1, (int) ($loan->number_of_periods ?? 1));
+        $index = $this->periodIndex($loan, $state->oldestPendingDate);
+        $currentTotal = $this->periodAmountCents($loan, $index, $periods);
+        $alreadyApplied = max(0, $currentTotal - $this->cents($state->currentPeriodBalance));
+        $skip = $alreadyApplied + $this->cents($state->paymentCredit);
+        $remaining = min($this->cents($cash), $this->cents($loan->remaining_balance));
+        $interest = 0;
+        $capital = 0;
+
+        for ($period = $index; $period < $periods && $remaining > 0; $period++) {
+            $periodTotal = $this->periodAmountCents($loan, $period, $periods);
+            $periodInterest = $this->interestAmountCents($loan, $period, $periods);
+            $periodCapital = $periodTotal - $periodInterest;
+
+            $alreadyInPeriod = min($skip, $periodTotal);
+            $skip = max(0, $skip - $alreadyInPeriod);
+            $available = $periodTotal - $alreadyInPeriod;
+            $applied = min($remaining, $available);
+            $interestOutstanding = max(0, $periodInterest - $alreadyInPeriod);
+            $interestApplied = min($applied, $interestOutstanding);
+
+            $interest += $interestApplied;
+            $capital += $applied - $interestApplied;
+            $remaining -= $applied;
+        }
+
+        return [$interest / 100, $capital / 100];
+    }
+
+    private function periodIndex(Loan $loan, ?string $date): int
+    {
+        if (! $date || ! $loan->start_date) {
+            return 0;
+        }
+
+        $target = Carbon::parse($date)->startOfDay();
+        $periods = max(1, (int) ($loan->number_of_periods ?? 1));
+        $cursor = $this->addPeriods($loan->start_date, $loan->payment_frequency);
+
+        for ($index = 0; $index < $periods; $index++) {
+            if ($cursor->isSameDay($target)) {
+                return $index;
+            }
+
+            $cursor = $this->addPeriods($cursor, $loan->payment_frequency);
+        }
+
+        return 0;
+    }
+
+    private function periodAmountCents(Loan $loan, int $period, int $periods): int
+    {
+        return $this->distributedCents(
+            $this->cents((float) $loan->original_amount + (float) $loan->accrued_interest),
+            $period,
+            $periods,
+        );
+    }
+
+    private function periodAmountForDate(Loan $loan, Carbon|string $date): float
+    {
+        $periods = max(1, (int) ($loan->number_of_periods ?? 1));
+
+        return $this->periodAmountCents($loan, $this->periodIndex($loan, (string) $date), $periods) / 100;
+    }
+
+    private function interestAmountCents(Loan $loan, int $period, int $periods): int
+    {
+        return $this->distributedCents($this->cents($loan->accrued_interest), $period, $periods);
+    }
+
+    private function distributedCents(int $total, int $period, int $periods): int
+    {
+        $base = intdiv($total, $periods);
+        $remainder = $total % $periods;
+
+        return $base + ($period < $remainder ? 1 : 0);
+    }
+
+    private function cents(float|string|null $amount): int
+    {
+        return (int) round((float) $amount * 100);
+    }
+
+    /**
+     * Returns the server-validated, continuous range an administrator selected.
+     * The payment date remains the sole source for delinquency calculations;
+     * this range only authorizes applying cash to future contractual periods.
+     *
+     * @return array{0: Carbon, 1: float}
+     */
+    private function selectedCoverageRange(Loan $loan, LoanPaymentState $state, Carbon|string $selectedThroughDate): array
+    {
+        if (! $state->installmentSchedule || ! $state->oldestPendingDate) {
+            throw ValidationException::withMessages([
+                'selected_through_date' => 'El préstamo no admite selección de períodos.',
+            ]);
+        }
+
+        $selectedThrough = $this->date($selectedThroughDate);
+        $date = Carbon::parse($state->oldestPendingDate)->startOfDay();
+
+        if ($selectedThrough->lt($date)) {
+            throw ValidationException::withMessages([
+                'selected_through_date' => 'La fecha seleccionada no puede ser anterior a la siguiente obligación.',
+            ]);
+        }
+
+        $amount = 0.0;
+        $guard = max(1, (int) ($loan->number_of_periods ?? 365));
+
+        for ($period = 0; $period < $guard && $this->isWithinContract($loan, $date); $period++) {
+            $amount = round($amount + ($period === 0
+                ? $state->currentPeriodBalance
+                : min($this->periodAmountForDate($loan, $date), $this->periodicCapacity($loan))), 2);
+
+            if ($date->isSameDay($selectedThrough)) {
+                return [$selectedThrough, $amount];
+            }
+
+            $date = $this->addPeriods($date, $loan->payment_frequency);
+        }
+
+        throw ValidationException::withMessages([
+            'selected_through_date' => 'La fecha seleccionada no pertenece al calendario del préstamo.',
+        ]);
+    }
+
+    private function advanceOpenObligation(Loan $loan, LoanPaymentState $state, float $applied, Carbon $coverageThrough): array
+    {
+        if ($applied <= 0) {
             return [0, $state->oldestPendingDate, $state->currentPeriodBalance];
         }
 
@@ -148,7 +370,7 @@ class LoanPaymentStateService
         $date = Carbon::parse($state->oldestPendingDate);
         $covered = 0;
 
-        while ($date->lte($asOf) && $remainingApplied >= $balance && $balance > 0) {
+        while ($date->lte($coverageThrough) && $remainingApplied >= $balance && $balance > 0) {
             $remainingApplied = round($remainingApplied - $balance, 2);
             $covered++;
             $date = $this->addPeriods($date, $loan->payment_frequency);
@@ -157,10 +379,10 @@ class LoanPaymentStateService
                 return [$covered, null, 0];
             }
 
-            $balance = min($state->baseAmount, $this->periodicCapacity($loan));
+            $balance = min($this->periodAmountForDate($loan, $date), $this->periodicCapacity($loan));
         }
 
-        if ($date->lte($asOf) && $remainingApplied > 0) {
+        if ($date->lte($coverageThrough) && $remainingApplied > 0) {
             $balance = max(0, round($balance - $remainingApplied, 2));
         }
 

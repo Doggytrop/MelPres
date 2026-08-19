@@ -14,6 +14,7 @@ class StorePaymentRequest extends FormRequest
             'amount_paid'   => ['required', 'numeric', 'min:0', 'max:999999999.99'],
             'payment_date'  => ['required', 'date', 'before_or_equal:today'],
             'expected_date' => ['nullable', 'date'],
+            'selected_through_date' => ['nullable', 'date'],
             'notes'         => ['nullable', 'string', 'max:500'],
         ];
     }

@@ -148,7 +148,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <span class="fw-medium" style="font-size:14px; color:var(--color-primary);">
-                                ${{ number_format($payment->amount_paid, 2) }}
+                                Monto: ${{ number_format($payment->amount_paid, 2) }}
                             </span>
                             <span class="text-muted ms-2" style="font-size:12px;">
                                 {{ $payment->payment_date instanceof \Carbon\Carbon ? $payment->payment_date->format('d/m/Y') : $payment->payment_date }}
