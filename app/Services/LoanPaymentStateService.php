@@ -81,6 +81,7 @@ class LoanPaymentStateService
         float $amountReceived,
         Carbon|string|null $asOf = null,
         Carbon|string|null $selectedThroughDate = null,
+        bool $authorizeFuturePeriods = false,
     ): PaymentAllocation
     {
         $date = $this->date($asOf);
@@ -106,6 +107,8 @@ class LoanPaymentStateService
 
         if ($selectedThroughDate !== null) {
             [$coverageThrough, $coverageAmount] = $this->selectedCoverageRange($loan, $state, $selectedThroughDate);
+        } elseif ($authorizeFuturePeriods && $state->installmentSchedule && $state->oldestPendingDate) {
+            [$coverageThrough, $coverageAmount] = $this->automaticAdminCoverageRange($loan, $state, $cashForContract);
         }
 
         $creditConsumed = min($state->paymentCredit, $coverageAmount);
@@ -357,6 +360,42 @@ class LoanPaymentStateService
         throw ValidationException::withMessages([
             'selected_through_date' => 'La fecha seleccionada no pertenece al calendario del préstamo.',
         ]);
+    }
+
+    /**
+     * Authorizes consecutive future periods for the administrative workflow
+     * only. The range is derived from server-side cash and the real schedule,
+     * never from a client-provided period count.
+     *
+     * @return array{0: Carbon, 1: float}
+     */
+    private function automaticAdminCoverageRange(Loan $loan, LoanPaymentState $state, float $cashForContract): array
+    {
+        $available = round(max(0, $cashForContract) + $state->paymentCredit, 2);
+
+        if ($available <= 0) {
+            return [Carbon::parse($state->oldestPendingDate), 0.0];
+        }
+
+        $date = Carbon::parse($state->oldestPendingDate)->startOfDay();
+        $lastDate = $date->copy();
+        $amount = 0.0;
+        $guard = max(1, (int) ($loan->number_of_periods ?? 365));
+
+        for ($period = 0; $period < $guard && $this->isWithinContract($loan, $date); $period++) {
+            $lastDate = $date->copy();
+            $amount = round($amount + ($period === 0
+                ? $state->currentPeriodBalance
+                : min($this->periodAmountForDate($loan, $date), $this->periodicCapacity($loan))), 2);
+
+            if ($amount >= $available) {
+                return [$date, $amount];
+            }
+
+            $date = $this->addPeriods($date, $loan->payment_frequency);
+        }
+
+        return [$lastDate, $amount];
     }
 
     private function advanceOpenObligation(Loan $loan, LoanPaymentState $state, float $applied, Carbon $coverageThrough): array

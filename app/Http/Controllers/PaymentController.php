@@ -16,7 +16,12 @@ class PaymentController extends Controller
             return back()->with('error', 'Este préstamo ya está pagado.');
         }
 
-        $this->paymentService->applyPayment($loan, $request->validated());
+        $paymentData = $request->validated();
+        // This route is the administrative payment workflow. Its implicit
+        // authorization may cover consecutive contractual periods.
+        $paymentData['authorize_future_periods'] = true;
+
+        $this->paymentService->applyPayment($loan, $paymentData);
 
         return redirect()->route('loans.show', $loan)
                          ->with('success', 'Pago registrado correctamente.');

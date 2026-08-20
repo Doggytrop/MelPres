@@ -108,6 +108,134 @@ class LoanPaymentStateServiceTest extends TestCase
         $this->assertSame('2026-08-18', $allocation->nextPaymentDate);
     }
 
+    public function test_admin_prepayment_without_selection_covers_consecutive_future_periods_before_generating_credit(): void
+    {
+        $allocation = $this->service->simulate(
+            $this->fourHundredFinancedLoan(),
+            800,
+            '2026-08-15',
+            null,
+            true,
+        );
+
+        $this->assertSame(666.66, $allocation->capitalPayment);
+        $this->assertSame(133.34, $allocation->interestPayment);
+        $this->assertSame(800.0, $allocation->periodicAmountApplied);
+        $this->assertSame(2, $allocation->periodsCovered);
+        $this->assertSame(0.0, $allocation->creditGenerated);
+        $this->assertSame('2026-08-18', $allocation->nextPaymentDate);
+    }
+
+    public function test_admin_prepayment_of_the_next_open_future_period_does_not_create_credit_when_exact(): void
+    {
+        $allocation = $this->service->simulate(
+            $this->fourHundredFinancedLoan(),
+            400,
+            '2026-08-15',
+            null,
+            true,
+        );
+
+        $this->assertSame(400.0, $allocation->periodicAmountApplied);
+        $this->assertSame(1, $allocation->periodsCovered);
+        $this->assertSame(0.0, $allocation->creditGenerated);
+    }
+
+    public function test_admin_selected_two_future_periods_apply_the_whole_authorized_range_before_credit(): void
+    {
+        $allocation = $this->service->simulate(
+            $this->fourHundredFinancedLoan(),
+            900,
+            '2026-08-15',
+            '2026-08-17',
+            true,
+        );
+
+        $this->assertSame(800.0, $allocation->periodicAmountApplied);
+        $this->assertSame(2, $allocation->periodsCovered);
+        $this->assertSame(100.0, $allocation->creditGenerated);
+    }
+
+    public function test_admin_selected_two_future_periods_with_an_exact_payment_generate_no_credit(): void
+    {
+        $allocation = $this->service->simulate(
+            $this->fourHundredFinancedLoan(),
+            800,
+            '2026-08-15',
+            '2026-08-17',
+            true,
+        );
+
+        $this->assertSame(800.0, $allocation->periodicAmountApplied);
+        $this->assertSame(2, $allocation->periodsCovered);
+        $this->assertSame(0.0, $allocation->creditGenerated);
+        $this->assertSame(800.0, $allocation->capitalPayment + $allocation->interestPayment + $allocation->penaltyPayment);
+    }
+
+    public function test_admin_automatically_covers_one_two_or_three_eight_hundred_dollar_periods(): void
+    {
+        foreach ([800 => 1, 1600 => 2, 2400 => 3] as $amount => $periodsCovered) {
+            $allocation = $this->service->simulate(
+                $this->eightHundredFinancedLoan(),
+                (float) $amount,
+                '2026-08-15',
+                null,
+                true,
+            );
+
+            $this->assertSame((float) $amount, $allocation->periodicAmountApplied);
+            $this->assertSame($periodsCovered, $allocation->periodsCovered);
+            $this->assertSame(0.0, $allocation->creditGenerated);
+            $this->assertSame((float) $amount, round(
+                $allocation->capitalPayment + $allocation->interestPayment + $allocation->penaltyPayment,
+                2,
+            ));
+        }
+    }
+
+    public function test_admin_automatically_applies_a_partial_amount_to_the_next_period_instead_of_generating_fictitious_credit(): void
+    {
+        $allocation = $this->service->simulate(
+            $this->eightHundredFinancedLoan(),
+            1700,
+            '2026-08-15',
+            null,
+            true,
+        );
+
+        $this->assertSame(1700.0, $allocation->periodicAmountApplied);
+        $this->assertSame(2, $allocation->periodsCovered);
+        $this->assertSame(700.0, $allocation->currentPeriodBalance);
+        $this->assertSame(0.0, $allocation->creditGenerated);
+    }
+
+    public function test_admin_selected_through_date_remains_the_maximum_authorized_range(): void
+    {
+        $allocation = $this->service->simulate(
+            $this->eightHundredFinancedLoan(),
+            2400,
+            '2026-08-15',
+            '2026-08-17',
+            true,
+        );
+
+        $this->assertSame(1600.0, $allocation->periodicAmountApplied);
+        $this->assertSame(2, $allocation->periodsCovered);
+        $this->assertSame(800.0, $allocation->creditGenerated);
+    }
+
+    public function test_collector_style_payment_remains_limited_to_currently_due_periods(): void
+    {
+        $loan = $this->eightHundredFinancedLoan();
+        $loan->next_payment_date = '2026-08-15';
+
+        $allocation = $this->service->simulate($loan, 1600, '2026-08-15');
+
+        $this->assertSame(800.0, $allocation->periodicAmountApplied);
+        $this->assertSame(1, $allocation->periodsCovered);
+        $this->assertSame(800.0, $allocation->creditGenerated);
+    }
+
     public function test_selected_through_date_uses_a_partial_first_period_and_the_next_period(): void
     {
         $loan = $this->fortyEightFinancedLoan();
@@ -458,6 +586,30 @@ class LoanPaymentStateServiceTest extends TestCase
         $loan->interest_rate = 20;
         $loan->accrued_interest = 240;
         $loan->daily_payment = 48;
+
+        return $loan;
+    }
+
+    private function fourHundredFinancedLoan(): Loan
+    {
+        $loan = $this->loan('2026-08-16');
+        $loan->original_amount = 10000;
+        $loan->remaining_balance = 12000;
+        $loan->interest_rate = 20;
+        $loan->accrued_interest = 2000;
+        $loan->daily_payment = 400;
+
+        return $loan;
+    }
+
+    private function eightHundredFinancedLoan(): Loan
+    {
+        $loan = $this->loan('2026-08-16');
+        $loan->original_amount = 20000;
+        $loan->remaining_balance = 24000;
+        $loan->interest_rate = 20;
+        $loan->accrued_interest = 4000;
+        $loan->daily_payment = 800;
 
         return $loan;
     }

@@ -1,8 +1,8 @@
 {{-- Registrar pago --}}
 @if($loan->status !== 'paid' && $loan->status !== 'refinanced')
 @php
-    $recommendedAmount = $paymentState->installmentSchedule
-        ? $paymentState->amountToCurrent + (float) $loan->accumulated_penalty + (float) $loan->pending_interest
+    $recommendedAmount = $paymentState->amountToCurrent > 0
+        ? $paymentState->amountToCurrent
         : $paymentState->nextEffectiveAmount;
 @endphp
 <div class="bg-white border rounded-3 p-4 mb-3" style="border-color:#e8e8e8 !important;"

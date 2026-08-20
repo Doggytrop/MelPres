@@ -44,6 +44,7 @@ class PaymentService
                 $amountPaid,
                 $data['payment_date'],
                 $data['selected_through_date'] ?? null,
+                (bool) ($data['authorize_future_periods'] ?? false),
             );
 
             $loan->accumulated_penalty = max(0, round((float) $loan->accumulated_penalty - $allocation->penaltyPayment, 2));
