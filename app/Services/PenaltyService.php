@@ -18,14 +18,10 @@ class PenaltyService
         // Dentro del periodo de gracia → nada
         if ($today->lte($graceEnd)) return;
 
-        // Marcar como vencido
-        if ($loan->status === 'active') {
-            $loan->status = 'overdue';
-        }
-
         // Evitar cobrar dos veces el mismo día
         if ($loan->penalty_last_applied_date &&
             Carbon::parse($loan->penalty_last_applied_date)->isSameDay($today)) {
+            $loan->syncContractualStatus();
             $loan->save();
             return;
         }
@@ -40,6 +36,7 @@ class PenaltyService
         };
 
         $loan->penalty_last_applied_date = $today->toDateString();
+        $loan->syncContractualStatus();
         $loan->save();
     }
 

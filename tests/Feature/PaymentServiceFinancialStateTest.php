@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Services\CompanyContext;
 use App\Services\PaymentService;
+use App\Services\PenaltyService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -196,6 +197,68 @@ class PaymentServiceFinancialStateTest extends TestCase
         $this->assertSame(1, $payment->periods_covered);
         $this->assertSame('48.00', $payment->credit_generated);
         $this->assertSame('48.00', $loan->fresh()->payment_credit);
+    }
+
+    public function test_payment_keeps_the_contract_active_when_overdue_installments_remain_before_due_date(): void
+    {
+        [$loan] = $this->contextualLoan();
+        Carbon::setTestNow('2026-08-20');
+        $loan->update([
+            'original_amount' => 12000,
+            'remaining_balance' => 12000,
+            'daily_payment' => 400,
+            'number_of_periods' => 30,
+            'start_date' => '2026-08-15',
+            'next_payment_date' => '2026-08-16',
+            'due_date' => '2026-09-14',
+        ]);
+
+        $payment = app(PaymentService::class)->applyPayment($loan->fresh(), [
+            'amount_paid' => 800,
+            'payment_date' => '2026-08-20',
+            'authorize_future_periods' => true,
+        ]);
+        $after = $loan->fresh();
+
+        $this->assertSame(2, $payment->periods_covered);
+        $this->assertSame('active', $after->status);
+        $this->assertSame('2026-08-18', $after->next_payment_date->toDateString());
+    }
+
+    public function test_payment_marks_a_pending_contract_overdue_only_after_its_due_date(): void
+    {
+        [$loan] = $this->contextualLoan();
+        Carbon::setTestNow('2026-09-15');
+        $loan->update([
+            'due_date' => '2026-09-14',
+            'next_payment_date' => '2026-09-15',
+        ]);
+
+        app(PaymentService::class)->applyPayment($loan->fresh(), [
+            'amount_paid' => 100,
+            'payment_date' => '2026-09-15',
+        ]);
+
+        $this->assertSame('overdue', $loan->fresh()->status);
+    }
+
+    public function test_penalty_does_not_mark_a_pending_contract_overdue_before_its_due_date(): void
+    {
+        [$loan] = $this->contextualLoan();
+        Carbon::setTestNow('2026-08-20');
+        $loan->update([
+            'penalty_type' => 'fixed',
+            'penalty_value' => 25,
+            'grace_days' => 0,
+            'next_payment_date' => '2026-08-16',
+            'due_date' => '2026-09-14',
+        ]);
+
+        app(PenaltyService::class)->processLoan($loan->fresh());
+        $after = $loan->fresh();
+
+        $this->assertSame('25.00', $after->accumulated_penalty);
+        $this->assertSame('active', $after->status);
     }
 
     private function contextualLoan(): array

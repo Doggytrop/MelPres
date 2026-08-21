@@ -62,16 +62,12 @@ class PaymentService
             $loan->next_payment_date = $allocation->nextPaymentDate;
 
             if ($loan->remaining_balance <= 0 && $loan->pending_interest <= 0) {
-                $loan->status = 'paid';
                 $loan->remaining_balance = 0;
                 $loan->next_payment_date = null;
                 $loan->current_period_balance = 0;
-            } else {
-                $stateAfter = $this->paymentState->state($loan, $data['payment_date']);
-                $loan->status = $stateAfter->overduePeriods > 0 || $loan->accumulated_penalty > 0
-                    ? 'overdue'
-                    : 'active';
             }
+
+            $loan->syncContractualStatus();
 
             $loan->save();
 

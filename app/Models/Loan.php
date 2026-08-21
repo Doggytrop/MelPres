@@ -115,4 +115,26 @@ class Loan extends Model
         if (!$this->next_payment_date) return false;
         return now()->gt($this->next_payment_date->addDays($this->grace_days ?? 0));
     }
+
+    /**
+     * Sync the loan's contract status without conflating it with overdue installments.
+     */
+    public function syncContractualStatus(): void
+    {
+        if ($this->status === 'refinanced') {
+            return;
+        }
+
+        if ($this->remaining_balance <= 0 && $this->pending_interest <= 0) {
+            $this->status = 'paid';
+            return;
+        }
+
+        $today = now()->startOfDay();
+        $dueDate = $this->due_date?->copy()->startOfDay();
+
+        $this->status = $dueDate && $today->gt($dueDate)
+            ? 'overdue'
+            : 'active';
+    }
 }
