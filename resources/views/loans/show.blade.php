@@ -80,8 +80,9 @@
 
 {{-- HEADER --}}
 <div class="bg-white border rounded-3 p-4 mb-3" style="border-color:#e8e8e8 !important;">
-    <div class="d-flex justify-content-between align-items-start">
-        <div class="d-flex align-items-center gap-3">
+    <div class="row gx-2 gx-sm-0 align-items-start">
+        <div class="col-6 col-sm">
+        <div class="d-flex align-items-center gap-3" style="min-width:0;">
             @if($loan->customer->photo_url)
                 <img src="{{ $loan->customer->photo_url }}" alt="Foto"
                      class="rounded-circle" style="width:44px; height:44px; object-fit:cover; flex-shrink:0;">
@@ -91,21 +92,22 @@
                     {{ strtoupper(substr($loan->customer->first_name, 0, 1)) }}
                 </div>
             @endif
-            <div>
+            <div style="min-width:0;">
                 <a href="{{ route('customers.show', $loan->customer) }}"
                    style="font-weight:500; color:#1a2e1a; text-decoration:none; font-size:15px;">
                     {{ $loan->customer->full_name }}
                 </a>
-                <div class="d-flex align-items-center gap-2 mt-1">
-                    <span class="px-2 py-1 rounded-2"
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                    <span class="px-2 py-1 rounded-2 flex-shrink-0"
                           style="background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; font-size:10px; font-weight:600;">
                         {{ $loan->type_label }}
                     </span>
-                    <span class="text-muted" style="font-size:12px;">#{{ $loan->id }} · {{ $loan->frequency_label }} · {{ $loan->interest_rate }}%{{ $loan->type === 'daily' ? ' total' : '' }}</span>
+                    <span class="text-muted" style="font-size:12px;">#{{ $loan->id }}</span>
                 </div>
             </div>
         </div>
-        <div class="text-end">
+        </div>
+        <div class="col-6 col-sm-auto text-end">
             <span class="px-3 py-1 rounded-pill fw-medium"
                   style="background:{{ $statusBadge['bg'] }}; color:{{ $statusBadge['color'] }}; font-size:11px;">
                 {{ $statusBadge['label'] }}
@@ -199,7 +201,7 @@
 
 {{-- RESUMEN RÁPIDO --}}
 <div class="row g-3 mb-3">
-    <div class="col-4">
+    <div class="col-12 col-sm-4">
         <div class="bg-white border rounded-3 p-3 text-center" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">
                 {{ $loan->type === 'daily' ? 'Pago diario' : 'Pago por periodo' }}
@@ -210,14 +212,14 @@
             <span class="text-muted" style="font-size:11px;">{{ $loan->frequency_label }}</span>
         </div>
     </div>
-    <div class="col-4">
+    <div class="col-12 col-sm-4">
         <div class="bg-white border rounded-3 p-3 text-center" style="border-color:#e8e8e8 !important;">
             <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Total pagado</span>
             <span class="d-block fw-medium mt-1" style="font-size:22px; color:#1a2e1a;">${{ number_format($totalPagado, 2) }}</span>
             <span class="text-muted" style="font-size:11px;">{{ $loan->payments->count() }} pagos</span>
         </div>
     </div>
-    <div class="col-4">
+    <div class="col-12 col-sm-4">
         <div class="bg-white border rounded-3 p-3 text-center" style="border-color:{{ $loan->accumulated_penalty > 0 ? '#f5c6c6' : '#e8e8e8' }} !important;">
             <span class="d-block text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.05em;">Mora</span>
             <span class="d-block fw-medium mt-1" style="font-size:22px; color:{{ $loan->accumulated_penalty > 0 ? '#c0392b' : '#1a2e1a' }};">
